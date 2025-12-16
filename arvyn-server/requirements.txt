@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-socketio[asgi]
+langgraph
+playwright
+google-genai
+pydantic
+python-dotenv
+pillow 
