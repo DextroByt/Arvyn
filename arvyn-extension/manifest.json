@@ -1,0 +1,30 @@
+{
+    "manifest_version": 3,
+    "name": "Arvyn Omni-Widget",
+    "version": "1.0",
+    "description": "Arvyn: The Large Action Model Sidecar for Financial Automation.",
+    "permissions": [
+        "storage",
+        "scripting",
+        "microphone" 
+    ],
+    "host_permissions": [
+        "*://*.dummy-bank.com/*", 
+        "http://localhost:8000/*" 
+    ],
+    "content_scripts": [
+        {
+            "matches": ["*://*.dummy-bank.com/*"],
+            "js": ["content.js"],
+            "run_at": "document_idle"
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": ["app.js", "socket.js", "styles/widget.css", "lib/socket.io.min.js"],
+            "matches": ["*://*.dummy-bank.com/*"]
+        }
+    ]
+}
+
+
