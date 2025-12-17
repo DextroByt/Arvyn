@@ -1,3 +1,6 @@
+# arvyn-server/tools/actions.py
+
+# CHANGE: Use Async API
 from playwright.async_api import Page, TimeoutError as PlaywrightTimeoutError
 
 # Timeout for individual element interactions
@@ -9,6 +12,7 @@ async def click_element(page: Page, selector: str):
     Raises PlaywrightTimeoutError on failure to trigger the self-healing cycle.
     """
     try:
+        # CHANGE: Added await
         await page.click(selector, timeout=DEFAULT_TIMEOUT)
         return True
     except PlaywrightTimeoutError as e:
@@ -25,6 +29,7 @@ async def fill_form_field(page: Page, selector: str, value: str):
     Raises PlaywrightTimeoutError on failure to trigger the self-healing cycle.
     """
     try:
+        # CHANGE: Added await
         await page.fill(selector, value, timeout=DEFAULT_TIMEOUT)
         return True
     except PlaywrightTimeoutError as e:
@@ -39,4 +44,5 @@ async def visual_click(page: Page, x: int, y: int):
     Executes a click based on VLM-provided X, Y coordinates, bypassing the DOM structure.
     """
     # Playwright's mouse click is executed relative to the viewport
+    # CHANGE: Added await
     await page.mouse.click(x, y)

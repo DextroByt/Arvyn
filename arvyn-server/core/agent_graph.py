@@ -4,6 +4,7 @@ import socketio
 from typing import TypedDict, Optional, Dict, Any
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver 
+# CHANGE: Switch to Async API to match Main and Vision Healer
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 from langchain_core.runnables import RunnableConfig
 
@@ -20,7 +21,7 @@ ACTIVE_SESSIONS: Dict[str, Any] = {}
 # Global reference to Socket.IO server
 SERVER_SIO = None
 
-# --- Socket.IO Status Push Utility (With Console Logging) ---
+# --- Socket.IO Status Push Utility ---
 async def graph_status_pusher(sio: socketio.AsyncServer, session_id: str, message: str, status: str, details: Optional[dict] = None):
     """Pushes real-time status updates back to the client Sidecar AND prints to Console."""
     
@@ -95,6 +96,7 @@ async def navigator_node(state: AgentState, config: RunnableConfig):
         
         target_url = "https://roshan-chaudhary13.github.io/rio_finance_bank/" 
         
+        # CHANGE: Added await for async page property/method
         if target_url not in page.url:
              await page.goto(target_url, wait_until="networkidle")
         return {"status": "NAVIGATED"}
@@ -123,13 +125,12 @@ async def filler_node(state: AgentState, config: RunnableConfig):
         
         # --- LOGIC BRANCHING BASED ON INTENT ---
         if action == 'login':
-            # Try generic selectors for Login
-            # Note: We attempt these. If they fail, Visual Healer catches the exception.
+            # CHANGE: Added await
             await fill_form_field(page, "input[type='email'], input[name='username'], #username", intent.get('username', ''))
             await fill_form_field(page, "input[type='password'], #password", intent.get('password', ''))
         
-        elif action in ['transfer', 'pay_bill']:
-            # Try generic selectors for Transfer
+        elif action in ['transfer', 'pay_bill', 'purchase', 'buy']:
+             # CHANGE: Added await
             await fill_form_field(page, "#recipient-input, input[name='recipient']", intent.get('recipient', ''))
             await fill_form_field(page, "#amount-input, input[name='amount']", str(intent.get('amount', '')))
 
@@ -155,13 +156,15 @@ async def visual_heal_node(state: AgentState, config: RunnableConfig):
     try:
         page = get_page_from_session(session_id)
         
-        # Dynamic description based on action
         if intent.get('action') == 'login':
              target_description = "Find the username or password input field."
         else:
              target_description = f"Find the input field for {intent.get('action', 'transaction')} details."
         
+        # CHANGE: Added await for visual_self_heal
         x, y = await visual_self_heal(page, target_description)
+        
+        # CHANGE: Added await for visual_click
         await visual_click(page, x, y)
         await asyncio.sleep(2) 
         
@@ -181,7 +184,7 @@ async def human_approval_node(state: AgentState, config: RunnableConfig):
     is_critical = intent.get('critical', True)
     action = intent.get('action')
 
-    # SKIP approval for Login commands to make flow smoother
+    # Skip approval for login
     if action == 'login':
         return {"status": "SKIP_APPROVAL"}
 
@@ -216,7 +219,7 @@ async def executor_node(state: AgentState, config: RunnableConfig):
     try:
         page = get_page_from_session(session_id)
         
-        # Generic submit button selector that works for Login or Transfer forms
+        # CHANGE: Added await
         await click_element(page, "button[type='submit'], input[type='submit'], #submit-btn, #login-btn")
         
         return {"status": "TRANSACTION_SENT"}
@@ -244,18 +247,15 @@ async def auditor_node(state: AgentState, config: RunnableConfig):
 def decide_next_step(state: AgentState):
     status = state.get('status')
     
-    # 1. Success Paths
     if status == "FORM_FILLED":
         return "human_approval"
     
     if status in ["APPROVAL_GRANTED", "SKIP_APPROVAL"]:
         return "executor"
         
-    # 2. Interrupts
     if status == 'PAUSED_AWAITING_AUTH':
         return END 
     
-    # 3. Error/Retry Paths
     if status == 'SELECTOR_FAILED':
         return "visual_heal"
         

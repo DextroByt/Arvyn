@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Arvyn Omni-Widget",
+  "name": "Arvyn FinAgent Omni-Widget",
   "version": "1.2",
   "description": "Arvyn: The Large Action Model Sidecar for Financial Automation.",
   "permissions": [
+    "activeTab",
     "storage",
     "scripting"
   ],
@@ -16,10 +17,9 @@
       "matches": [
         "https://roshan-chaudhary13.github.io/*"
       ],
-      "js": [
-        "content.js"
-      ],
-      "run_at": "document_idle"
+      "css": ["styles/widget.css"],
+      "js": ["lib/socket.io.min.js", "content.js"],
+      "run_at": "document_end"
     }
   ],
   "web_accessible_resources": [

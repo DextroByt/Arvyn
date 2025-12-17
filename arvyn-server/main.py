@@ -8,13 +8,13 @@ from dotenv import load_dotenv
 import asyncio
 import uuid
 from typing import Dict, Any
-# Use Async API
+
+# --- CRITICAL: Use Async API to prevent Event Loop Crashes ---
 from playwright.async_api import async_playwright, Page 
 from google import genai
 from google.genai import types
 
 # Internal imports
-# We import ACTIVE_SESSIONS to register the browser connection globally
 from core.agent_graph import create_agent_executor, AgentState, graph_status_pusher, ACTIVE_SESSIONS
 
 load_dotenv()
@@ -22,6 +22,10 @@ load_dotenv()
 # --- Configuration ---
 SOCKETIO_SERVER_URL = os.getenv("SOCKETIO_SERVER_URL", "http://127.0.0.1:8000")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+# --- Global Task Registry (For Emergency Halt) ---
+# Maps session_id -> asyncio.Task
+RUNNING_TASKS: Dict[str, asyncio.Task] = {}
 
 # --- Initialize FastAPI and Socket.IO ---
 sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
@@ -39,41 +43,27 @@ app.add_middleware(
 # Initialize LangGraph
 graph_executor = create_agent_executor(sio)
 
-# --- Connection Container ---
+# --- Connection Placeholder ---
 class PageContextPlaceholder:
-    """
-    Holds references to the Playwright objects to keep the session alive
-    in the global ACTIVE_SESSIONS registry.
-    """
     def __init__(self, page: Page, browser, playwright):
         self.page = page
         self.browser = browser
         self.playwright = playwright
 
-# --- REAL Speech-to-Text Function (Gemini Powered) ---
+# --- REAL Speech-to-Text (Gemini) ---
 async def transcribe_audio(audio_bytes: bytes, mime_type: str) -> str:
-    """
-    Sends the audio file to Gemini 2.5 Flash for transcription.
-    """
-    print(f"🎙️ Transcribing audio ({len(audio_bytes)} bytes, type: {mime_type})...")
-    
+    print(f"🎙️ Transcribing audio ({len(audio_bytes)} bytes)...")
     if not GEMINI_API_KEY:
-        print("❌ Error: GEMINI_API_KEY is missing in .env")
         return "Error: API Key Missing"
 
     client = genai.Client(api_key=GEMINI_API_KEY)
-    
-    prompt = "Transcribe the following audio command exactly as spoken. Return ONLY the text, no other commentary."
+    prompt = "Transcribe the following audio command exactly as spoken. Return ONLY the text."
 
-    # Run blocking API call in a thread to keep server async
     def _call_gemini():
         try:
             response = client.models.generate_content(
                 model='gemini-2.5-flash',
-                contents=[
-                    prompt,
-                    types.Part.from_bytes(data=audio_bytes, mime_type=mime_type)
-                ]
+                contents=[prompt, types.Part.from_bytes(data=audio_bytes, mime_type=mime_type)]
             )
             return response.text.strip()
         except Exception as e:
@@ -88,97 +78,107 @@ async def transcribe_audio(audio_bytes: bytes, mime_type: str) -> str:
 
 # --- Helper: Dynamic Browser Connection (ASYNC) ---
 async def get_browser_page():
-    """
-    Connects to the running Chrome instance using Async Playwright.
-    Returns: (page, browser, playwright_instance)
-    """
     try:
-        # 1. Get the dynamic WebSocket URL from Chrome
+        # 1. Fetch WebSocket URL
         response = requests.get("http://127.0.0.1:9222/json/version", timeout=2)
         if response.status_code != 200:
-            raise Exception(f"Chrome Debugger API returned status {response.status_code}")
+            raise Exception(f"Chrome Debugger API Error: {response.status_code}")
         
-        data = response.json()
-        ws_url = data.get("webSocketDebuggerUrl")
-        
+        ws_url = response.json().get("webSocketDebuggerUrl")
         if not ws_url:
-            raise Exception("No webSocketDebuggerUrl found. Is Chrome running with --remote-debugging-port=9222?")
-            
+            raise Exception("No webSocketDebuggerUrl found.")
+
         print(f"🔗 Connecting to Chrome at: {ws_url}")
 
-        # 2. Connect Playwright (ASYNC)
+        # 2. Connect Playwright (Async)
         pw = await async_playwright().start()
         browser = await pw.chromium.connect_over_cdp(ws_url)
         
-        # 3. Get the active context and page
+        # 3. Get Page
         default_context = browser.contexts[0]
-        if not default_context.pages:
-            # Create a new page if none exist
-            page = await default_context.new_page()
-        else:
-            # Attach to the first open tab
-            page = default_context.pages[0]
+        page = await default_context.new_page() if not default_context.pages else default_context.pages[0]
             
         return page, browser, pw
 
-    except requests.exceptions.ConnectionError:
-        raise Exception("Could not reach http://127.0.0.1:9222. Please start Chrome with --remote-debugging-port=9222")
     except Exception as e:
         raise Exception(f"Browser Connection Failed: {str(e)}")
 
-
-# --- Socket.IO Listener: Resolves Conscious Pause ---
+# --- Socket Listener: User Decisions ---
 @sio.on('user_decision')
 async def handle_user_decision(sid, data: Dict[str, Any]):
     session_id = data.get("session_id")
     decision = data.get("decision")
+    print(f"🔔 User Decision for {session_id}: {decision}")
     
-    if not session_id or decision not in ["approved", "cancelled"]:
-        print("Error: Invalid payload.")
-        return
-
-    print(f"Received user decision for Session {session_id}: {decision}")
-    
-    # Update state to resolve interrupt
+    # Resume graph execution
     new_input = {"user_approved": decision == "approved"}
     config = {"configurable": {"thread_id": session_id}}
     
+    # We wrap resume in a task too, so it can be halted if it hangs
+    task = asyncio.create_task(graph_executor.ainvoke(new_input, config=config))
+    RUNNING_TASKS[session_id] = task
+    
     try:
-        await graph_executor.ainvoke(new_input, config=config)
+        await task
+    except asyncio.CancelledError:
+        print(f"🚫 Task {session_id} cancelled during resume.")
     except Exception as e:
-        print(f"Error resuming graph: {e}")
-        await graph_status_pusher(sio, session_id, "Critical Error during Resume.", 'CRITICAL_HALT')
+        print(f"❌ Error resuming graph: {e}")
+    finally:
+        RUNNING_TASKS.pop(session_id, None)
 
-# --- FastAPI Endpoint: Command Ingress ---
+# --- CRITICAL: Emergency Halt Listener ---
+@sio.on('halt_session')
+async def handle_halt_session(sid, data: Dict[str, Any]):
+    session_id = data.get("session_id")
+    print(f"🛑 Emergency Halt Requested for Session: {session_id}")
+    
+    # 1. Cancel the asyncio Task
+    task = RUNNING_TASKS.get(session_id)
+    if task:
+        task.cancel()
+        print(f"✅ Task {session_id} cancelled.")
+    
+    # 2. Close Browser Resources
+    if session_id in ACTIVE_SESSIONS:
+        ctx = ACTIVE_SESSIONS[session_id]
+        try:
+            # We don't close the whole browser (it kills Chrome), just cleanup refs
+            # If you want to close the TAB, uncomment below:
+            # await ctx.page.close() 
+            pass
+        except Exception as e:
+            print(f"⚠️ cleanup error: {e}")
+        del ACTIVE_SESSIONS[session_id]
+
+    # 3. Notify Frontend
+    await graph_status_pusher(sio, session_id, "Process terminated by user.", 'CRITICAL_HALT')
+
+# --- FastAPI Endpoint ---
 @app.post("/command", status_code=status.HTTP_202_ACCEPTED)
 async def handle_command(audio_file: UploadFile = File(...)):
-    # Validate content type
     if not audio_file.content_type.startswith("audio/"):
         raise HTTPException(status_code=400, detail="Invalid file type.")
     
-    # 1. Read and Transcribe
+    # 1. Transcribe
     audio_content = await audio_file.read()
     transcribed_text = await transcribe_audio(audio_content, audio_file.content_type)
-    
     session_id = str(uuid.uuid4())
+    
     print(f"🎤 New Command: {transcribed_text} (Session: {session_id})")
 
+    # 2. Connect Browser
     try:
-        # 2. Establish Async Connection
         page, browser, pw = await get_browser_page()
-        
-        # 3. STORE IN GLOBAL REGISTRY
+        # Register in Active Sessions
         ACTIVE_SESSIONS[session_id] = PageContextPlaceholder(page, browser, pw)
-        
-        title = await page.title()
-        print(f"✅ CDP connection established. Page Title: {title}")
-        
+        print(f"✅ Connection Active. Title: {await page.title()}")
     except Exception as e:
         print(f"❌ Connection Error: {e}")
-        await graph_status_pusher(sio, session_id, "Browser Connection Lost.", 'CDP_DISCONNECTED')
+        await graph_status_pusher(sio, session_id, "Browser Connection Failed.", 'CDP_DISCONNECTED')
         raise HTTPException(status_code=503, detail=str(e))
-        
-    # 4. Initialize State
+
+    # 3. Start Agent
     initial_state = AgentState(
         input=transcribed_text,
         intent_json={},
@@ -190,16 +190,22 @@ async def handle_command(audio_file: UploadFile = File(...)):
     )
     
     config = {"configurable": {"thread_id": session_id}}
-    
+
     async def run_graph():
         try:
             await graph_executor.ainvoke(initial_state, config=config)
+        except asyncio.CancelledError:
+            print(f"🚫 Session {session_id} execution cancelled.")
         except Exception as e:
-            print(f"Graph exception: {e}")
-            await graph_status_pusher(sio, session_id, "Internal Execution Error.", 'CRITICAL_HALT')
+            print(f"❌ Graph Error: {e}")
+            await graph_status_pusher(sio, session_id, "Internal Error.", 'FAILURE')
+        finally:
+            # Clean up task registry
+            RUNNING_TASKS.pop(session_id, None)
 
-    # Start the graph execution in the background
-    asyncio.create_task(run_graph())
+    # Track the task globally so we can Halt it
+    task = asyncio.create_task(run_graph())
+    RUNNING_TASKS[session_id] = task
     
     return {"message": "Command initiated", "session_id": session_id}
 
