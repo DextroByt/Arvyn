@@ -1,9 +1,8 @@
 fastapi
-uvicorn
+uvicorn[standard]
 python-socketio[asgi]
 langgraph
 playwright
 google-genai
 pydantic
 python-dotenv
-pillow 

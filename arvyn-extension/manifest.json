@@ -6,25 +6,23 @@
     "permissions": [
         "storage",
         "scripting",
-        "microphone" 
+        "microphone"
     ],
     "host_permissions": [
-        "*://*.dummy-bank.com/*", 
+        "https://roshan-chaudhary13.github.io/*", 
         "http://localhost:8000/*" 
     ],
     "content_scripts": [
         {
-            "matches": ["*://*.dummy-bank.com/*"],
-            "js": ["content.js"],
+            "matches": [ "https://roshan-chaudhary13.github.io/*" ],
+            "js": [ "content.js" ],
             "run_at": "document_idle"
         }
     ],
     "web_accessible_resources": [
         {
-            "resources": ["app.js", "socket.js", "styles/widget.css", "lib/socket.io.min.js"],
-            "matches": ["*://*.dummy-bank.com/*"]
+            "resources": [ "app.js", "socket.js", "styles/widget.css", "lib/socket.io.min.js" ],
+            "matches": [ "https://roshan-chaudhary13.github.io/*" ]
         }
     ]
 }
-
-

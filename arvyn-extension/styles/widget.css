@@ -1,35 +1,117 @@
-// arvyn-extension/content.js
+/* arvyn-extension/styles/widget.css */
 
-// Injects the root widget container and dynamic scripts 
-(function() {
-    const WIDGET_ID = 'arvyn-omni-widget-root';
-    if (document.getElementById(WIDGET_ID)) {
-        return; 
-    }
+/* The Root Container: Injected via content.js */
+#arvyn-omni-widget-root {
+    position: fixed !important; /* Ensures the widget stays in place during scrolling [cite: 142] */
+    top: 20px;
+    right: 20px;
+    width: 350px;
+    max-height: 80vh;
+    background-color: #ffffff;
+    border: 2px solid #2c3e50;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    z-index: 999999999999; /* Maximum possible z-index to stay on top of all bank UI elements  */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
 
-    // 1. Create and inject the root container
-    const widgetRoot = document.createElement('div');
-    widgetRoot.id = WIDGET_ID;
-    document.body.appendChild(widgetRoot);
+/* Status Indicator Text */
+.arvyn-status {
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 16px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
 
-    // 2. Load necessary CSS and functional JS files dynamically
-    const loadResource = (file, tag) => {
-        const element = document.createElement(tag);
-        if (tag === 'link') {
-            element.href = chrome.runtime.getURL(file);
-            element.type = 'text/css';
-            element.rel = 'stylesheet';
-        } else if (tag === 'script') {
-            element.src = chrome.runtime.getURL(file);
-        }
-        document.head.appendChild(element);
-    };
+/* Specific status colors for visibility */
+.arvyn-status-pause {
+    color: #e67e22; /* Orange for AWAITING_APPROVAL [cite: 233] */
+    animation: pulse 1.5s infinite;
+}
 
-    loadResource('styles/widget.css', 'link');
-    // Assuming Socket.IO client library is bundled/local (lib/socket.io.min.js)
-    loadResource('lib/socket.io.min.js', 'script');
-    loadResource('socket.js', 'script'); 
-    loadResource('app.js', 'script'); 
-})();
+/* Feedback area for STT interpretation [cite: 230] */
+.arvyn-feedback {
+    background-color: #f8f9fa;
+    border-left: 4px solid #3498db;
+    padding: 10px;
+    font-size: 14px;
+    color: #34495e;
+}
 
+/* The Transaction Bond (Conscious Pause Card) [cite: 24, 231] */
+.arvyn-card {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
 
+.arvyn-card h4 {
+    margin: 0 0 10px 0;
+    color: #856404;
+    font-size: 14px;
+}
+
+.arvyn-card p {
+    margin: 5px 0;
+    font-size: 13px;
+}
+
+/* Buttons */
+button {
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 15px;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+#arvyn-mic-button {
+    background-color: #3498db;
+    color: white;
+    width: 100%;
+}
+
+#arvyn-mic-button:hover {
+    background-color: #2980b9;
+}
+
+#arvyn-mic-button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+/* Handshake Buttons [cite: 150, 233] */
+.arvyn-button-approve {
+    background-color: #27ae60;
+    color: white;
+    margin-right: 10px;
+}
+
+.arvyn-button-approve:hover {
+    background-color: #219150;
+}
+
+.arvyn-button-cancel {
+    background-color: #c0392b;
+    color: white;
+}
+
+.arvyn-button-cancel:hover {
+    background-color: #a93226;
+}
+
+/* Animations for the Conscious Pause */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
