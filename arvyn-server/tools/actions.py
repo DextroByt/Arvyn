@@ -1,51 +1,42 @@
-# arvyn-server/tools/actions.py
-from playwright.sync_api import Page
-from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
-# Timeout for individual element interactions (in milliseconds)
-DEFAULT_TIMEOUT = 10000 
+from playwright.async_api import Page, TimeoutError as PlaywrightTimeoutError
 
-def click_element(page: Page, selector: str) -> bool:
+# Timeout for individual element interactions
+DEFAULT_TIMEOUT = 10000
+
+async def click_element(page: Page, selector: str):
     """
-    Attempts to click an element using a standard CSS selector.
+    Attempts to click an element using a standard selector.
     Raises PlaywrightTimeoutError on failure to trigger the self-healing cycle.
     """
     try:
-        # Playwright's auto-waiting is implicitly used
-        page.click(selector, timeout=DEFAULT_TIMEOUT)
+        await page.click(selector, timeout=DEFAULT_TIMEOUT)
         return True
     except PlaywrightTimeoutError as e:
-        # Structured error propagation: The exception is the symbolic trigger 
+        # Structured error propagation: The exception is the symbolic trigger
         error_msg = f"SELECTOR_TIMEOUT: Element not found or timed out using selector: {selector}."
-        # Re-raise the structured error with a clear message for the graph state
-        raise PlaywrightTimeoutError(error_msg) from e
+        raise PlaywrightTimeoutError(error_msg)
     except Exception as e:
-        # Handle unexpected runtime errors during the click action
         print(f"An unexpected error occurred during click: {e}")
         raise
 
-def fill_form_field(page: Page, selector: str, value: str) -> bool:
+async def fill_form_field(page: Page, selector: str, value: str):
     """
-    Attempts to fill a form field using a standard selector.
+    Attempts to fill a form field.
     Raises PlaywrightTimeoutError on failure to trigger the self-healing cycle.
     """
     try:
-        page.fill(selector, value, timeout=DEFAULT_TIMEOUT)
+        await page.fill(selector, value, timeout=DEFAULT_TIMEOUT)
         return True
     except PlaywrightTimeoutError as e:
-        # Structured error propagation: This is the symbolic trigger [cite: 132, 140]
         error_msg = f"SELECTOR_TIMEOUT: Field not found or timed out using selector: {selector}."
-        # Re-raise the structured error
-        raise PlaywrightTimeoutError(error_msg) from e
+        raise PlaywrightTimeoutError(error_msg)
     except Exception as e:
-        # Handle unexpected runtime errors during the fill action
         print(f"An unexpected error occurred during fill: {e}")
         raise
 
-def visual_click(page: Page, x: int, y: int):
+async def visual_click(page: Page, x: int, y: int):
     """
-    Executes a direct mouse click based on VLM-provided X, Y coordinates, 
-    effectively bypassing the DOM structure when selectors fail. [cite: 134, 140]
+    Executes a click based on VLM-provided X, Y coordinates, bypassing the DOM structure.
     """
     # Playwright's mouse click is executed relative to the viewport
-    # This is the final action of the Neuro pathway. [cite: 133, 140]
-    page.mouse.click(x, y)
+    await page.mouse.click(x, y)

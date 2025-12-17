@@ -1,72 +1,80 @@
-# arvyn-server/core/agent_graph.py
 import os
 import asyncio
-from typing import TypedDict, Optional, Dict, Any
-
-# LangGraph dependencies
-from langgraph.graph import StateGraph, END
-from langgraph.checkpoint.sqlite import SqliteSaver
-
-# External dependencies and tools
 import socketio
-from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
+from typing import TypedDict, Optional, Dict, Any
+from langgraph.graph import StateGraph, END
+from langgraph.checkpoint.memory import MemorySaver 
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
+from langchain_core.runnables import RunnableConfig
 
-# Local imports
+# Internal imports
 from tools.actions import fill_form_field, click_element, visual_click
-from tools.browser import PageContextPlaceholder 
 from core.intent_parser import parse_financial_intent
 from core.vision_healer import visual_self_heal
 
-# --- Constants and Configuration ---
-MAX_RETRIES = 3 # Maximum attempts for the Visual Self-Healing cycle [cite: 151, 162, 178]
+MAX_RETRIES = 3
 
-# --- 1. Defining the Persistent State (TypedDict Schema) ---
-class AgentState(TypedDict):
-    """
-    The state persisted across LangGraph checkpoints, implemented as a TypedDict 
-    for consistent data types and schema enforcement[cite: 144, 146].
-    """
-    input: str                         # Initial transcription from STT [cite: 146]
-    intent_json: dict                  # Structured, Pydantic-validated output from VLM parser [cite: 146]
-    status: str                        # Current operational state for real-time UI updates (via Socket.IO) [cite: 147]
-    user_approved: bool                # Flag updated externally to resolve the Conscious Pause [cite: 147, 405]
-    error: Optional[str]               # Stores Playwright exceptions (e.g., TimeoutError) for recovery [cite: 147, 395]
-    page_context: object               # Reference to the non-serializable Playwright Page object [cite: 144, 147]
-    retries: int                       # Counter limiting recursive visual healing attempts [cite: 147, 395]
-    session_id: str                    # Unique identifier (used as LangGraph thread_id and Socket.IO room ID) [cite: 147, 395]
+# --- GLOBAL REGISTRY FOR NON-SERIALIZABLE OBJECTS ---
+ACTIVE_SESSIONS: Dict[str, Any] = {}
 
-# --- 2. Socket.IO Status Push Utility ---
+# Global reference to Socket.IO server
+SERVER_SIO = None
+
+# --- Socket.IO Status Push Utility (With Console Logging) ---
 async def graph_status_pusher(sio: socketio.AsyncServer, session_id: str, message: str, status: str, details: Optional[dict] = None):
-    """Pushes real-time status updates back to the client Sidecar for operational transparency[cite: 151, 152]."""
+    """Pushes real-time status updates back to the client Sidecar AND prints to Console."""
+    
+    print(f"🚀 [Graph Status] {status}: {message}")
+
+    if sio is None:
+        return
+
     payload = {
         "message": message,
         "status": status,
         "session_id": session_id,
         "details": details if details is not None else {}
     }
-    # Emits to the specific room identified by the session_id
     await sio.emit('status_update', payload, room=session_id)
 
-# --- 3. Graph Node Definitions ---
+class AgentState(TypedDict):
+    """The state persisted across LangGraph checkpoints."""
+    input: str
+    intent_json: dict
+    status: str
+    user_approved: bool
+    error: Optional[str]
+    retries: int
+    session_id: str
 
-async def analyze_node(state: AgentState, config: dict):
-    """Node 1: Parses raw input into structured intent via VLM (Semantic Intent Parsing)[cite: 153, 398]."""
+# --- Helper to get Page ---
+def get_page_from_session(session_id: str):
+    context = ACTIVE_SESSIONS.get(session_id)
+    if not context or not hasattr(context, 'page'):
+        raise ValueError(f"No active browser context found for session {session_id}")
+    return context.page
+
+# --- Graph Node Definitions ---
+
+async def analyze_node(state: AgentState, config: RunnableConfig):
     session_id = state['session_id']
-    sio = config['sio']
-
+    sio = SERVER_SIO
     await graph_status_pusher(sio, session_id, "Analyzing command...", 'ANALYZING')
 
     try:
-        # Use Pydantic-enforced VLM call
         intent = parse_financial_intent(state['input'])
-
-        # Pre-emptive Text Feedback (Mitigation 3.2.B)
-        await graph_status_pusher(sio, session_id,
-            f"Agent interpretation: 'I heard: {state['input']}' - Parsed: {intent['action']} ${intent['amount']} to {intent['recipient']}.",
-            'PARSING_COMPLETE', 
-            {'transcribed_text': state['input'], 'action': intent['action']}
-        )
         
+        # Determine display string based on action
+        if intent['action'] == 'login':
+            action_desc = f"Login as {intent.get('username')}"
+        else:
+            action_desc = f"{intent['action']} ${intent.get('amount')} to {intent.get('recipient')}"
+
+        await graph_status_pusher(sio, session_id, 
+            f"Parsed command: {action_desc}", 
+            'PARSING_COMPLETE', {'transcribed_text': state['input']}
+        )
+
         return {
             "intent_json": intent,
             "status": "INTENT_PARSED",
@@ -76,218 +84,196 @@ async def analyze_node(state: AgentState, config: dict):
         await graph_status_pusher(sio, session_id, "Intent parsing failed. Terminating.", 'FAILURE')
         return {"error": f"INTENT_PARSE_ERROR: {e}", "status": "FAILURE"}
 
-async def navigator_node(state: AgentState, config: dict):
-    """Node 2: Navigates the browser to the required financial action page[cite: 156, 399]."""
-    page = state['page_context'].page
+async def navigator_node(state: AgentState, config: RunnableConfig):
     session_id = state['session_id']
-    sio = config['sio']
-
-    await graph_status_pusher(sio, session_id, "NAVIGATING to required page...", 'NAVIGATING')
+    sio = SERVER_SIO
     
-    # In a real system, the target URL would be dynamically determined by intent['action']
-    target_url = "https://www.dummy-bank.com/transfer"
-
     try:
-        # Prevents unnecessary navigation if already on the correct page
-        if page.url != target_url:
-            page.goto(target_url, wait_until="networkidle") 
+        page = get_page_from_session(session_id)
+        
+        await graph_status_pusher(sio, session_id, "NAVIGATING to required page...", 'NAVIGATING')
+        
+        target_url = "https://roshan-chaudhary13.github.io/rio_finance_bank/" 
+        
+        if target_url not in page.url:
+             await page.goto(target_url, wait_until="networkidle")
         return {"status": "NAVIGATED"}
+        
+    except ValueError as ve:
+        return {"error": str(ve), "status": "FAILURE"}
     except PlaywrightTimeoutError as e:
-        # Navigation failure is considered unrecoverable by the healing mechanism
         await graph_status_pusher(sio, session_id, "Navigation timeout. Cannot proceed.", 'FAILURE')
         return {"error": f"NAV_TIMEOUT: {e}", "status": "FAILURE"}
+    except Exception as e:
+         return {"error": f"NAV_ERROR: {e}", "status": "FAILURE"}
 
-async def filler_node(state: AgentState, config: dict):
-    """Node 3: Attempts form filling and interaction using deterministic Playwright selectors[cite: 158, 400]."""
-    page = state['page_context'].page
+async def filler_node(state: AgentState, config: RunnableConfig):
     session_id = state['session_id']
-    sio = config['sio']
+    sio = SERVER_SIO
     intent = state['intent_json']
+    action = intent.get('action')
     
-    await graph_status_pusher(sio, session_id, "FILLING form fields (Deterministic Attempt)...", 'FILLING_FORM')
+    if state.get("status") == "FAILURE":
+        return {"status": "FAILURE"}
 
+    await graph_status_pusher(sio, session_id, "FILLING form fields...", 'FILLING_FORM')
+    
     try:
-        # Attempt deterministic actions (prone to SelectorTimeout)
-        fill_form_field(page, "input[name='amount']", str(intent['amount']))
-        fill_form_field(page, "input[name='recipient']", intent['recipient'])
+        page = get_page_from_session(session_id)
         
-        # Attempt to click the next button to advance the transaction flow
-        click_element(page, "button#review_button") 
+        # --- LOGIC BRANCHING BASED ON INTENT ---
+        if action == 'login':
+            # Try generic selectors for Login
+            # Note: We attempt these. If they fail, Visual Healer catches the exception.
+            await fill_form_field(page, "input[type='email'], input[name='username'], #username", intent.get('username', ''))
+            await fill_form_field(page, "input[type='password'], #password", intent.get('password', ''))
         
-        # Success: reset error and retries count
+        elif action in ['transfer', 'pay_bill']:
+            # Try generic selectors for Transfer
+            await fill_form_field(page, "#recipient-input, input[name='recipient']", intent.get('recipient', ''))
+            await fill_form_field(page, "#amount-input, input[name='amount']", str(intent.get('amount', '')))
+
         return {"status": "FORM_FILLED", "error": None, "retries": 0} 
-        
+
     except PlaywrightTimeoutError as e:
-        # Structured exception (SYMBOLIC TRIGGER) that initiates the resilience cycle [cite: 132, 386]
         return {"error": str(e), "status": "SELECTOR_FAILED"}
     except Exception as e:
-        await graph_status_pusher(sio, session_id, "Unexpected execution error during form filling.", 'FAILURE')
+        await graph_status_pusher(sio, session_id, f"Execution error: {e}", 'FAILURE')
         return {"error": f"EXECUTION_ERROR: {e}", "status": "FAILURE"}
 
-async def visual_heal_node(state: AgentState, config: dict):
-    """Node 4: Executes Visual Self-Healing (Neuro Component) if a selector fails[cite: 161, 402]."""
-    page = state['page_context'].page
+async def visual_heal_node(state: AgentState, config: RunnableConfig):
     session_id = state['session_id']
-    sio = config['sio']
-    
-    # Guardrail: Check max retries [cite: 162]
-    if state['retries'] >= MAX_RETRIES:
-        await graph_status_pusher(sio, session_id,
-            "Visual Self-Healing failed after max retries. Halting.", 'FAILURE')
-        return {"status": "FAILURE", "error": "MAX_RETRIES_EXCEEDED"}
-        
-    await graph_status_pusher(sio, session_id,
-        f"Selector failed. Initiating Visual Self-Healing (Retry {state['retries'] + 1})...",
-        'SELF_HEALING'
-    )
-    
-    try:
-        # Enhanced Prompt Grounding (Mitigation 3.1.B) [cite: 198, 356]
-        target_description = f"Find the next logical button, typically 'Continue' or 'Review', given the transaction details: {state['intent_json']['action']} to {state['intent_json']['recipient']} for ${state['intent_json']['amount']}."
-        
-        # Multimodal VLM call returns X, Y coordinates [cite: 199, 402]
-        x, y = visual_self_heal(page, target_description)
-        
-        # Execute VLM-guided click, bypassing the DOM structure [cite: 134, 140]
-        visual_click(page, x, y)
-        
-        # Post-Click Validation (Mitigation 3.1.A): Wait and check if page state advanced [cite: 356, 165]
-        await asyncio.sleep(2)
-        # Verify the success by checking for an expected subsequent element
-        page.wait_for_selector("h2:has-text('Review Transaction')", timeout=5000)
-        
-        # Success: reset error, increment retry count for safety
-        return {"error": None, "status": "HEALED", "retries": state['retries'] + 1} 
-        
-    except Exception as e:
-        # Healing failed, increment retry count and loop back
-        await graph_status_pusher(sio, session_id, f"VLM click or post-click validation failed: {e}", 'HEALING_FAILED')
-        return {"error": f"VLM_HEAL_FAILED: {e}", "status": "HEALING_FAILED", "retries": state['retries'] + 1}
-
-async def human_approval_node(state: AgentState, config: dict):
-    """Node 5: Enforces the Conscious Pause Protocol (Symbolic Safety Layer)[cite: 166, 322]."""
-    session_id = state['session_id']
-    sio = config['sio']
+    sio = SERVER_SIO
     intent = state['intent_json']
     
-    # Check if the transaction is critical (modifies funds)
-    if intent.get('critical', False):
-        
-        # Check if the external signal has already updated the state (for re-invocation) [cite: 167]
-        if state.get('user_approved'):
-            return {"status": "APPROVAL_GRANTED"} # Resume Execution
+    if state['retries'] >= MAX_RETRIES:
+        await graph_status_pusher(sio, session_id, "Visual Self-Healing failed after max retries. Halting.", 'FAILURE')
+        return {"status": "FAILURE", "error": "MAX_RETRIES_EXCEEDED"}
 
-        # Mandate self-freeze and push notification
+    await graph_status_pusher(sio, session_id, f"Selector failed. Initiating Visual Self-Healing (Retry {state['retries'] + 1})...", 'SELF_HEALING')
+
+    try:
+        page = get_page_from_session(session_id)
+        
+        # Dynamic description based on action
+        if intent.get('action') == 'login':
+             target_description = "Find the username or password input field."
+        else:
+             target_description = f"Find the input field for {intent.get('action', 'transaction')} details."
+        
+        x, y = await visual_self_heal(page, target_description)
+        await visual_click(page, x, y)
+        await asyncio.sleep(2) 
+        
+        return {"error": None, "status": "HEALED", "retries": state['retries'] + 1}
+    except Exception as e:
+        await graph_status_pusher(sio, session_id, f"VLM click failed: {e}", 'HEALING_FAILED')
+        return {"error": f"VLM_HEAL_FAILED: {e}", "status": "HEALING_FAILED", "retries": state['retries'] + 1}
+
+async def human_approval_node(state: AgentState, config: RunnableConfig):
+    session_id = state['session_id']
+    sio = SERVER_SIO
+    intent = state['intent_json']
+    
+    if state.get("status") == "FAILURE":
+        return {"status": "FAILURE"}
+
+    is_critical = intent.get('critical', True)
+    action = intent.get('action')
+
+    # SKIP approval for Login commands to make flow smoother
+    if action == 'login':
+        return {"status": "SKIP_APPROVAL"}
+
+    if is_critical:
+        if state.get('user_approved'):
+            return {"status": "APPROVAL_GRANTED"}
+        
         details = {
             "action": intent.get('action'),
-            "amount": intent.get('amount'), # Will be displayed on the Transaction Bond (Mitigation 3.2.A) [cite: 359]
+            "amount": intent.get('amount'),
             "recipient": intent.get('recipient'),
             "session_id": session_id
         }
+        await graph_status_pusher(sio, session_id, "MANDATORY PAUSE: Awaiting explicit user approval.", 'AWAITING_APPROVAL', details)
         
-        await graph_status_pusher(sio, session_id,
-            "MANDATORY PAUSE: Awaiting explicit user approval.",
-            'AWAITING_APPROVAL', details # Triggers the Transaction Bond display on the Sidecar [cite: 169]
-        )
-        
-        # The graph persistence layer saves the complete state snapshot[cite: 170].
-        # Execution is halted until external re-invocation via main.py updates state['user_approved'][cite: 171, 324].
         return {"status": "PAUSED_AWAITING_AUTH"}
-        
-    return {"status": "SKIP_APPROVAL"} # Non-critical command proceeds directly
 
-async def executor_node(state: AgentState, config: dict):
-    """Node 6: Executes the final critical action (reached only after approval or if non-critical)[cite: 172, 406]."""
-    page = state['page_context'].page
+    return {"status": "SKIP_APPROVAL"}
+
+async def executor_node(state: AgentState, config: RunnableConfig):
     session_id = state['session_id']
-    sio = config['sio']
+    sio = SERVER_SIO
     
-    # Final guardrail check
-    if state.get('user_approved', True) == False: 
-        # This path should ideally be prevented by conditional edges, but serves as a final safety measure
-        await graph_status_pusher(sio, session_id, "User cancelled transaction.", 'FAILURE')
-        return {"error": "EXECUTION_DENIED_BY_USER", "status": "FAILURE"}
-        
+    if state.get("status") == "FAILURE":
+        return {"status": "FAILURE"}
+
     await graph_status_pusher(sio, session_id, "Executing final transaction...", 'EXECUTING')
+    
+    if state.get('user_approved', True) == False:
+         return {"error": "EXECUTION_DENIED_BY_USER", "status": "FAILURE"}
 
     try:
-        # Final atomic click action to submit the payment
-        click_element(page, "button#final_submit_payment_button")
+        page = get_page_from_session(session_id)
+        
+        # Generic submit button selector that works for Login or Transfer forms
+        await click_element(page, "button[type='submit'], input[type='submit'], #submit-btn, #login-btn")
         
         return {"status": "TRANSACTION_SENT"}
     except PlaywrightTimeoutError as e:
-        await graph_status_pusher(sio, session_id, "Final execution failed.", 'EXECUTION_FAILED')
         return {"error": str(e), "status": "EXECUTION_FAILED"}
 
-async def auditor_node(state: AgentState, config: dict):
-    """Node 7: Checks for confirmation, logs the final status, and terminates the graph[cite: 174, 407]."""
-    page = state['page_context'].page
+async def auditor_node(state: AgentState, config: RunnableConfig):
     session_id = state['session_id']
-    sio = config['sio']
+    sio = SERVER_SIO
     
-    # Check for failure states (including CDP disconnect or user cancellation) [cite: 175]
-    if state['status'] == "FAILURE" or state['error'] or state.get('user_approved') == False:
-        # The auditor node handles all final failure/termination logging
-        final_message = f"Execution halted. Reason: {state['error'] if state['error'] else 'User cancelled.'}"
-        await graph_status_pusher(sio, session_id, final_message, 'FAILURE')
-        return {"status": "TERMINATED_FAILURE"}
-        
-    # Successful Path Check (In a real system, verify transaction ID/confirmation page)
-    if "confirmation" in page.url or "success" in page.title().lower():
-        final_message = "Transaction successfully completed. Confirmation logged."
-        await graph_status_pusher(sio, session_id, final_message, 'SUCCESS')
-    else:
-        final_message = "Execution completed, but confirmation page not fully verified."
-        await graph_status_pusher(sio, session_id, final_message, 'FAILURE')
-        
-    return {"status": "TERMINATED_SUCCESS"}
+    status = state.get('status')
+    if status in ["FAILURE", "EXECUTION_FAILED", "TERMINATED_FAILURE"]:
+        msg = f"Execution halted. Error: {state.get('error')}"
+        await graph_status_pusher(sio, session_id, msg, 'FAILURE')
+    elif status == "TRANSACTION_SENT":
+        await graph_status_pusher(sio, session_id, "Action successfully completed.", 'SUCCESS')
+    
+    if session_id in ACTIVE_SESSIONS:
+        del ACTIVE_SESSIONS[session_id]
 
-# --- 4. Conditional Edge Logic ---
+    return {"status": "TERMINATED"}
+
+# --- Graph Construction ---
 
 def decide_next_step(state: AgentState):
-    """
-    Conditional Edge logic defining the flow control, enforcing resilience and the safety gate[cite: 177, 409].
-    """
-    # 1. Error Handling and Resilience Cycle
-    if state['error']:
-        # Selector failure triggers Visual Self-Healing if retries remain [cite: 178, 411]
-        if state['retries'] < MAX_RETRIES and ("SELECTOR_TIMEOUT" in state['error'] or "VLM_HEAL_FAILED" in state['error']):
-            return "visual_heal"
-        # Unrecoverable error (max retries exceeded, nav failure, or CDP disconnect) terminates the graph
-        return "auditor" 
-
-    # 2. Main Execution Flow
-    if state['status'] == 'FORM_FILLED' or state['status'] == 'HEALED':
-        # Check the critical flag from the VLM intent parse [cite: 179]
-        if state['intent_json'].get('critical', False):
-            return "human_approval" # Mandatory Conscious Pause
-        else:
-            return "executor" # Skip approval for non-critical (read-only) actions
-            
-    # 3. Conscious Pause Resolution 
-    if state['status'] == 'APPROVAL_GRANTED' or state['status'] == 'SKIP_APPROVAL':
-        # Flow resumes after the external user_decision signal is processed
-        return "executor" 
-
-    # 4. Final Termination
-    if state['status'] in ('TRANSACTION_SENT'):
-        return "auditor" 
+    status = state.get('status')
+    
+    # 1. Success Paths
+    if status == "FORM_FILLED":
+        return "human_approval"
+    
+    if status in ["APPROVAL_GRANTED", "SKIP_APPROVAL"]:
+        return "executor"
         
-    # Default flow for linear steps (this should only happen if the graph is launched mid-flow)
-    return "navigator"
+    # 2. Interrupts
+    if status == 'PAUSED_AWAITING_AUTH':
+        return END 
+    
+    # 3. Error/Retry Paths
+    if status == 'SELECTOR_FAILED':
+        return "visual_heal"
+        
+    if status == 'HEALED':
+        return "filler" 
+        
+    if status == 'HEALING_FAILED' or status == 'FAILURE':
+        return "auditor"
+    
+    return "navigator" 
 
-# --- 5. Graph Construction and Compilation ---
-def create_agent_executor(sio: socketio.AsyncServer):
-    """Initializes and compiles the LangGraph state machine, injecting the Socket.IO server reference."""
-    
-    # Setup Checkpointer using the secure SQLite URL from .env 
-    LANGGRAPH_CHECKPOINTER_URL = os.getenv("LANGGRAPH_CHECKPOINTER_URL", "sqlite:///./arvyn_checkpoints.sqlite")
-    # This remains correct
-    memory = SqliteSaver.from_conn_string(LANGGRAPH_CHECKPOINTER_URL)
-    
+def create_agent_executor(sio):
+    global SERVER_SIO
+    SERVER_SIO = sio
+
+    memory = MemorySaver()
     workflow = StateGraph(AgentState)
     
-    # Add nodes (Remains the same)
     workflow.add_node("analyze", analyze_node)
     workflow.add_node("navigator", navigator_node)
     workflow.add_node("filler", filler_node)
@@ -295,22 +281,17 @@ def create_agent_executor(sio: socketio.AsyncServer):
     workflow.add_node("human_approval", human_approval_node)
     workflow.add_node("executor", executor_node)
     workflow.add_node("auditor", auditor_node)
+
+    workflow.set_entry_point("analyze")
     
-    # Define the starting point of the graph (Remains the same)
-    workflow.set_entry_point("analyze") 
-    
-    # Define edges (Remains the same)
     workflow.add_edge("analyze", "navigator")
-    workflow.add_edge("navigator", "filler") 
-    workflow.add_conditional_edges("filler", decide_next_step)
-    workflow.add_conditional_edges("visual_heal", decide_next_step) 
-    workflow.add_conditional_edges("human_approval", decide_next_step) 
-    workflow.add_edge("executor", "auditor")
-    workflow.add_edge("auditor", END) 
+    workflow.add_edge("navigator", "filler")
     
-    # Compile the graph: REMOVE the 'config' parameter from compile()
-    # The 'sio' object will now be passed in main.py via the ainvoke call config
-    app = workflow.compile(
-        checkpointer=memory
-    )
-    return app
+    workflow.add_conditional_edges("filler", decide_next_step)
+    workflow.add_conditional_edges("visual_heal", decide_next_step)
+    workflow.add_conditional_edges("human_approval", decide_next_step)
+    
+    workflow.add_edge("executor", "auditor")
+    workflow.add_edge("auditor", END)
+
+    return workflow.compile(checkpointer=memory)
