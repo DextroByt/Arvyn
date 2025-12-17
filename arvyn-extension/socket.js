@@ -1,37 +1,46 @@
 // arvyn-extension/socket.js
 
-// Define the global Socket.IO client interface 
-const SERVER_HOST = 'http://localhost:8000'; 
-let socket;
+(function() {
+    // 1. Define Config: Use 127.0.0.1 to avoid IPv6/localhost resolution issues
+    window.ARVYN_CONFIG = {
+        SERVER_HOST: 'http://127.0.0.1:8000' 
+    };
 
-try {
-    // 'io' object is available globally due to previous script injection
-    socket = io(SERVER_HOST, {
-        reconnection: true,
-        transports: ['websocket']
-    });
+    console.log("Arvyn: Initializing Socket Connection to", window.ARVYN_CONFIG.SERVER_HOST);
 
-    socket.on('connect', () => {
-        console.log('Arvyn Sidecar connected via Socket.IO');
-    });
-
-    socket.on('disconnect', () => {
-        console.warn('Arvyn Sidecar disconnected from server.');
-        // Mitigation 3.3.B: Explicitly alert the user if the server connection is lost
-        if (typeof updateWidgetStatus === 'function') {
-            updateWidgetStatus("ERROR: Agent connection lost. Please verify your bank account manually.", 'CRITICAL_HALT', null);
+    try {
+        if (typeof io === 'undefined') {
+            throw new Error("Socket.IO library not loaded. Check lib/socket.io.min.js");
         }
-    });
 
-    // Make socket globally accessible to app.js
-    window.arvynSocket = socket;
+        const socket = io(window.ARVYN_CONFIG.SERVER_HOST, {
+            reconnection: true,
+            reconnectionAttempts: 5,
+            transports: ['websocket', 'polling'] 
+        });
 
-} catch (error) {
-    console.error("Socket.IO initialization failed:", error);
-    // Ensure offline status is displayed if the client failed to load the library
-    if (document.getElementById('arvyn-omni-widget-root')) {
-        document.getElementById('arvyn-omni-widget-root').innerHTML = '<div class="arvyn-status">ERROR: IPC Client Failed to Load.</div>';
+        socket.on('connect', () => {
+            console.log('✅ Arvyn Sidecar connected via Socket.IO');
+            const statusEl = document.querySelector('.arvyn-status');
+            if(statusEl) statusEl.innerText = "Arvyn Online. Ready.";
+        });
+
+        socket.on('disconnect', () => {
+            console.warn('⚠️ Arvyn Sidecar disconnected.');
+        });
+
+        socket.on('connect_error', (err) => {
+            console.error('❌ Socket Connection Error:', err);
+            // This usually happens due to Mixed Content (HTTPS page -> HTTP server)
+        });
+
+        window.arvynSocket = socket;
+
+    } catch (error) {
+        console.error("CRITICAL: Socket.IO initialization failed:", error);
+        const root = document.getElementById('arvyn-omni-widget-root');
+        if (root) {
+            root.innerHTML = `<div class="arvyn-status" style="background:red; color:white;">Connection Error: ${error.message}</div>`;
+        }
     }
-}
-
-
+})();

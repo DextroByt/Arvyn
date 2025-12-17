@@ -6,4 +6,6 @@ playwright
 google-genai
 pydantic
 python-dotenv
-pillow 
+pillow
+python-multipart
+aiofiles

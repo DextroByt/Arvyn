@@ -1,35 +1,142 @@
-// arvyn-extension/content.js
+/* Arvyn Omni-Widget Styles */
 
-// Injects the root widget container and dynamic scripts 
-(function() {
-    const WIDGET_ID = 'arvyn-omni-widget-root';
-    if (document.getElementById(WIDGET_ID)) {
-        return; 
-    }
+#arvyn-omni-widget-root {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 2147483647; /* Max z-index */
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    pointer-events: none; /* Let clicks pass through around the widget */
+}
 
-    // 1. Create and inject the root container
-    const widgetRoot = document.createElement('div');
-    widgetRoot.id = WIDGET_ID;
-    document.body.appendChild(widgetRoot);
+/* Enable pointer events for the actual buttons/cards */
+#arvyn-omni-widget-root > * {
+    pointer-events: auto;
+}
 
-    // 2. Load necessary CSS and functional JS files dynamically
-    const loadResource = (file, tag) => {
-        const element = document.createElement(tag);
-        if (tag === 'link') {
-            element.href = chrome.runtime.getURL(file);
-            element.type = 'text/css';
-            element.rel = 'stylesheet';
-        } else if (tag === 'script') {
-            element.src = chrome.runtime.getURL(file);
-        }
-        document.head.appendChild(element);
-    };
+#arvyn-mic-button {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s, transform 0.1s;
+}
 
-    loadResource('styles/widget.css', 'link');
-    // Assuming Socket.IO client library is bundled/local (lib/socket.io.min.js)
-    loadResource('lib/socket.io.min.js', 'script');
-    loadResource('socket.js', 'script'); 
-    loadResource('app.js', 'script'); 
-})();
+#arvyn-mic-button:hover {
+    background-color: #1d4ed8;
+    transform: scale(1.05);
+}
 
+#arvyn-mic-button:active {
+    transform: scale(0.95);
+}
 
+#arvyn-mic-button:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.arvyn-status {
+    background-color: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 5px;
+    max-width: 280px;
+    text-align: right;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.arvyn-feedback {
+    background-color: #f0fdf4; /* Light green */
+    color: #166534;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #bbf7d0;
+    font-size: 13px;
+    max-width: 300px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 5px;
+}
+
+/* Transaction Bond Card */
+.arvyn-card {
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    width: 300px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.arvyn-card h4 {
+    margin: 0;
+    color: #dc2626; /* Red for alert */
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.arvyn-card p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: #334155;
+    line-height: 1.4;
+}
+
+.arvyn-card strong {
+    color: #0f172a;
+}
+
+.arvyn-button-approve {
+    background-color: #16a34a; /* Green */
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background-color 0.2s;
+}
+
+.arvyn-button-approve:hover {
+    background-color: #15803d;
+}
+
+.arvyn-button-cancel {
+    background-color: white;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+    padding: 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.arvyn-button-cancel:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}

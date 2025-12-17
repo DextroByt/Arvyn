@@ -1,10 +1,7 @@
-# arvyn-server/tools/actions.py
-
-from playwright.sync_api import Page
-from playwright.errors import TimeoutError as PlaywrightTimeoutError
+from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError
 
 # Timeout for individual element interactions
-DEFAULT_TIMEOUT = 10000 
+DEFAULT_TIMEOUT = 10000
 
 def click_element(page: Page, selector: str):
     """
@@ -15,7 +12,7 @@ def click_element(page: Page, selector: str):
         page.click(selector, timeout=DEFAULT_TIMEOUT)
         return True
     except PlaywrightTimeoutError as e:
-        # Structured error propagation: The exception is the symbolic trigger 
+        # Structured error propagation: The exception is the symbolic trigger
         error_msg = f"SELECTOR_TIMEOUT: Element not found or timed out using selector: {selector}."
         raise PlaywrightTimeoutError(error_msg)
     except Exception as e:
@@ -43,5 +40,3 @@ def visual_click(page: Page, x: int, y: int):
     """
     # Playwright's mouse click is executed relative to the viewport
     page.mouse.click(x, y)
-
-
