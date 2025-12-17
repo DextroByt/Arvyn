@@ -2,9 +2,10 @@
 
 import os
 import io
-from pydantic import BaseModel, Field
+import asyncio
+from pydantic import BaseModel, Field, ValidationError
 from PIL import Image
-from playwright.sync_api import Page
+from playwright.async_api import Page
 from google import genai
 from google.genai import types
 
@@ -14,16 +15,17 @@ class ClickCoordinates(BaseModel):
     x: int = Field(description="The X-coordinate of the center point of the target element, relative to the viewport.")
     y: int = Field(description="The Y-coordinate of the center point of the target element, relative to the viewport.")
 
-def visual_self_heal(page: Page, target_description: str) -> tuple[int, int]:
+async def visual_self_heal(page: Page, target_description: str) -> tuple[int, int]:
     """
-    Captures a screenshot, sends it to the VLM with context, and returns precise X, Y coordinates.
+    Captures a screenshot asynchronously, sends it to the VLM (off-thread), 
+    and returns precise X, Y coordinates.
     """
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
     client = genai.Client(api_key=GEMINI_API_KEY)
 
-    # 1. Capture Screenshot
+    # 1. Capture Screenshot (Async)
     # Use buffered I/O to handle the image in memory
-    screenshot_bytes = page.screenshot()
+    screenshot_bytes = await page.screenshot()
     image = Image.open(io.BytesIO(screenshot_bytes))
 
     # 2. Enhanced Prompt Grounding
@@ -33,8 +35,9 @@ def visual_self_heal(page: Page, target_description: str) -> tuple[int, int]:
     Return the X, Y coordinates of the center point of the element as a JSON object, strictly conforming to the schema.
     """
 
-    try:
-        response = client.models.generate_content(
+    def _call_gemini_sync():
+        """Helper to run the blocking API call in a thread."""
+        return client.models.generate_content(
             model='gemini-2.5-flash', 
             contents=[prompt, image],
             config=types.GenerateContentConfig(
@@ -42,8 +45,12 @@ def visual_self_heal(page: Page, target_description: str) -> tuple[int, int]:
                 response_schema=ClickCoordinates,
             ),
         )
+
+    try:
+        # 3. Offload blocking VLM call to a separate thread
+        response = await asyncio.to_thread(_call_gemini_sync)
         
-        # 3. Validate and Extract Coordinates
+        # 4. Validate and Extract Coordinates
         coords = ClickCoordinates.model_validate_json(response.text)
         return coords.x, coords.y
 
@@ -51,5 +58,3 @@ def visual_self_heal(page: Page, target_description: str) -> tuple[int, int]:
         raise ValueError(f"VLM visual output failed Coordinate Pydantic validation: {e.errors()}")
     except Exception as e:
         raise RuntimeError(f"VLM API or connection error during visual healing: {e}")
-
-
