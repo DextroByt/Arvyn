@@ -1,0 +1,6 @@
+pyqt6
+playwright
+langgraph
+google-generativeai
+SpeechRecognition
+pyttsx3
