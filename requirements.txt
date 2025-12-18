@@ -1,5 +1,7 @@
 # --- Core Intelligence & Orchestration ---
-google-generativeai
+# The new Google GenAI SDK (Required for 'from google import genai')
+google-genai
+# LangGraph & LangChain ecosystem
 langchain
 langgraph
 langchain-google-genai
@@ -14,8 +16,13 @@ playwright
 PyQt6
 PyQt6-Frameless-Window
 pyqtdarktheme
+qasync
 
 # --- Sensory (Voice & Senses) ---
 SpeechRecognition
 pyttsx3
 PyAudio
+
+# --- System & Utilities ---
+setuptools
+nest_asyncio

@@ -1,123 +1,111 @@
-from typing import Literal, Dict, Any, List
-from langgraph.graph import StateGraph, START, END
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.types import interrupt
+import asyncio
+from typing import Dict, List, Optional
+from langgraph.graph import StateGraph, END
 
-from core.state_schema import AgentState, AgentAction
-from core.gemini_logic import ArvynBrain
-from tools.browser import ArvynBrowser
-from tools.voice import ArvynVoice
-from tools.data_store import ArvynDataStore
+from core.state_schema import AgentState
+from core.gemini_logic import ArvynBrain, AgentAction
+from tools.browser import BrowserManager
+from config import logger
 
 class ArvynOrchestrator:
     def __init__(self):
-        """Initializes the Brain, Hands, and Senses."""
         self.brain = ArvynBrain()
-        self.browser = ArvynBrowser()
-        self.voice = ArvynVoice()
-        self.store = ArvynDataStore()
-        self.memory = MemorySaver()
+        self.browser = BrowserManager()
+        self.builder = StateGraph(AgentState)
+        self._setup_graph()
+        self.graph = self.builder.compile()
+
+    def _setup_graph(self):
+        """Builds the Neuro-Symbolic Graph architecture."""
+        self.builder.add_node("perceive", self.node_perceive)
+        self.builder.add_node("reason", self.node_reason)
+        self.builder.add_node("execute", self.node_execute)
+        self.builder.add_node("verify", self.node_verify)
+
+        self.builder.set_entry_point("perceive")
+        self.builder.add_edge("perceive", "reason")
+        self.builder.add_edge("reason", "execute")
+        self.builder.add_edge("execute", "verify")
         
-        self.workflow = self._build_graph()
-
-    def _build_graph(self) -> StateGraph:
-        """Constructs the Neuro-Symbolic Graph with cycles."""
-        builder = StateGraph(AgentState)
-
-        # Define Nodes (The "Work" units)
-        builder.add_node("intent_parser", self.node_intent_parser)
-        builder.add_node("data_validator", self.node_data_validator)
-        builder.add_node("browser_executor", self.node_browser_executor)
-        builder.add_node("human_approval", self.node_human_approval)
-        builder.add_node("ask_user_missing", self.node_ask_user_missing)
-
-        # Define Logic (The "Pathways")
-        builder.add_edge(START, "intent_parser")
-        builder.add_edge("intent_parser", "data_validator")
-        
-        # Conditional Edge: Check if data is complete
-        builder.add_conditional_edges(
-            "data_validator",
-            self.check_data_completion,
-            {
-                "ready": "browser_executor",
-                "missing": "ask_user_missing"
-            }
+        self.builder.add_conditional_edges(
+            "verify",
+            self.decide_next_step,
+            {"continue": "perceive", "end": END}
         )
 
-        # Loop back from asking user to validation
-        builder.add_edge("ask_user_missing", "data_validator")
+    async def node_perceive(self, state: AgentState) -> Dict:
+        """Captures the current state of the page (URL + Screenshot)."""
+        if not self.browser.is_running:
+            await self.browser.start()
         
-        # Guardrail: Approval before final submission
-        builder.add_edge("browser_executor", "human_approval")
-        builder.add_edge("human_approval", END)
+        browser_data = await self.browser.get_state()
+        return {
+            "current_screenshot": browser_data["screenshot"],
+            "ui_message": f"Analyzing {browser_data['url']}..."
+        }
 
-        return builder.compile(checkpointer=self.memory)
+    async def node_reason(self, state: AgentState) -> Dict:
+        """Determines next steps based on user intent and visual state."""
+        if not state.get("execution_plan") or state.get("last_error"):
+            # Re-plan if we have no plan or just hit an error
+            context = state.get("user_data", {})
+            new_plan = self.brain.parse_intent(state["messages"][-1]["content"], context)
+            return {"execution_plan": new_plan, "status": "thinking", "last_error": None}
+        return {}
 
-    # ==========================================
-    # NODE IMPLEMENTATIONS
-    # ==========================================
+    async def node_execute(self, state: AgentState) -> Dict:
+        """Executes the next action with Self-Healing fallback."""
+        plan = state["execution_plan"]
+        # Find the next step that hasn't been completed
+        action = plan[0] # Simplified for this cycle
 
-    def node_intent_parser(self, state: AgentState):
-        """Brain analyzes text to plan action."""
-        last_message = state["messages"][-1]["content"]
-        user_profile = self.store.get_profile()
-        
-        plan = self.brain.parse_intent(last_message, user_profile)
-        return {"execution_plan": plan, "status": "planning"}
+        try:
+            # 1. Attempt Standard Code-Based Interaction
+            await self.browser.execute_action(
+                action.action_type, 
+                selector=action.selector, 
+                value=action.value
+            )
+            return {"status": "acting", "ui_message": f"Executed {action.action_type}"}
 
-    def node_data_validator(self, state: AgentState):
-        """Symbolic check for missing financial fields."""
-        # Logic to extract provider from plan and check against store
-        # Simplified: Check for 'consumer_id' as a baseline
-        required = ["consumer_id", "mobile_number"]
-        missing = self.store.get_missing_fields("default", required)
-        
-        return {"missing_fields": missing, "user_data": self.store.get_profile()}
+        except Exception as e:
+            logger.warning(f"Standard action failed: {e}. Attempting Visual Healing...")
+            
+            # 2. NEURO FALLBACK: Use Gemini to "see" the element and click coordinates
+            if state["current_screenshot"] and action.selector:
+                coords = self.brain.visual_grounding(state["current_screenshot"], action.selector)
+                if coords:
+                    await self.browser.click_at_coordinates(coords['x'], coords['y'])
+                    return {"status": "healed", "ui_message": "Action recovered via Vision Logic"}
+            
+            return {"last_error": str(e), "status": "retrying"}
 
-    def check_data_completion(self, state: AgentState) -> Literal["ready", "missing"]:
-        """Router: Determines the next logical step."""
-        return "missing" if state["missing_fields"] else "ready"
+    async def node_verify(self, state: AgentState) -> Dict:
+        """Safety check for financial finalization."""
+        # Check if the screen looks like a 'Confirm Payment' screen
+        if state.get("current_screenshot"):
+            is_payment_screen = "PAY" in (state.get("ui_message") or "").upper()
+            if is_payment_screen and not state.get("is_approved"):
+                return {"ui_message": "Waiting for manual verification..."}
+        
+        return {"status": "verifying"}
 
-    def node_ask_user_missing(self, state: AgentState):
-        """HITL: Pauses to ask user for data via Voice/UI."""
-        field = state["missing_fields"][0]
-        prompt = f"I need your {field.replace('_', ' ')} to proceed."
-        
-        self.voice.speak(prompt)
-        # CONSCIOUS PAUSE: Graph state is saved; execution stops
-        user_response = interrupt(f"INPUT_REQUESTED:{field}")
-        
-        # Save received data back to symbolic store
-        self.store.update_field("personal_info", field, user_response)
-        return {"status": "data_updated"}
+    def decide_next_step(self, state: AgentState) -> str:
+        if state.get("status") == "completed" or state.get("last_error"):
+            return "end"
+        return "continue"
 
-    async def node_browser_executor(self, state: AgentState):
-        """Kinetic Layer: Playwright executes the plan."""
-        await self.browser.start()
-        
-        for step in state["execution_plan"]:
-            if step.action_type == "NAVIGATE":
-                await self.browser.navigate(step.value)
-            elif step.action_type == "CLICK":
-                success = await self.browser.smart_click(step.selector)
-                # FALLBACK: If DOM click fails, trigger Explorer Mode
-                if not success:
-                    screenshot = await self.browser.get_screenshot_b64()
-                    coords = self.brain.visual_grounding(screenshot, step.thought)
-                    if coords:
-                        await self.browser.click_at_coordinates(coords['x'], coords['y'])
-        
-        return {"status": "awaiting_approval"}
-
-    def node_human_approval(self, state: AgentState):
-        """Final Security Guardrail: Requires Dashboard Approval."""
-        self.voice.speak("I am ready to process the payment. Please approve it on your dashboard.")
-        
-        # CONSCIOUS PAUSE for HITL
-        decision = interrupt("FINAL_APPROVAL")
-        
-        if decision == "APPROVE":
-            return {"is_approved": True, "status": "completed"}
-        else:
-            return {"is_approved": False, "status": "cancelled"}
+    async def run(self, user_command: str):
+        """Streams graph updates for real-time console tracking."""
+        initial_state = {
+            "messages": [{"role": "user", "content": user_command}],
+            "user_data": {},
+            "missing_fields": [],
+            "execution_plan": [],
+            "current_screenshot": None,
+            "status": "starting",
+            "last_error": None,
+            "is_approved": False
+        }
+        async for output in self.graph.astream(initial_state):
+            yield output

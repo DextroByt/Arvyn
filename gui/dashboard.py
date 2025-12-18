@@ -1,106 +1,84 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, 
-                             QLineEdit, QPushButton, QLabel, QFrame)
-from PyQt6.QtCore import Qt, pyqtSignal
-from qframelesswindow import AcrylicWindow
-from config import DASHBOARD_SIZE, GLASS_STYLE, ACCENT_COLOR
+import logging
+from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
+                             QLabel, QTextEdit, QPushButton, QFrame)
+from PyQt6.QtCore import Qt, pyqtSignal, QSize
+from config import GLASS_STYLE, DASHBOARD_SIZE, logger
 
-class ArvynDashboard(AcrylicWindow):
-    # Signals to communicate back to the main controller
-    input_submitted = pyqtSignal(str)
-    approval_granted = pyqtSignal(str)
+class ArvynDashboard(QMainWindow):
+    """
+    The Command Center. 
+    Displays real-time logs and handles Human-in-the-Loop (HITL) approvals.
+    """
+    approval_granted = pyqtSignal()
 
-    def __init__(self, parent=None):
-        super().__init__(parent=parent)
-        self._setup_window()
-        self._init_ui()
-        self.set_status("Ready for Command")
-
-    def _setup_window(self):
-        """Configures the Acrylic Glass effect and dimensions."""
-        self.setWindowTitle("Arvyn Command Center")
-        self.setFixedSize(DASHBOARD_SIZE[0], DASHBOARD_SIZE[1])
-        self.windowEffect.setAcrylicEffect(self.winId(), "1E1E1E99")
-        self.setStyleSheet(GLASS_STYLE)
-
-    def _init_ui(self):
-        """Creates the layout including the Log area and Input/Approval controls."""
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 40, 20, 20) # Space for title bar
-
-        # 1. Header & Status
-        self.status_label = QLabel("STATUS: IDLE")
-        self.status_label.setStyleSheet(f"color: {ACCENT_COLOR}; font-weight: bold; font-size: 14px;")
-        main_layout.addWidget(self.status_label)
-
-        # 2. Activity Log (Glass-style Text Edit)
-        self.log_area = QTextEdit()
-        self.log_area.setReadOnly(True)
-        self.log_area.setPlaceholderText("Agent Arvyn Activity Log...")
-        main_layout.addWidget(self.log_area)
-
-        # 3. Input Zone (For missing data requests)
-        self.input_frame = QFrame()
-        input_layout = QHBoxLayout(self.input_frame)
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Arvyn Dashboard - System Logs")
+        self.setFixedSize(*DASHBOARD_SIZE)
+        self._setup_ui()
         
-        self.user_input = QLineEdit()
-        self.user_input.setPlaceholderText("Provide data here...")
-        self.user_input.returnPressed.connect(self._on_input_submit)
+    def _setup_ui(self):
+        """Builds the glass-morphic command interface."""
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
-        self.submit_btn = QPushButton("Submit")
-        self.submit_btn.clicked.connect(self._on_input_submit)
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+        self.central_widget.setStyleSheet(GLASS_STYLE)
         
-        input_layout.addWidget(self.user_input)
-        input_layout.addWidget(self.submit_btn)
-        self.input_frame.hide() # Hidden by default until agent requests data
-        main_layout.addWidget(self.input_frame)
+        layout = QVBoxLayout(self.central_widget)
+        layout.setContentsMargins(20, 20, 20, 20)
 
-        # 4. Approval Zone (The Final Guardrail)
-        self.approval_frame = QFrame()
-        approval_layout = QVBoxLayout(self.approval_frame)
+        # Header
+        header = QLabel("SYSTEM OPERATIONAL LOGS")
+        header.setStyleSheet("font-weight: bold; font-size: 14pt; letter-spacing: 2px;")
+        layout.addWidget(header)
+
+        # Terminal Output
+        self.log_viewer = QTextEdit()
+        self.log_viewer.setReadOnly(True)
+        self.log_viewer.setPlaceholderText("Awaiting neural handshake...")
+        layout.addWidget(self.log_viewer)
+
+        # Action Area
+        self.status_label = QLabel("Status: Standby")
+        layout.addWidget(self.status_label)
+
+        button_layout = QHBoxLayout()
         
-        self.approval_msg = QLabel("Verification Required")
         self.approve_btn = QPushButton("APPROVE TRANSACTION")
-        self.approve_btn.setStyleSheet(f"background-color: {ACCENT_COLOR}; color: white; padding: 10px; font-weight: bold;")
-        self.approve_btn.clicked.connect(lambda: self.approval_granted.emit("APPROVE"))
+        self.approve_btn.setEnabled(False) # Locked until Agent requests verification
+        self.approve_btn.clicked.connect(self._handle_approval)
         
-        approval_layout.addWidget(self.approval_msg)
-        approval_layout.addWidget(self.approve_btn)
-        self.approval_frame.hide() # Hidden by default
-        main_layout.addWidget(self.approval_frame)
+        self.close_btn = QPushButton("HIDE")
+        self.close_btn.clicked.connect(self.hide)
 
-    # ==========================================
-    # UI UPDATE METHODS
-    # ==========================================
-    def log(self, message: str):
-        """Appends a timestamped message to the dashboard log."""
-        self.log_area.append(f"<span style='color: #888888;'>[LOG]:</span> {message}")
+        button_layout.addWidget(self.approve_btn)
+        button_layout.addWidget(self.close_btn)
+        layout.addLayout(button_layout)
 
-    def set_status(self, status: str):
-        """Updates the top-level status indicator."""
-        self.status_label.setText(f"STATUS: {status.upper()}")
-        self.log(status)
+    def log_message(self, message: str, level: str = "INFO"):
+        """Appends formatted messages to the glass terminal."""
+        color = "#00FFCC" # Cyan for standard
+        if level == "ERROR": color = "#FF5555"
+        if level == "REASONING": color = "#BD93F9" # Purple
 
-    def request_input(self, field_name: str):
-        """Displays the input field for specific missing data."""
-        self.input_frame.show()
-        self.user_input.setPlaceholderText(f"Enter {field_name}...")
-        self.user_input.setFocus()
-        self.log(f"Arvyn is waiting for: {field_name}")
+        formatted_msg = f'<span style="color:{color};">[{level}]</span> {message}'
+        self.log_viewer.append(formatted_msg)
+        # Auto-scroll to bottom
+        self.log_viewer.verticalScrollBar().setValue(self.log_viewer.verticalScrollBar().maximum())
 
-    def request_approval(self, detail: str):
-        """Displays the big blue button for final confirmation."""
-        self.approval_frame.show()
-        self.approval_msg.setText(detail)
-        self.log("Action paused for final approval.")
+    def request_user_approval(self, detail: str):
+        """Activates the safety guardrail for financial execution."""
+        self.status_label.setText(f"Awaiting Verification: {detail}")
+        self.approve_btn.setEnabled(True)
+        self.approve_btn.setStyleSheet("background-color: rgba(0, 120, 212, 200); border: 2px solid white;")
+        self.show() # Bring to front
 
-    def _on_input_submit(self):
-        text = self.user_input.text()
-        if text:
-            self.input_submitted.emit(text)
-            self.user_input.clear()
-            self.input_frame.hide()
-
-    def reset_controls(self):
-        """Hides all action frames after task completion."""
-        self.input_frame.hide()
-        self.approval_frame.hide()
+    def _handle_approval(self):
+        """Resumes the Agent thread after human verification."""
+        self.log_message("Transaction verified by user. Resuming...", "SUCCESS")
+        self.approve_btn.setEnabled(False)
+        self.approve_btn.setStyleSheet("")
+        self.status_label.setText("Status: Executing Approved Task")
+        self.approval_granted.emit()

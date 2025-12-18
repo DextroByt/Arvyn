@@ -1,81 +1,78 @@
 import asyncio
-from PyQt6.QtCore import QThread, pyqtSignal, QObject
+import logging
+from PyQt6.QtCore import QObject, pyqtSignal
+from qasync import asyncSlot
+
 from core.agent_orchestrator import ArvynOrchestrator
-from langgraph.types import Command
+from config import logger
 
-class AgentSignals(QObject):
-    """Defines the signals available for the Agent Thread."""
-    status_updated = pyqtSignal(str)       # Updates status text on Dashboard
-    input_requested = pyqtSignal(str)      # Triggers a popup for missing data
-    approval_required = pyqtSignal(str)    # Activates the 'Approve' button
-    execution_finished = pyqtSignal(bool)  # Notifies when the cycle ends
-    error_occurred = pyqtSignal(str)       # Reports errors to the UI logs
+class BridgeSignals(QObject):
+    """
+    Standardizes communication between the Async Brain and the Qt UI.
+    """
+    status_updated = pyqtSignal(str, str)  # (Message, Level)
+    orb_state_changed = pyqtSignal(str)    # (thinking, idle, success, error)
+    request_approval = pyqtSignal(str)     # (Reason)
+    task_finished = pyqtSignal(bool)       # (Success/Fail)
 
-class ArvynWorker(QThread):
-    def __init__(self, user_input: str):
-        super().__init__()
-        self.user_input = user_input
-        self.signals = AgentSignals()
+class AsyncAgentWorker:
+    """
+    The Orchestrator Wrapper. 
+    Runs the LangGraph agent inside the qasync event loop.
+    """
+    def __init__(self, signals: BridgeSignals):
         self.orchestrator = ArvynOrchestrator()
-        
-        # Internal state to handle the "Resume" signal from the UI
-        self.resume_data = None
-        self._resume_event = asyncio.Event()
+        self.signals = signals
+        self._approval_event = asyncio.Event()
 
-    def run(self):
-        """Entry point for the thread; starts the async event loop."""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(self.execute_agent())
-
-    async def execute_agent(self):
+    async def run_task(self, user_command: str):
         """
-        Runs the LangGraph workflow and handles 'interrupts'.
+        Starts the asynchronous agent loop and streams updates to the GUI and Console.
         """
-        thread_config = {"configurable": {"thread_id": "arvyn_session_1"}}
-        initial_state = {"messages": [{"role": "user", "content": self.user_input}]}
+        logger.info(f"Worker starting task: {user_command}")
+        self.signals.orb_state_changed.emit("thinking")
+        self.signals.status_updated.emit(f"Initializing mission: {user_command}", "INFO")
 
         try:
-            # 1. Start the graph stream
-            async for event in self.orchestrator.workflow.astream(
-                initial_state, thread_config, stream_mode="values"
-            ):
-                # Process events and update UI status
-                if "status" in event:
-                    self.signals.status_updated.emit(f"Arvyn: {event['status']}...")
+            # We stream the graph execution to provide real-time feedback in console
+            async for output in self.orchestrator.run(user_command):
+                for node_name, state_update in output.items():
+                    logger.debug(f"Graph Transition: Node '{node_name}' completed.")
+                    
+                    if "ui_message" in state_update:
+                        msg = state_update["ui_message"]
+                        logger.info(f"[REASONING] {msg}")
+                        self.signals.status_updated.emit(msg, "REASONING")
+                    
+                    if "error_message" in state_update and state_update["error_message"]:
+                        logger.error(f"[EXECUTION FAIL] {state_update['error_message']}")
+                        self.signals.status_updated.emit(state_update["error_message"], "ERROR")
+                    
+                    # Human-in-the-Loop Pause logic
+                    if "Waiting for manual verification" in state_update.get("ui_message", ""):
+                        logger.warning("Agent Paused: Awaiting User Approval in Dashboard.")
+                        self.signals.orb_state_changed.emit("idle")
+                        self.signals.request_approval.emit("Safety Check Required")
+                        await self._approval_event.wait()
+                        self._approval_event.clear()
+                        logger.info("Approval Received. Resuming Graph...")
+                        self.signals.orb_state_changed.emit("thinking")
 
-                # 2. Check for Interrupts (Conscious Pauses)
-                snapshot = await self.orchestrator.workflow.aget_state(thread_config)
-                if snapshot.next:
-                    await self.handle_interrupt(snapshot)
-
-            self.signals.execution_finished.emit(True)
+            self.signals.orb_state_changed.emit("success")
+            self.signals.status_updated.emit("Task complete.", "SUCCESS")
+            self.signals.task_finished.emit(True)
 
         except Exception as e:
-            self.signals.error_occurred.emit(str(e))
-            self.signals.execution_finished.emit(False)
+            logger.exception("CRITICAL: Worker Task Encountered Unhandled Exception")
+            self.signals.orb_state_changed.emit("error")
+            self.signals.status_updated.emit(f"Critical Error: {str(e)}", "ERROR")
+            self.signals.task_finished.emit(False)
 
-    async def handle_interrupt(self, snapshot):
-        """Dispatches interrupts to the GUI and waits for user response."""
-        interrupt_val = snapshot.tasks[0].interrupts[0].value
-        
-        if "INPUT_REQUESTED" in interrupt_val:
-            field_name = interrupt_val.split(":")[1]
-            self.signals.input_requested.emit(field_name)
-        elif "FINAL_APPROVAL" in interrupt_val:
-            self.signals.approval_required.emit("Please verify the payment amount.")
+    def grant_approval(self):
+        """Called by the GUI to resume the agent's execution."""
+        self._approval_event.set()
 
-        # PAUSE: Wait for the main thread to call resume_agent()
-        self._resume_event.clear()
-        await self._resume_event.wait()
-
-        # RESUME: Feed the user's input back into the graph
-        await self.orchestrator.workflow.ainvoke(
-            Command(resume=self.resume_data),
-            config={"configurable": {"thread_id": "arvyn_session_1"}}
-        )
-
-    def resume_agent(self, data: str):
-        """Called by the Dashboard when you click 'Submit' or 'Approve'."""
-        self.resume_data = data
-        self._resume_event.set()
+    async def shutdown(self):
+        """Ensures the browser and playwright processes die with the app (Fixed typo)."""
+        logger.info("Cleaning up browser resources...")
+        await self.orchestrator.browser.stop() # Typo 'ss' removed here
