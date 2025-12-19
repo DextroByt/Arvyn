@@ -1,0 +1,36 @@
+# API Keys and Secrets
+# .env contains sensitive keys like GEMINI_API_KEY and OPENAI_API_KEY
+.env
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Logs
+# Excludes the logs directory and the specific debug log
+logs/
+*.log
+
+# Local Data and User Profiles
+# Excludes local user data stored in the data folder
+data/
+*.json
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDE / Editor Settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Specific Files
+.DS_Store
+Thumbs.db
