@@ -3421,3 +3421,93 @@ provider
 2025-12-19 20:46:45 | INFO | ArvynConfig | STT Result: ok I am coming there are total three members in all of them are coming IIT se
 2025-12-19 20:46:51 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
 2025-12-19 20:46:57 | INFO | ArvynConfig | STT Result: open GitHub
+2025-12-19 21:01:22 | INFO | comtypes.client._code_cache | Imported existing <module 'comtypes.gen' from 'C:\\Users\\gaash\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-19 21:01:22 | INFO | comtypes.client._code_cache | Using writeable comtypes cache directory: 'C:\Users\gaash\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-19 21:01:23 | INFO | ArvynConfig | TTS engine ready.
+2025-12-19 21:01:23 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-19 21:01:23 | INFO | ArvynConfig | Arvyn 2.0: Interactive Core initialized and pulsing.
+2025-12-19 21:01:23 | INFO | ArvynConfig | GeminiBrain initialized with model: gemini-2.5-flash
+2025-12-19 21:01:23 | INFO | ArvynConfig | TTS engine ready.
+2025-12-19 21:01:23 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-19 21:01:23 | INFO | ArvynConfig | Persistent Orchestrator ready with gemini-2.5-flash.
+2025-12-19 21:01:23 | INFO | ArvynConfig | Arvyn Autonomous Core compiled.
+2025-12-19 21:01:29 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-19 21:01:34 | INFO | ArvynConfig | STT Result: open Flipkart
+2025-12-19 21:01:34 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 21:01:36 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-19 21:01:49 | INFO | ArvynConfig | Intelligent Browser Engine started and initialized at 1280x800.
+2025-12-19 21:02:00 | INFO | ArvynConfig | Kinetic Layer: Executing precise click at (640, 60)
+2025-12-19 21:02:01 | INFO | ArvynConfig | Kinetic Layer: Typing sequence initiated.
+2025-12-19 21:02:03 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-19 21:02:17 | ERROR | ArvynConfig | Visual Planning Error: Unterminated string starting at: line 2 column 14 (char 15)
+2025-12-19 21:02:19 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-19 21:13:43 | INFO | comtypes.client._code_cache | Imported existing <module 'comtypes.gen' from 'C:\\Users\\gaash\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-19 21:13:43 | INFO | comtypes.client._code_cache | Using writeable comtypes cache directory: 'C:\Users\gaash\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-19 21:13:43 | INFO | ArvynConfig | TTS engine ready.
+2025-12-19 21:13:43 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-19 21:13:43 | INFO | ArvynConfig | Arvyn 2.0: Interactive Core initialized and pulsing.
+2025-12-19 21:13:44 | INFO | ArvynConfig | GeminiBrain initialized with model: gemini-2.5-flash
+2025-12-19 21:13:44 | INFO | ArvynConfig | TTS engine ready.
+2025-12-19 21:13:44 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-19 21:13:44 | INFO | ArvynConfig | Persistent Orchestrator ready with gemini-2.5-flash.
+2025-12-19 21:13:44 | INFO | ArvynConfig | Arvyn Autonomous Core compiled.
+2025-12-19 21:13:49 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-19 21:13:55 | INFO | ArvynConfig | STT Result: open flipkart.com
+2025-12-19 21:13:55 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 21:14:00 | INFO | ArvynConfig | Intelligent Browser Engine started and initialized at 1280x800.
+2025-12-19 21:14:00 | INFO | ArvynConfig | Navigating to https://www.flipkart.com/...
+2025-12-19 21:14:04 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-19 21:14:08 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-19 21:14:10 | INFO | ArvynConfig | STT Result: search for iphone.com
+2025-12-19 21:14:13 | INFO | ArvynConfig | Kinetic Layer: Executing precise click at (783, 77)
+2025-12-19 21:14:15 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-19 21:14:18 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-19 21:14:20 | INFO | ArvynConfig | Kinetic Layer: Executing precise click at (675, 34)
+2025-12-19 21:14:22 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-19 21:14:27 | INFO | ArvynConfig | Kinetic Layer: Executing precise click at (800, 209)
+2025-12-19 21:14:27 | INFO | ArvynConfig | Kinetic Layer: Typing sequence initiated.
+2025-12-19 21:14:30 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-19 21:14:34 | INFO | ArvynConfig | Kinetic Layer: Executing precise click at (680, 28)
+2025-12-19 21:14:35 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-19 21:14:41 | INFO | ArvynConfig | Kinetic Layer: Executing precise click at (767, 230)
+2025-12-19 21:14:41 | INFO | ArvynConfig | Kinetic Layer: Typing sequence initiated.
+2025-12-19 21:14:42 | INFO | ArvynConfig | STT Result: search for iPhone 16
+2025-12-19 21:14:43 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-19 21:14:44 | ERROR | ArvynConfig | Visual Planning Error: QUOTA_EXCEEDED
+2025-12-19 21:14:44 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 21:14:45 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-19 21:14:45 | ERROR | ArvynConfig | Intent Error: QUOTA_EXCEEDED
+2025-12-19 21:14:45 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-19 21:14:46 | ERROR | ArvynConfig | Visual Planning Error: QUOTA_EXCEEDED
+2025-12-19 21:14:46 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 21:14:46 | WARNING | ArvynConfig | TTS is already active. Skipping overlapping speech.
+2025-12-19 21:14:46 | ERROR | ArvynConfig | Intent Error: QUOTA_EXCEEDED
+2025-12-19 21:14:46 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-19 21:14:47 | ERROR | ArvynConfig | Visual Planning Error: QUOTA_EXCEEDED
+2025-12-19 21:14:50 | WARNING | ArvynConfig | VoiceWorker: Could not understand audio.
+2025-12-19 21:15:07 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 21:15:11 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-19 21:15:12 | ERROR | ArvynConfig | Visual Planning Error: QUOTA_EXCEEDED
+2025-12-19 21:15:45 | INFO | ArvynConfig | AgentWorker: Event loop closed safely.
+2025-12-19 21:16:10 | INFO | comtypes.client._code_cache | Imported existing <module 'comtypes.gen' from 'C:\\Users\\gaash\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-19 21:16:10 | INFO | comtypes.client._code_cache | Using writeable comtypes cache directory: 'C:\Users\gaash\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-19 21:16:10 | INFO | ArvynConfig | TTS engine ready.
+2025-12-19 21:16:10 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-19 21:16:11 | INFO | ArvynConfig | Arvyn 2.0: Interactive Core initialized and pulsing.
+2025-12-19 21:16:11 | INFO | ArvynConfig | GeminiBrain initialized with model: gemini-2.5-flash
+2025-12-19 21:16:11 | INFO | ArvynConfig | TTS engine ready.
+2025-12-19 21:16:11 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-19 21:16:11 | INFO | ArvynConfig | Persistent Orchestrator ready with gemini-2.5-flash.
+2025-12-19 21:16:11 | INFO | ArvynConfig | Arvyn Autonomous Core compiled.
+2025-12-19 21:16:23 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-19 21:16:35 | INFO | ArvynConfig | STT Result: pay my bill
+2025-12-19 21:16:35 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 21:16:36 | ERROR | ArvynConfig | Intent Error: QUOTA_EXCEEDED
+2025-12-19 21:16:36 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-19 21:16:37 | INFO | ArvynConfig | Intelligent Browser Engine started and initialized at 1280x800.
+2025-12-19 21:16:38 | ERROR | ArvynConfig | Visual Planning Error: QUOTA_EXCEEDED
+2025-12-19 21:16:40 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-19 21:16:54 | WARNING | ArvynConfig | VoiceWorker: Could not understand audio.
+2025-12-19 21:16:59 | INFO | ArvynConfig | Orchestrator: Terminating browser session.
+2025-12-19 21:16:59 | INFO | ArvynConfig | Browser resources released.
+2025-12-19 21:16:59 | INFO | ArvynConfig | AgentWorker: Event loop closed safely.

@@ -14,7 +14,7 @@ from tools.voice import ArvynVoice
 class ArvynOrchestrator:
     """
     The Advanced Autonomous Controller for Agent Arvyn.
-    Fixed: Uses safe kinetic methods and defensive state access to prevent attribute errors.
+    Updated: Enhanced cleanup lifecycle and safe kinetic execution.
     """
 
     def __init__(self, model_name: str = "gemini-2.5-flash"):
@@ -31,22 +31,21 @@ class ArvynOrchestrator:
         if self.app is None:
             self.app = self.workflow.compile(
                 checkpointer=checkpointer,
-                # Interrupt for voice interaction or final approval
                 interrupt_before=["human_interaction_node"]
             )
             logger.info("Arvyn Autonomous Core compiled.")
 
     async def cleanup(self):
-        """Shutdown the browser session safely."""
+        """Shutdown the browser session safely. Must be awaited."""
         if self.browser:
             logger.info("Orchestrator: Terminating browser session.")
-            await self.browser.close()
+            try:
+                await self.browser.close()
+            except Exception as e:
+                logger.error(f"Cleanup Error: {e}")
 
     def _create_workflow(self) -> StateGraph:
-        """
-        Defines the Recursive Loop: 
-        Parse -> Navigate to Site -> [Analyze -> Act -> Repeat] -> Finish
-        """
+        """Defines the Recursive Loop: Parse -> Discovery -> [Analyze -> Act] -> Finish"""
         workflow = StateGraph(AgentState)
         
         workflow.add_node("intent_parser", self._node_parse_intent)
@@ -92,44 +91,42 @@ class ArvynOrchestrator:
             return {"current_step": "I couldn't clarify the intent.", "intent": None}
 
     async def _node_site_discovery(self, state: AgentState) -> Dict[str, Any]:
-        """Step 2: Navigate to the target banking or official site."""
+        """Step 2: Navigate to the target site."""
         intent = state.get("intent") or {}
         provider = intent.get("provider", "UNKNOWN")
         verified_url = self.profile.get_verified_url(provider)
         
         if verified_url:
-            current_url = self.browser.page.url if self.browser.page else ""
-            if verified_url not in current_url:
+            # Check if browser is initialized before navigation
+            if self.browser and self.browser.page:
+                current_url = self.browser.page.url
+                if verified_url not in current_url:
+                    await self.browser.navigate(verified_url)
+            else:
+                # Fallback discovery if page is missing
                 await self.browser.navigate(verified_url)
         
         return {"current_step": f"Accessing {provider}"}
 
     async def _node_autonomous_executor(self, state: AgentState) -> Dict[str, Any]:
-        """
-        Step 3: Visual Execution Loop.
-        Uses safe browser methods to prevent NoneType attribute errors.
-        """
+        """Step 3: Visual Execution Loop with coordinate mapping."""
         logger.info("Node: Autonomous Executor reasoning...")
         
-        # Ensure browser page is initialized for screenshot
         screenshot = await self.browser.get_screenshot_b64()
-        
         intent = state.get("intent")
+        
         if not intent:
             return {"browser_context": {"action_type": "ASK_USER", "voice_prompt": "I'm lost. What is the goal?"}}
 
         provider_name = intent.get("provider", "GENERAL")
-        goal = f"Action: {intent.get('action')} on {provider_name}. Context: {intent}"
+        goal = f"Action: {intent.get('action')} on {provider_name}."
         history = state.get("task_history", [])
         
-        # Pull user data for the specific bank
         user_context = self.profile.get_provider_details(provider_name)
         user_context.update(self.profile.get_data().get("personal_info", {}))
 
-        # 2. Brain Analysis
         analysis = await self.brain.analyze_page_for_action(screenshot, goal, history, user_context)
         
-        # 3. Safe Kinetic Execution
         action_type = analysis.get("action_type")
         current_history = history.copy()
         
@@ -141,11 +138,9 @@ class ArvynOrchestrator:
                 cx = int(((xmin + xmax) / 2) * (dims['width'] / 1000))
                 cy = int(((ymin + ymax) / 2) * (dims['height'] / 1000))
                 
-                # Execute safe coordinate click
                 await self.browser.click_at_coordinates(cx, cy)
                 
                 if action_type == "TYPE":
-                    # FIX: Use safe type_text instead of direct keyboard access
                     await self.browser.type_text(analysis.get("input_text", ""))
                 
                 await asyncio.sleep(1.5)

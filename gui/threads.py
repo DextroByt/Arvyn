@@ -10,8 +10,7 @@ from config import logger
 class VoiceWorker(QThread):
     """
     Advanced Manual-Stop Voice Worker.
-    Optimized for streaming audio chunks and high-accuracy transcription 
-    during interactive banking sessions.
+    Optimized for streaming audio chunks and high-accuracy transcription.
     """
     text_received = pyqtSignal(str)
     status_signal = pyqtSignal(str)
@@ -32,13 +31,11 @@ class VoiceWorker(QThread):
         
         try:
             with self.mic as source:
-                # Dynamic calibration for ambient noise
                 self.recognizer.adjust_for_ambient_noise(source, duration=0.6)
                 audio_chunks = []
                 
                 while self._is_active:
                     try:
-                        # Short listening windows to remain responsive to the 'Stop' toggle
                         chunk = self.recognizer.listen(source, timeout=1, phrase_time_limit=3)
                         audio_chunks.append(chunk)
                     except sr.WaitTimeoutError:
@@ -48,7 +45,6 @@ class VoiceWorker(QThread):
                     self.text_received.emit("")
                     return
 
-                # Compile chunks into a single audio object for transcription
                 combined_audio = sr.AudioData(
                     b"".join([c.get_raw_data() for c in audio_chunks]),
                     audio_chunks[0].sample_rate,
@@ -70,21 +66,16 @@ class VoiceWorker(QThread):
 class AgentWorker(QThread):
     """
     The Global Session Orchestration Worker.
-    Maintains a persistent browser and manages the recursive 'Auto-Mic' lifecycle.
-    Updated with Defensive State Management to prevent 'intent' key errors.
+    Fixed: Proper event loop management and awaited cleanup to prevent RuntimeWarnings.
     """
     log_signal = pyqtSignal(str)
     screenshot_signal = pyqtSignal(str)
     status_signal = pyqtSignal(str)
     approval_signal = pyqtSignal(bool)
-    
-    # Signals for the Interactive Voice Loop
-    speak_signal = pyqtSignal(str)      # Triggers TTS in main app
-    auto_mic_signal = pyqtSignal(bool)  # Automatically toggles the mic button
-    
+    speak_signal = pyqtSignal(str)
+    auto_mic_signal = pyqtSignal(bool)
     finished_signal = pyqtSignal(dict)
 
-    # Persistent state storage across multiple commands
     _shared_checkpointer = MemorySaver()
 
     def __init__(self):
@@ -93,25 +84,24 @@ class AgentWorker(QThread):
         self.orchestrator = None
         self.loop = None
         self._is_running = True
-        # Thread ID for session continuity in banking tasks
-        self.config = {"configurable": {"thread_id": "arvyn_banking_session_v3"}}
+        self.config = {"configurable": {"thread_id": "arvyn_banking_session_v4"}}
 
     def submit_command(self, user_command: str):
-        """Adds a new task (Voice or Text) to the processing queue."""
         self.command_queue.put(user_command)
 
     def stop_persistent_session(self):
         """Clean shutdown of browser and internal event loops."""
         self._is_running = False
-        if self.orchestrator and self.loop:
+        if self.orchestrator and self.loop and self.loop.is_running():
+            # Schedule the awaited cleanup in the worker's event loop
             asyncio.run_coroutine_threadsafe(self.orchestrator.cleanup(), self.loop)
         self.command_queue.put(None)
 
     def run(self):
+        """Initializes the event loop and manages the task processing cycle."""
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
         
-        # Start the persistent browser session
         self.orchestrator = ArvynOrchestrator()
         self.loop.run_until_complete(self.orchestrator.init_app(self._shared_checkpointer))
         
@@ -125,7 +115,12 @@ class AgentWorker(QThread):
         except Exception as e:
             logger.error(f"AgentWorker Runtime Error: {e}")
         finally:
+            # Ensure the loop handles the cleanup coroutine before closing
+            pending = asyncio.all_tasks(self.loop)
+            if pending:
+                self.loop.run_until_complete(asyncio.gather(*pending))
             self.loop.close()
+            logger.info("AgentWorker: Event loop closed safely.")
 
     async def execute_task(self, user_command: str):
         """Processes a command through the recursive autonomous banking loop."""
@@ -133,7 +128,6 @@ class AgentWorker(QThread):
             self.status_signal.emit("Thinking...")
             self.log_signal.emit(f"User Request: {user_command}")
             
-            # Resume or start the state graph
             initial_input = {"messages": [("user", user_command)]}
 
             if not self.orchestrator.app:
@@ -144,10 +138,7 @@ class AgentWorker(QThread):
                 for node_name, output in event.items():
                     self._handle_node_output(node_name, output)
 
-            # --- POST-ACTION REASONING: Check if we need user input ---
             state_data = self.orchestrator.app.get_state(self.config)
-            
-            # Defensive access to avoid KeyError if state is sparse
             values = state_data.values or {}
             next_nodes = state_data.next or []
 
@@ -156,10 +147,8 @@ class AgentWorker(QThread):
                 if question:
                     self.status_signal.emit("Questioning...")
                     self.speak_signal.emit(question)
-                    # Signal main.py to activate the mic after speech synthesis
                     self.auto_mic_signal.emit(True) 
-                
-                self.approval_signal.emit(True) # Fallback to manual buttons
+                self.approval_signal.emit(True)
             else:
                 self.status_signal.emit("Ready")
                 
@@ -169,7 +158,6 @@ class AgentWorker(QThread):
             self.status_signal.emit("Error")
 
     def _handle_node_output(self, node_name: str, output: dict):
-        """Streams updates to the Dashboard UI with safety checks."""
         if not output: return
 
         if "messages" in output:
@@ -180,24 +168,20 @@ class AgentWorker(QThread):
         
         if "current_step" in output:
             self.status_signal.emit(output["current_step"])
-            self.log_signal.emit(f"Status: {output['current_step']}")
             
         if "screenshot" in output and output["screenshot"]:
             self.screenshot_signal.emit(output["screenshot"])
 
     def resume_with_approval(self, approved: bool):
-        """Resumes the graph after manual human interaction."""
         if self.loop and self.loop.is_running():
             asyncio.run_coroutine_threadsafe(self._resume_logic(approved), self.loop)
 
     async def _resume_logic(self, approved: bool):
         decision = "approved" if approved else "rejected"
-        # Update the state with the human decision
         await self.orchestrator.app.update_state(self.config, {"human_approval": decision})
         self.log_signal.emit(f"Manual Override: {decision}")
         self.approval_signal.emit(False)
         
-        # Continue streaming from the point of interruption
         async for event in self.orchestrator.app.astream(None, config=self.config):
             if not self._is_running: return
             for node_name, output in event.items():
