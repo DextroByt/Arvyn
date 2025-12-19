@@ -1,95 +1,62 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout
-from PyQt6.QtCore import Qt, QPoint, QPropertyAnimation, QEasingCurve, pyqtProperty
-from PyQt6.QtGui import QColor, QPainter, QBrush, QPen
-from qframelesswindow import AcrylicWindow
+import sys
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PyQt6.QtCore import Qt, pyqtSignal, QPropertyAnimation, QEasingCurve, QRect
+from config import logger, ORB_SIZE, ACCENT_COLOR, DASHBOARD_SIZE
 
-from config import ORB_SIZE, GLASS_STYLE, ACCENT_COLOR
+class ArvynOrb(QWidget):
+    """
+    The Visual Base for Agent Arvyn.
+    Handles the floating orb UI, animations (pulse), and transparency.
+    """
+    clicked = pyqtSignal()
 
-class ArvynOrb(AcrylicWindow):
-    def __init__(self, parent=None):
-        super().__init__(parent=parent)
-        self._setup_window_properties()
-        self._init_ui()
-        self._init_animations()
-        
-        # Internal state for dragging
-        self.old_pos = None
-
-    def _setup_window_properties(self):
-        """Sets up the floating, frameless, and transparent attributes."""
-        # Fix: Using explicit WindowType and WidgetAttribute namespaces
+    def __init__(self):
+        super().__init__()
+        # Setup Frameless, Transparent Window
         self.setWindowFlags(
             Qt.WindowType.FramelessWindowHint | 
             Qt.WindowType.WindowStaysOnTopHint | 
             Qt.WindowType.Tool
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setFixedSize(ORB_SIZE[0], ORB_SIZE[1])
         
-        # Apply the native Windows 11 Acrylic effect
-        self.windowEffect.setAcrylicEffect(self.winId(), "1E1E1E99")
+        # Initial size from config
+        self.resize(ORB_SIZE, ORB_SIZE)
 
-    def _init_ui(self):
-        """Creates the visual layout of the Orb."""
+        # Base Layout
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Status Label (The 'Orb' itself)
+        self.status_label = QLabel("A")
+        self.status_label.setFixedSize(ORB_SIZE - 20, ORB_SIZE - 20)
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        self.orb_widget = QWidget(self)
-        self.orb_widget.setObjectName("Orb")
-        self.orb_widget.setStyleSheet(GLASS_STYLE)
+        # UI Styling using the Accent Color from Config
+        self.orb_style_base = f"""
+            background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, 
+                                stop:0 rgba(0, 210, 255, 180), stop:1 rgba(58, 123, 213, 180));
+            color: white;
+            border-radius: {(ORB_SIZE - 20) // 2}px;
+            font-size: 32px;
+            font-weight: bold;
+            border: 2px solid white;
+        """
+        self.status_label.setStyleSheet(self.orb_style_base)
+        self.layout.addWidget(self.status_label)
         
-        self.layout.addWidget(self.orb_widget)
+        self.expansion_anim = None
 
-    def _init_animations(self):
-        """Initializes the 'Breathing' pulse effect."""
-        self._pulse_alpha = 180
-        self.pulse_anim = QPropertyAnimation(self, b"pulse_alpha")
-        self.pulse_anim.setDuration(2000)
-        self.pulse_anim.setStartValue(100)
-        self.pulse_anim.setEndValue(220)
-        self.pulse_anim.setEasingCurve(QEasingCurve.Type.InOutSine)
-        self.pulse_anim.setLoopCount(-1) 
-        self.pulse_anim.start()
-
-    @pyqtProperty(int)
-    def pulse_alpha(self):
-        return self._pulse_alpha
-
-    @pulse_alpha.setter
-    def pulse_alpha(self, value):
-        self._pulse_alpha = value
-        self.update()
-
-    # ==========================================
-    # INTERACTION LOGIC (DRAG & CLICK)
-    # ==========================================
     def mousePressEvent(self, event):
+        """Triggers the dashboard expansion on left click."""
         if event.button() == Qt.MouseButton.LeftButton:
-            self.old_pos = event.globalPosition().toPoint()
+            self.clicked.emit()
 
-    def mouseMoveEvent(self, event):
-        if self.old_pos is not None:
-            delta = event.globalPosition().toPoint() - self.old_pos
-            self.move(self.x() + delta.x(), self.y() + delta.y())
-            self.old_pos = event.globalPosition().toPoint()
+    def start_pulse(self):
+        """Visual feedback: brighten the orb when active."""
+        self.status_label.setStyleSheet(self.orb_style_base.replace("180", "255"))
 
-    def mouseReleaseEvent(self, event):
-        self.old_pos = None
-
-    def mouseDoubleClickEvent(self, event):
-        """Summons the full Dashboard on double click."""
-        if hasattr(self, 'toggle_dashboard'):
-            self.toggle_dashboard()
-
-    def paintEvent(self, event):
-        """Custom painting for the circular glow and glass effect."""
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        
-        color = QColor(ACCENT_COLOR)
-        color.setAlpha(self._pulse_alpha)
-        
-        painter.setBrush(QBrush(color))
-        painter.setPen(QPen(Qt.GlobalColor.white, 1, Qt.PenStyle.SolidLine))
-        
-        painter.drawEllipse(5, 5, self.width()-10, self.height()-10)
+    def stop_pulse(self):
+        """Visual feedback: dim the orb when idle."""
+        self.status_label.setStyleSheet(self.orb_style_base.replace("255", "180"))

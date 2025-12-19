@@ -1,123 +1,160 @@
-from typing import Literal, Dict, Any, List
-from langgraph.graph import StateGraph, START, END
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.types import interrupt
+import json
+import logging
+from typing import Dict, List, Any, Union, Literal
+from langgraph.graph import StateGraph, END
 
-from core.state_schema import AgentState, AgentAction
-from core.gemini_logic import ArvynBrain
+from config import logger
+from core.state_schema import AgentState
+from core.gemini_logic import GeminiBrain
 from tools.browser import ArvynBrowser
+from tools.data_store import ProfileManager
 from tools.voice import ArvynVoice
-from tools.data_store import ArvynDataStore
 
 class ArvynOrchestrator:
-    def __init__(self):
-        """Initializes the Brain, Hands, and Senses."""
-        self.brain = ArvynBrain()
-        self.browser = ArvynBrowser()
+    """
+    The 'Heart' of Agent Arvyn.
+    Modified for dynamic execution and active search capabilities using Gemini 2.5.
+    """
+
+    def __init__(self, model_name: str = "gemini-2.5-flash"):
+        # Initialize Gemini 2.5 Brain
+        self.brain = GeminiBrain(model_name=model_name)
+        self.browser = ArvynBrowser(headless=False)
+        self.profile = ProfileManager()
         self.voice = ArvynVoice()
-        self.store = ArvynDataStore()
-        self.memory = MemorySaver()
+        self.app = None
+        self.workflow = self._create_workflow()
+        logger.info(f"Orchestrator ready with {model_name} for dynamic commands.")
+
+    async def init_app(self, checkpointer):
+        """Initializes the graph with persistence for multi-turn commands."""
+        if self.app is None:
+            self.app = self.workflow.compile(
+                checkpointer=checkpointer,
+                interrupt_before=["human_approval_node"]
+            )
+            logger.info("Agent Arvyn Core compiled with LangGraph.")
+
+    async def cleanup(self):
+        """Clean shutdown of browser resources."""
+        if self.browser:
+            await self.browser.close()
+
+    def _create_workflow(self) -> StateGraph:
+        """Defines the linear flow: Parse -> Validate -> Navigate -> HITL."""
+        workflow = StateGraph(AgentState)
         
-        self.workflow = self._build_graph()
+        workflow.add_node("intent_parser", self._node_parse_intent)
+        workflow.add_node("data_validator", self._node_validate_data)
+        workflow.add_node("browser_navigator", self._node_navigate_and_fill)
+        workflow.add_node("human_approval_node", self._node_wait_for_approval)
 
-    def _build_graph(self) -> StateGraph:
-        """Constructs the Neuro-Symbolic Graph with cycles."""
-        builder = StateGraph(AgentState)
-
-        # Define Nodes (The "Work" units)
-        builder.add_node("intent_parser", self.node_intent_parser)
-        builder.add_node("data_validator", self.node_data_validator)
-        builder.add_node("browser_executor", self.node_browser_executor)
-        builder.add_node("human_approval", self.node_human_approval)
-        builder.add_node("ask_user_missing", self.node_ask_user_missing)
-
-        # Define Logic (The "Pathways")
-        builder.add_edge(START, "intent_parser")
-        builder.add_edge("intent_parser", "data_validator")
+        workflow.set_entry_point("intent_parser")
+        workflow.add_edge("intent_parser", "data_validator")
         
-        # Conditional Edge: Check if data is complete
-        builder.add_conditional_edges(
+        workflow.add_conditional_edges(
             "data_validator",
-            self.check_data_completion,
+            self._should_proceed_to_browser,
             {
-                "ready": "browser_executor",
-                "missing": "ask_user_missing"
+                "continue": "browser_navigator",
+                "stop": END 
             }
         )
-
-        # Loop back from asking user to validation
-        builder.add_edge("ask_user_missing", "data_validator")
         
-        # Guardrail: Approval before final submission
-        builder.add_edge("browser_executor", "human_approval")
-        builder.add_edge("human_approval", END)
+        workflow.add_edge("browser_navigator", "human_approval_node")
+        workflow.add_edge("human_approval_node", END)
+        return workflow
 
-        return builder.compile(checkpointer=self.memory)
+    async def _node_parse_intent(self, state: AgentState) -> Dict[str, Any]:
+        """Extracts intent using Gemini 2.5 with local rule fallback."""
+        logger.info("Node: Parsing Intent...")
+        last_message = state["messages"][-1]
+        content = last_message.content if hasattr(last_message, 'content') else str(last_message)
 
-    # ==========================================
-    # NODE IMPLEMENTATIONS
-    # ==========================================
+        try:
+            intent = await self.brain.parse_intent(content)
+            return {"intent": intent.model_dump(), "current_step": "Intent Identified"}
+        except Exception as e:
+            msg = str(e)
+            self.voice.speak(msg)
+            return {
+                "messages": [("assistant", msg)], 
+                "missing_fields": ["intent"],
+                "current_step": "Execution Failed"
+            }
 
-    def node_intent_parser(self, state: AgentState):
-        """Brain analyzes text to plan action."""
-        last_message = state["messages"][-1]["content"]
-        user_profile = self.store.get_profile()
+    async def _node_validate_data(self, state: AgentState) -> Dict[str, Any]:
+        """Validates that a clear target exists."""
+        logger.info("Node: Validating Task...")
+        intent = state.get("intent", {})
+        provider = intent.get("provider")
         
-        plan = self.brain.parse_intent(last_message, user_profile)
-        return {"execution_plan": plan, "status": "planning"}
+        if state.get("current_step") == "Execution Failed":
+            return {"current_step": "Halted"}
 
-    def node_data_validator(self, state: AgentState):
-        """Symbolic check for missing financial fields."""
-        # Logic to extract provider from plan and check against store
-        # Simplified: Check for 'consumer_id' as a baseline
-        required = ["consumer_id", "mobile_number"]
-        missing = self.store.get_missing_fields("default", required)
-        
-        return {"missing_fields": missing, "user_data": self.store.get_profile()}
+        if not provider or provider.upper() == "NONE":
+            msg = "I can't do this; the command or target is unclear."
+            self.voice.speak(msg)
+            return {
+                "missing_fields": ["provider"], 
+                "messages": [("assistant", msg)],
+                "current_step": "Task Invalid"
+            }
+            
+        return {"missing_fields": [], "current_step": "Task Verified"}
 
-    def check_data_completion(self, state: AgentState) -> Literal["ready", "missing"]:
-        """Router: Determines the next logical step."""
-        return "missing" if state["missing_fields"] else "ready"
+    async def _node_navigate_and_fill(self, state: AgentState) -> Dict[str, Any]:
+        """Navigates and performs actions like Searching or Form Filling."""
+        logger.info("Node: Browser Execution...")
+        intent = state.get("intent", {})
+        action = intent.get("action", "NAVIGATE")
+        provider = intent.get("provider", "").lower()
+        
+        # Get the original user command for context (e.g., "best anime")
+        last_message = state["messages"][-1]
+        raw_command = last_message.content if hasattr(last_message, 'content') else str(last_message)
 
-    def node_ask_user_missing(self, state: AgentState):
-        """HITL: Pauses to ask user for data via Voice/UI."""
-        field = state["missing_fields"][0]
-        prompt = f"I need your {field.replace('_', ' ')} to proceed."
-        
-        self.voice.speak(prompt)
-        # CONSCIOUS PAUSE: Graph state is saved; execution stops
-        user_response = interrupt(f"INPUT_REQUESTED:{field}")
-        
-        # Save received data back to symbolic store
-        self.store.update_field("personal_info", field, user_response)
-        return {"status": "data_updated"}
+        try:
+            # 1. Determine the URL
+            if action == "SEARCH":
+                url = "https://www.google.com"
+            else:
+                url = provider if "." in provider else f"https://www.{provider}.com"
 
-    async def node_browser_executor(self, state: AgentState):
-        """Kinetic Layer: Playwright executes the plan."""
-        await self.browser.start()
-        
-        for step in state["execution_plan"]:
-            if step.action_type == "NAVIGATE":
-                await self.browser.navigate(step.value)
-            elif step.action_type == "CLICK":
-                success = await self.browser.smart_click(step.selector)
-                # FALLBACK: If DOM click fails, trigger Explorer Mode
-                if not success:
-                    screenshot = await self.browser.get_screenshot_b64()
-                    coords = self.brain.visual_grounding(screenshot, step.thought)
-                    if coords:
-                        await self.browser.click_at_coordinates(coords['x'], coords['y'])
-        
-        return {"status": "awaiting_approval"}
+            # 2. Navigate
+            await self.browser.navigate(url)
 
-    def node_human_approval(self, state: AgentState):
-        """Final Security Guardrail: Requires Dashboard Approval."""
-        self.voice.speak("I am ready to process the payment. Please approve it on your dashboard.")
-        
-        # CONSCIOUS PAUSE for HITL
-        decision = interrupt("FINAL_APPROVAL")
-        
-        if decision == "APPROVE":
-            return {"is_approved": True, "status": "completed"}
-        else:
-            return {"is_approved": False, "status": "cancelled"}
+            # 3. If Search intent, actually perform the search
+            if action == "SEARCH":
+                logger.info(f"Performing Search for: {raw_command}")
+                # Google search input selectors (textarea[name="q"] is standard)
+                await self.browser.page.fill('textarea[name="q"]', raw_command)
+                await self.browser.page.press('textarea[name="q"]', "Enter")
+                await self.browser.page.wait_for_load_state("networkidle")
+                current_step = f"Search Results for: {raw_command}"
+            else:
+                current_step = f"Site Loaded: {provider}"
+
+            # 4. Capture state for UI
+            screenshot = await self.browser.get_screenshot_b64()
+            return {"screenshot": screenshot, "current_step": current_step}
+
+        except Exception as e:
+            logger.error(f"Browser Execution Error: {e}")
+            msg = "I encountered an error while browsing the page."
+            self.voice.speak(msg)
+            return {
+                "messages": [("assistant", msg)], 
+                "missing_fields": ["execution"],
+                "current_step": "Execution Failed"
+            }
+
+    async def _node_wait_for_approval(self, state: AgentState) -> Dict[str, Any]:
+        """Awaits user interaction."""
+        return {"current_step": "Ready"}
+
+    def _should_proceed_to_browser(self, state: AgentState) -> Literal["continue", "stop"]:
+        """Ends the workflow if errors occurred."""
+        if state.get("missing_fields"):
+            return "stop"
+        return "continue"

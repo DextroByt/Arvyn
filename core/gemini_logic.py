@@ -1,94 +1,109 @@
-import base64
+import os
 import json
-from typing import List, Optional, Dict
-from google import genai
-from google.genai import types
-from pydantic import ValidationError
+import logging
+import asyncio
+import google.generativeai as genai
+from google.generativeai.types import RequestOptions
+from typing import Optional, Dict, Any
 
-from config import GEMINI_API_KEY
-from core.state_schema import AgentAction, UIElement
+from config import GEMINI_API_KEY, logger
+from core.state_schema import IntentOutput, VisualGrounding
 
-class ArvynBrain:
-    def __init__(self):
-        """Initializes the Gemini 1.5 Pro client with strict safety settings."""
-        if not GEMINI_API_KEY:
-            raise ValueError("GEMINI_API_KEY not found in environment variables.")
-        
-        self.client = genai.Client(api_key=GEMINI_API_KEY)
-        self.model_id = "gemini-1.5-pro"
+# Configure Gemini
+genai.configure(api_key=GEMINI_API_KEY)
 
-    def parse_intent(self, user_input: str, user_context: Dict) -> List[AgentAction]:
-        """
-        Parses raw natural language into a sequence of executable AgentActions.
-        Uses context-aware reasoning to disambiguate user requests.
-        """
-        prompt = f"""
-        You are the Brain of Agent Arvyn, a financial automation expert.
-        User Command: "{user_input}"
-        User Context: {json.dumps(user_context)}
-
-        Task: Convert the user command into a sequence of 'AgentAction' steps.
-        Rules:
-        1. If the provider is ambiguous, issue a 'WAIT' action to ask for clarification.
-        2. Ensure every 'CLICK' or 'INPUT' has a valid semantic selector.
-        3. Output MUST be a valid JSON list matching the AgentAction schema.
-        """
-
-        response = self.client.models.generate_content(
-            model=self.model_id,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=AgentAction,
-            ),
+class GeminiBrain:
+    """
+    The cognitive interface for Agent Arvyn.
+    Updated to support Gemini 2.5 models.
+    """
+    
+    def __init__(self, model_name: str = "gemini-2.5-flash"):
+        self.model_name = model_name
+        self.model = genai.GenerativeModel(
+            model_name=self.model_name,
+            generation_config={
+                "temperature": 0.1,
+                "top_p": 0.95,
+                "max_output_tokens": 2048, # Increased for 2.5 capabilities
+                "response_mime_type": "application/json"
+            }
         )
+        logger.info(f"GeminiBrain initialized with model: {self.model_name}")
 
+    async def _call_with_retry(self, prompt: str, image_data: Optional[str] = None, retries: int = 1):
+        """Executes API calls. Identifies quota limits for the fallback logic."""
         try:
-            return [AgentAction(**item) for item in json.loads(response.text)]
-        except (json.JSONDecodeError, ValidationError) as e:
-            print(f"Logic Error in Intent Parsing: {e}")
-            return []
+            content = [prompt]
+            if image_data:
+                content.append({"mime_type": "image/png", "data": image_data})
+            
+            response = await asyncio.to_thread(
+                self.model.generate_content, 
+                content,
+                request_options=RequestOptions(retry=None)
+            )
+            return response.text
+        except Exception as e:
+            if "429" in str(e):
+                raise Exception("QUOTA_EXCEEDED")
+            raise e
 
-    def visual_grounding(self, screenshot_b64: str, target_desc: str) -> Optional[Dict[str, float]]:
-        """
-        Explorer Mode: Analyzes a screenshot to find pixel coordinates of a UI element.
-        This is the 'Self-Healing' mechanism used when DOM selectors fail.
-        """
-        prompt = f"Locate the '{target_desc}' on this screen. Return the center X and Y coordinates as normalized values (0.0 to 1.0)."
-        
-        image_part = types.Part.from_bytes(
-            data=base64.b64decode(screenshot_b64),
-            mime_type="image/png"
-        )
+    def _local_parse_fallback(self, user_input: str) -> Optional[IntentOutput]:
+        """Simple keyword matching to bypass API when quota is hit."""
+        lower_input = user_input.lower()
+        if "open" in lower_input or "navigate to" in lower_input:
+            words = lower_input.split()
+            try:
+                trigger = "open" if "open" in words else "to"
+                idx = words.index(trigger)
+                provider = words[idx + 1].upper()
+                return IntentOutput(action="NAVIGATE", target="BROWSER", provider=provider)
+            except (ValueError, IndexError):
+                pass
+        return None
 
-        response = self.client.models.generate_content(
-            model=self.model_id,
-            contents=[prompt, image_part],
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                # Expecting format: {"x": 0.5, "y": 0.5}
-            ),
-        )
-
+    async def parse_intent(self, user_input: str) -> IntentOutput:
+        """Translates natural language into action. Uses local fallback on API failure."""
         try:
-            return json.loads(response.text)
-        except Exception:
+            prompt = f"""
+            TASK: Identify intent from user command: "{user_input}"
+            
+            RETURN JSON ONLY:
+            {{
+                "action": "NAVIGATE | SEARCH | CLICK | QUERY",
+                "target": "BROWSER | APP",
+                "provider": "string (the website name or entity)",
+                "amount": float or null,
+                "urgency": "HIGH | MEDIUM | LOW"
+            }}
+            """
+            raw_response = await self._call_with_retry(prompt)
+            clean_json = raw_response.strip().replace("```json", "").replace("```", "")
+            data = json.loads(clean_json)
+            
+            if "amount" not in data:
+                data["amount"] = None
+                
+            return IntentOutput(**data)
+
+        except Exception as e:
+            fallback = self._local_parse_fallback(user_input)
+            if fallback:
+                logger.info("Gemini Busy: Using local command fallback.")
+                return fallback
+            
+            logger.error(f"Intent Error: {e}")
+            if "QUOTA_EXCEEDED" in str(e):
+                raise Exception("System Overloaded: I cannot process this request right now.")
+            raise Exception("I encountered an error and cannot process this command.")
+
+    async def analyze_visual_element(self, screenshot_b64: str, target_desc: str) -> Optional[VisualGrounding]:
+        """Generic visual analysis for element coordinates."""
+        prompt = f"Locate '{target_desc}' in the image. Return JSON: {{'element_name': str, 'coordinates': [ymin, xmin, ymax, xmax], 'confidence': float}}"
+        try:
+            raw_response = await self._call_with_retry(prompt, image_data=screenshot_b64)
+            data = json.loads(raw_response.strip().replace("```json", "").replace("```", ""))
+            return VisualGrounding(**data)
+        except:
             return None
-
-    def analyze_ui_safety(self, screenshot_b64: str, expected_amount: str) -> bool:
-        """
-        Critical Verification: 'Sees' the final confirmation modal to prevent payment errors.
-        """
-        prompt = f"Does this payment confirmation screen show an amount of {expected_amount}? Answer only 'YES' or 'NO'."
-        
-        image_part = types.Part.from_bytes(
-            data=base64.b64decode(screenshot_b64),
-            mime_type="image/png"
-        )
-
-        response = self.client.models.generate_content(
-            model=self.model_id,
-            contents=[prompt, image_part]
-        )
-        
-        return "YES" in response.text.upper()

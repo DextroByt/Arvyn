@@ -1,1 +1,14 @@
-{}
+{
+    "providers": {
+        "RIO_BANK": {
+            "name": "Rio Finance Bank",
+            "url": "https://roshan-chaudhary13.github.io/rio_finance_bank/",
+            "consumer_id": "8120000000",
+            "password": "admin123"
+        }
+    },
+    "personal_info": {
+        "full_name": "Akash Chakresh",
+        "email": "akash@gmail.com"
+    }
+}

@@ -1,21 +1,24 @@
-# --- Core Intelligence & Orchestration ---
-google-generativeai
-langchain
+
+
 langgraph
 langchain-google-genai
-openai
+google-generativeai
 pydantic
 python-dotenv
 
-# --- Automation (The Hands) ---
+
+
+PyQt6
+
 playwright
 
-# --- Interface (The Face) ---
-PyQt6
-PyQt6-Frameless-Window
-pyqtdarktheme
 
-# --- Sensory (Voice & Senses) ---
+
 SpeechRecognition
 pyttsx3
 PyAudio
+
+
+
+pillow
+requests
