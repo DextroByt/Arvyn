@@ -3233,3 +3233,96 @@ waiting for locator("h3") to be visible
 2025-12-19 13:15:19 | INFO | ArvynConfig | Memory Updated: Verified official site for NETFLIX -> https://www.netflix.com/in/
 2025-12-19 13:15:19 | INFO | ArvynConfig | Orchestrator: Closing browser session.
 2025-12-19 13:15:20 | INFO | ArvynConfig | Browser resources released.
+2025-12-19 13:23:05 | INFO | ArvynConfig | Agent Arvyn Production Core initialized with session persistence.
+2025-12-19 13:23:19 | INFO | ArvynConfig | VoiceWorker: Microphone hot.
+2025-12-19 13:23:52 | INFO | ArvynConfig | VoiceWorker: Microphone hot.
+2025-12-19 13:24:04 | INFO | ArvynConfig | Command Input: open flipkart.com and search for mobiles
+2025-12-19 13:24:04 | INFO | ArvynConfig | GeminiBrain initialized with model: gemini-2.5-flash
+2025-12-19 13:24:04 | INFO | comtypes.client._code_cache | Imported existing <module 'comtypes.gen' from 'C:\\Users\\gaash\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-19 13:24:04 | INFO | comtypes.client._code_cache | Using writeable comtypes cache directory: 'C:\Users\gaash\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-19 13:24:04 | INFO | ArvynConfig | TTS engine ready.
+2025-12-19 13:24:04 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-19 13:24:04 | INFO | ArvynConfig | Intelligent Orchestrator ready with gemini-2.5-flash.
+2025-12-19 13:24:04 | INFO | ArvynConfig | Advanced Agent Arvyn Core compiled with Persistence.
+2025-12-19 13:24:04 | INFO | ArvynConfig | Node: Parsing & Normalizing Intent...
+2025-12-19 13:24:16 | INFO | ArvynConfig | Memory Hit: https://www.flipkart.com/
+2025-12-19 13:24:16 | INFO | ArvynConfig | Node: Discovery & Navigation...
+2025-12-19 13:24:32 | INFO | ArvynConfig | Intelligent Browser Engine started at 1280x800.
+2025-12-19 13:24:32 | INFO | ArvynConfig | Navigating to https://www.flipkart.com/...
+2025-12-19 13:24:38 | INFO | ArvynConfig | Orchestrator: Closing browser session.
+2025-12-19 13:24:38 | INFO | ArvynConfig | Browser resources released.
+2025-12-19 13:42:53 | CRITICAL | ArvynConfig | App Crash: 'ArvynApp' object has no attribute 'dashboard'
+2025-12-19 13:44:36 | INFO | ArvynConfig | Agent Arvyn Production Core initialized with fixed UI priority.
+2025-12-19 13:44:37 | INFO | ArvynConfig | GeminiBrain initialized with model: gemini-2.5-flash
+2025-12-19 13:44:37 | INFO | comtypes.client._code_cache | Imported existing <module 'comtypes.gen' from 'C:\\Users\\gaash\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-19 13:44:37 | INFO | comtypes.client._code_cache | Using writeable comtypes cache directory: 'C:\Users\gaash\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-19 13:44:37 | INFO | ArvynConfig | TTS engine ready.
+2025-12-19 13:44:37 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-19 13:44:37 | INFO | ArvynConfig | Persistent Orchestrator ready with gemini-2.5-flash.
+2025-12-19 13:44:37 | INFO | ArvynConfig | Arvyn Core compiled with Interactive Sub-Task support.
+2025-12-19 13:45:24 | INFO | ArvynConfig | VoiceWorker: Microphone hot.
+2025-12-19 13:45:32 | INFO | ArvynConfig | Command Submission: open flipkart.com and seach for i phone 15 and then click on buy
+2025-12-19 13:45:32 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 13:45:44 | INFO | ArvynConfig | Memory Hit: Navigating directly to https://www.flipkart.com/
+2025-12-19 13:45:44 | INFO | ArvynConfig | Node: Executing Browser Action...
+2025-12-19 13:45:45 | INFO | ArvynConfig | Intelligent Browser Engine started at 1280x800.
+2025-12-19 13:45:45 | INFO | ArvynConfig | Navigating to https://www.flipkart.com/...
+2025-12-19 13:46:27 | WARNING | ArvynConfig | Agent session termination requested.
+2025-12-19 13:48:34 | INFO | ArvynConfig | Agent Arvyn Production Core initialized with fixed UI priority.
+2025-12-19 13:48:35 | INFO | ArvynConfig | GeminiBrain initialized with model: gemini-2.5-flash
+2025-12-19 13:48:35 | INFO | comtypes.client._code_cache | Imported existing <module 'comtypes.gen' from 'C:\\Users\\gaash\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-19 13:48:35 | INFO | comtypes.client._code_cache | Using writeable comtypes cache directory: 'C:\Users\gaash\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-19 13:48:35 | INFO | ArvynConfig | TTS engine ready.
+2025-12-19 13:48:35 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-19 13:48:35 | INFO | ArvynConfig | Persistent Orchestrator ready with gemini-2.5-flash.
+2025-12-19 13:48:35 | INFO | ArvynConfig | Arvyn Core compiled with Interactive Sub-Task support.
+2025-12-19 13:48:42 | INFO | ArvynConfig | VoiceWorker: Microphone hot.
+2025-12-19 13:48:50 | INFO | ArvynConfig | Command Submission: open browsers google.com
+2025-12-19 13:48:50 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 13:48:54 | INFO | ArvynConfig | Node: Executing Browser Action...
+2025-12-19 13:48:55 | INFO | ArvynConfig | Intelligent Browser Engine started at 1280x800.
+2025-12-19 13:48:55 | INFO | ArvynConfig | Navigating to https://www.google.com...
+2025-12-19 13:49:17 | INFO | ArvynConfig | Kinetic Layer: Executing precise click at (345, 223)
+2025-12-19 13:49:35 | INFO | ArvynConfig | VoiceWorker: Microphone hot.
+2025-12-19 13:49:44 | INFO | ArvynConfig | Command Submission: in this search for netflix.com
+2025-12-19 13:49:44 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 13:49:46 | INFO | ArvynConfig | Memory Hit: Navigating directly to https://www.netflix.com/in/
+2025-12-19 13:49:46 | INFO | ArvynConfig | Node: Executing Browser Action...
+2025-12-19 13:49:46 | INFO | ArvynConfig | Navigating to https://www.netflix.com/in/...
+2025-12-19 13:49:54 | INFO | ArvynConfig | VoiceWorker: Microphone hot.
+2025-12-19 13:50:03 | INFO | ArvynConfig | Command Submission: click on get started
+2025-12-19 13:50:03 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 13:50:07 | ERROR | ArvynConfig | Intent Error: 1 validation error for IntentOutput
+provider
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.12/v/string_type
+2025-12-19 13:50:07 | ERROR | ArvynConfig | Intent Parsing Error: I couldn't process that command intelligently.
+2025-12-19 13:50:07 | INFO | ArvynConfig | Node: Executing Browser Action...
+2025-12-19 13:50:21 | INFO | ArvynConfig | VoiceWorker: Microphone hot.
+2025-12-19 13:50:28 | INFO | ArvynConfig | Command Submission: go on flipkart.com
+2025-12-19 13:50:28 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 13:50:30 | ERROR | ArvynConfig | Intent Error: 503 The model is overloaded. Please try again later.
+2025-12-19 13:50:30 | ERROR | ArvynConfig | Intent Parsing Error: I couldn't process that command intelligently.
+2025-12-19 13:50:30 | INFO | ArvynConfig | Node: Executing Browser Action...
+2025-12-19 13:50:30 | INFO | ArvynConfig | Navigating to https://www.netflix.com/in/...
+2025-12-19 13:50:41 | INFO | ArvynConfig | Command Submission: go on flipkart.com
+2025-12-19 13:50:44 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 13:50:47 | INFO | ArvynConfig | Memory Hit: Navigating directly to https://www.flipkart.com/
+2025-12-19 13:50:47 | INFO | ArvynConfig | Node: Executing Browser Action...
+2025-12-19 13:50:47 | INFO | ArvynConfig | Navigating to https://www.flipkart.com/...
+2025-12-19 13:50:56 | INFO | ArvynConfig | VoiceWorker: Microphone hot.
+2025-12-19 13:51:04 | INFO | ArvynConfig | Command Submission: search for iPhone
+2025-12-19 13:51:04 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 13:51:09 | INFO | ArvynConfig | Node: Executing Browser Action...
+2025-12-19 13:51:32 | INFO | ArvynConfig | Command Submission: search for iPhone
+2025-12-19 13:51:32 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 13:51:36 | INFO | ArvynConfig | Node: Executing Browser Action...
+2025-12-19 13:51:46 | INFO | ArvynConfig | VoiceWorker: Microphone hot.
+2025-12-19 13:51:55 | INFO | ArvynConfig | Command Submission: search for iPhone
+2025-12-19 13:51:55 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 13:52:00 | INFO | ArvynConfig | Node: Executing Browser Action...
+2025-12-19 13:52:07 | INFO | ArvynConfig | Command Submission: search for iPhone on flipkart .com
+2025-12-19 13:52:07 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 13:52:16 | INFO | ArvynConfig | Memory Hit: Navigating directly to https://www.flipkart.com/
+2025-12-19 13:52:16 | INFO | ArvynConfig | Node: Executing Browser Action...
+2025-12-19 13:52:27 | WARNING | ArvynConfig | Agent session termination requested.

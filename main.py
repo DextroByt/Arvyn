@@ -9,32 +9,38 @@ from config import Config, logger, ORB_SIZE, DASHBOARD_SIZE
 
 from gui.widget_orb import ArvynOrb
 from gui.dashboard import ArvynDashboard
-from gui.threads import AgentWorker, VoiceWorker 
+from gui.threads import AgentWorker, VoiceWorker
 
 class ArvynApp(ArvynOrb):
     """
     The Core Application Controller (Production Grade).
     Manages persistent browser sessions and the Toggle-to-Talk lifecycle.
+    Fixed: Dashboard initialization order to prevent attribute errors.
     """
     def __init__(self):
         super().__init__()
-        self.worker = None
-        self.voice_worker = None
-        self._is_expanded = False
         
-        # Setup Internal View Switching
+        # --- 1. UI INITIALIZATION (Must come first) ---
+        self._is_expanded = False
         self.container = QStackedWidget()
         
         # Index 0: The Status Label (from ArvynOrb)
         self.container.addWidget(self.status_label)
         
-        # Index 1: The Dashboard
+        # Index 1: The Dashboard (Crucial to initialize this BEFORE worker signals)
         self.dashboard = ArvynDashboard()
         self.container.addWidget(self.dashboard)
         
         self.layout.addWidget(self.container)
+
+        # --- 2. WORKER & SESSION INITIALIZATION ---
+        self.worker = AgentWorker() 
+        self._connect_worker_signals()
+        self.worker.start()
+
+        self.voice_worker = None
         
-        # Signal Connections
+        # Signal Connections for Dashboard UI
         self.clicked.connect(self.initiate_expansion)
         self.dashboard.command_submitted.connect(self.process_command)
         self.dashboard.mic_clicked.connect(self.trigger_voice_input)
@@ -46,7 +52,14 @@ class ArvynApp(ArvynOrb):
         self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
         self.start_pulse()
         
-        logger.info("Agent Arvyn Production Core initialized with session persistence.")
+        logger.info("Agent Arvyn Production Core initialized with fixed UI priority.")
+
+    def _connect_worker_signals(self):
+        """Connects signals from the persistent worker to the UI."""
+        self.worker.log_signal.connect(self.dashboard.append_log)
+        self.worker.status_signal.connect(self._update_ui_status)
+        self.worker.screenshot_signal.connect(self.dashboard.update_screenshot)
+        self.worker.approval_signal.connect(self._toggle_approval_ui)
 
     def move_to_default_position(self):
         screen = QApplication.primaryScreen().availableGeometry()
@@ -103,24 +116,9 @@ class ArvynApp(ArvynOrb):
         self.dashboard.input_field.setFocus()
 
     def process_command(self, command_text: str):
-        """
-        Handles command processing. 
-        Will overwrite existing persistent sessions if a new command is issued.
-        """
-        # If a worker is running but in a persistent 'Ready' state, we stop it 
-        # to clear the old session before starting a new one.
-        if self.worker and self.worker.isRunning():
-            logger.info("Overwriting previous persistent session for new command.")
-            self.worker.stop()
-            self.worker.wait(500)
-
-        logger.info(f"Command Input: {command_text}")
-        self.worker = AgentWorker(command_text)
-        self.worker.log_signal.connect(self.dashboard.append_log)
-        self.worker.status_signal.connect(self._update_ui_status)
-        self.worker.screenshot_signal.connect(self.dashboard.update_screenshot)
-        self.worker.approval_signal.connect(self._toggle_approval_ui)
-        self.worker.start()
+        """Submits a command to the persistent browser worker."""
+        logger.info(f"Command Submission: {command_text}")
+        self.worker.submit_command(command_text)
 
     def trigger_voice_input(self, should_start: bool):
         """Handles Toggle-to-Talk logic from Dashboard mic button."""
@@ -144,20 +142,14 @@ class ArvynApp(ArvynOrb):
             self._update_ui_status("Ready")
 
     def kill_agent(self):
-        """
-        The only way to explicitly close the persistent browser session.
-        This triggers the orchestrator's cleanup() via the worker's thread exit.
-        """
+        """Shutdown the persistent browser session and application."""
         if self.worker and self.worker.isRunning():
-            logger.warning("Agent execution and browser session killed by user.")
-            self.worker.stop()
-            self.worker.wait(1000)
-            if self.worker.isRunning():
-                self.worker.terminate()
+            logger.warning("Agent session termination requested.")
+            self.worker.stop_persistent_session()
             self._update_ui_status("Stopped")
             self.dashboard.append_log("Browser resources released.")
         else:
-            self.dashboard.append_log("No active session to stop.")
+            self.dashboard.append_log("No active session.")
 
     def _update_ui_status(self, status: str):
         self.dashboard.header.setText(f"ARVYN: {status.upper()}")
