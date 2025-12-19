@@ -7,11 +7,11 @@ from PyQt6.QtGui import QIcon
 
 class ArvynDashboard(QFrame):
     """
-    Simplified Dashboard for Agent Arvyn.
-    Provides direct control, activity logs, and HITL interaction.
+    Production Dashboard for Agent Arvyn.
+    Features: Toggle-to-Talk Mic (Red/Green), Glass Morphism UI, and Activity Logs.
     """
     command_submitted = pyqtSignal(str)
-    mic_clicked = pyqtSignal()
+    mic_clicked = pyqtSignal(bool)  # Updated to pass the toggle state
     approval_given = pyqtSignal(bool)
     minimize_requested = pyqtSignal()
     stop_requested = pyqtSignal()
@@ -21,6 +21,7 @@ class ArvynDashboard(QFrame):
         self.setObjectName("Dashboard")
         self.setFixedSize(400, 500)
         self.setFrameShape(QFrame.Shape.NoFrame)
+        self.is_listening = False # State tracker for the mic
         
         # Glass Morphism Styling
         self.setStyleSheet("""
@@ -64,6 +65,13 @@ class ArvynDashboard(QFrame):
             #BtnReject { background: rgba(231, 76, 60, 30); border-color: #e74c3c; color: #e74c3c; }
             #BtnApprove:hover { background: rgba(46, 204, 113, 60); }
             #BtnReject:hover { background: rgba(231, 76, 60, 60); }
+
+            /* Style for the Mic Button */
+            #MicBtn {
+                color: white;
+                border: none;
+                font-size: 20px;
+            }
         """)
 
         layout = QVBoxLayout(self)
@@ -75,7 +83,6 @@ class ArvynDashboard(QFrame):
         self.header = QLabel("ARVYN: READY")
         self.header.setStyleSheet("font-weight: bold; letter-spacing: 1px; color: #00d2ff;")
         
-        # Control Buttons (Minimize & Stop)
         btn_min = QPushButton("−")
         btn_min.setObjectName("BtnControl")
         btn_min.setFixedSize(30, 30)
@@ -93,11 +100,10 @@ class ArvynDashboard(QFrame):
         header_layout.addWidget(btn_stop)
         layout.addLayout(header_layout)
 
-        # --- 2. Interaction Area (HITL) ---
+        # --- 2. Interaction Area ---
         self.interaction_stack = QStackedWidget()
         self.interaction_stack.setFixedHeight(70)
 
-        # Default: Status Message
         self.status_container = QWidget()
         status_lay = QVBoxLayout(self.status_container)
         status_lay.setContentsMargins(0, 0, 0, 0)
@@ -106,7 +112,6 @@ class ArvynDashboard(QFrame):
         self.status_msg.setAlignment(Qt.AlignmentFlag.AlignCenter)
         status_lay.addWidget(self.status_msg)
         
-        # Approval View (Appears when Agent needs permission)
         self.approval_container = QWidget()
         appr_lay = QHBoxLayout(self.approval_container)
         appr_lay.setContentsMargins(0, 5, 0, 5)
@@ -138,17 +143,34 @@ class ArvynDashboard(QFrame):
         cmd_layout.setSpacing(10)
         
         self.input_field = QLineEdit()
-        self.input_field.setPlaceholderText("Direct command (e.g., 'Pay Rio Bank 500')")
+        self.input_field.setPlaceholderText("Direct command (e.g., 'Search for GitHub')")
         self.input_field.returnPressed.connect(self._handle_submit)
         
         self.btn_mic = QPushButton("🎤")
+        self.btn_mic.setObjectName("MicBtn")
         self.btn_mic.setFixedSize(44, 44)
-        self.btn_mic.setStyleSheet("border-radius: 22px; font-size: 18px;")
-        self.btn_mic.clicked.connect(self.mic_clicked.emit)
+        # Default state: Red (Not listening)
+        self.btn_mic.setStyleSheet("background-color: #ff4d4d; border-radius: 22px;")
+        self.btn_mic.clicked.connect(self._toggle_mic)
 
         cmd_layout.addWidget(self.input_field)
         cmd_layout.addWidget(self.btn_mic)
         layout.addLayout(cmd_layout)
+
+    def _toggle_mic(self):
+        """Toggles the mic state and updates visual color (Green/Red)."""
+        if not self.is_listening:
+            # Switch to Listening (Green)
+            self.is_listening = True
+            self.btn_mic.setStyleSheet("background-color: #2eb82e; border-radius: 22px;")
+            self.append_log("Voice Control: ON")
+        else:
+            # Switch to Idle (Red)
+            self.is_listening = False
+            self.btn_mic.setStyleSheet("background-color: #ff4d4d; border-radius: 22px;")
+            self.append_log("Voice Control: Processing...")
+            
+        self.mic_clicked.emit(self.is_listening)
 
     def _handle_submit(self):
         text = self.input_field.text().strip()
@@ -157,11 +179,8 @@ class ArvynDashboard(QFrame):
             self.input_field.clear()
 
     def append_log(self, text: str):
-        """Standardized logging for the UI console."""
         self.log_area.append(f"<span style='color:#00d2ff;'>&gt;</span> {text}")
-        # Auto-scroll
         self.log_area.verticalScrollBar().setValue(self.log_area.verticalScrollBar().maximum())
 
     def update_screenshot(self, b64_data: str):
-        """Updates internal status when browser captures visual state."""
         self.append_log("<i style='color:#666;'>[Visual Context Updated]</i>")

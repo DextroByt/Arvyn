@@ -29,15 +29,27 @@ class AgentState(TypedDict):
     current_step: str
 
 class IntentOutput(BaseModel):
-    """Structured output for Gemini intent parsing with prototype-ready defaults."""
-    action: str = Field(default="QUERY", description="Action: PAY, CHECK_BALANCE, NAVIGATE, etc.")
-    target: str = Field(default="UNKNOWN", description="Category: BANKING, UTILITY, etc.")
-    provider: str = Field(default="NONE", description="Specific entity name")
+    """Structured output for Gemini intent parsing with advanced discovery support."""
+    action: str = Field(default="QUERY", description="Action: PAY, CHECK_BALANCE, NAVIGATE, SEARCH, etc.")
+    target: str = Field(default="UNKNOWN", description="Category: BANKING, UTILITY, BROWSER, etc.")
+    provider: str = Field(default="NONE", description="Normalized entity name or specific site")
+    
+    # Added to support the Intelligent Search Agent's discovery loop
+    search_query: Optional[str] = Field(default=None, description="Optimized query for search engines")
+    
     amount: Optional[float] = Field(default=None, description="Monetary value if present")
-    urgency: str = Field(default="LOW", description="Priority level")
+    
+    # Made optional to prevent validation crashes if Gemini returns null
+    urgency: Optional[str] = Field(default="LOW", description="Priority level: HIGH | MEDIUM | LOW")
 
 class VisualGrounding(BaseModel):
-    """Structured output for VLM coordinate mapping."""
-    element_name: str
-    coordinates: List[float] = Field(description="Normalized [ymin, xmin, ymax, xmax]")
-    confidence: float
+    """
+    Structured output for VLM coordinate mapping.
+    Updated to be robust against missing VLM detections.
+    """
+    element_name: str = Field(default="Target Element")
+    
+    # FIX: Made Optional to prevent 'input should be a valid list' errors when VLM fails
+    coordinates: Optional[List[float]] = Field(default=None, description="Normalized [ymin, xmin, ymax, xmax]")
+    
+    confidence: float = Field(default=0.0)

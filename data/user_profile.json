@@ -7,8 +7,19 @@
             "password": "admin123"
         }
     },
+    "verified_sites": {
+        "GITHUB": "https://github.com/",
+        "AMAZON": "https://www.amazon.com/",
+        "JIO_FINANCIAL_SERVICES": "https://www.jiofinance.com/",
+        "FLIPKART": "https://www.flipkart.com/",
+        "NETFLIX": "https://www.netflix.com/in/"
+    },
     "personal_info": {
         "full_name": "Akash Chakresh",
         "email": "akash@gmail.com"
+    },
+    "settings": {
+        "auto_navigate_verified": true,
+        "vision_confidence_threshold": 0.6
     }
 }

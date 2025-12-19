@@ -5,54 +5,20 @@ from PyQt6.QtWidgets import QApplication, QStackedWidget
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QPropertyAnimation, QRect, QEasingCurve
 
 # Import config first to initialize logging correctly
-from config import Config, logger
-
-# UI Constants (Adjust these as needed for your screen)
-ORB_SIZE = 80
-DASHBOARD_SIZE = (400, 500)
+from config import Config, logger, ORB_SIZE, DASHBOARD_SIZE
 
 from gui.widget_orb import ArvynOrb
 from gui.dashboard import ArvynDashboard
-from gui.threads import AgentWorker
-from tools.voice import ArvynVoice
-
-class VoiceWorker(QThread):
-    """Dedicated thread for voice recognition to avoid blocking the UI loop."""
-    text_received = pyqtSignal(str)
-    error_signal = pyqtSignal(str)
-
-    def __init__(self, voice_tool):
-        super().__init__()
-        self.voice = voice_tool
-        self._is_active = True
-
-    def run(self):
-        # Create a new event loop for the async voice listener
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            # Direct execution: listen and emit
-            text = loop.run_until_complete(self.voice.listen())
-            if self._is_active:
-                self.text_received.emit(text if text else "")
-        except Exception as e:
-            logger.error(f"VoiceWorker Error: {e}")
-            self.error_signal.emit(str(e))
-        finally:
-            loop.close()
-
-    def stop(self):
-        self._is_active = False
+from gui.threads import AgentWorker, VoiceWorker 
 
 class ArvynApp(ArvynOrb):
     """
-    The Core Application Controller.
-    Optimized for direct command processing and Glass Morphism UI.
+    The Core Application Controller (Production Grade).
+    Manages persistent browser sessions and the Toggle-to-Talk lifecycle.
     """
     def __init__(self):
         super().__init__()
         self.worker = None
-        self.voice = ArvynVoice()
         self.voice_worker = None
         self._is_expanded = False
         
@@ -80,7 +46,7 @@ class ArvynApp(ArvynOrb):
         self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
         self.start_pulse()
         
-        logger.info("Agent Arvyn UI initialized and ready for direct commands.")
+        logger.info("Agent Arvyn Production Core initialized with session persistence.")
 
     def move_to_default_position(self):
         screen = QApplication.primaryScreen().availableGeometry()
@@ -137,12 +103,18 @@ class ArvynApp(ArvynOrb):
         self.dashboard.input_field.setFocus()
 
     def process_command(self, command_text: str):
-        """Direct execution: processes user input without ID checks."""
+        """
+        Handles command processing. 
+        Will overwrite existing persistent sessions if a new command is issued.
+        """
+        # If a worker is running but in a persistent 'Ready' state, we stop it 
+        # to clear the old session before starting a new one.
         if self.worker and self.worker.isRunning():
-            self.dashboard.append_log("Arvyn is busy. Stop the current task first.")
-            return
+            logger.info("Overwriting previous persistent session for new command.")
+            self.worker.stop()
+            self.worker.wait(500)
 
-        logger.info(f"Processing direct command: {command_text}")
+        logger.info(f"Command Input: {command_text}")
         self.worker = AgentWorker(command_text)
         self.worker.log_signal.connect(self.dashboard.append_log)
         self.worker.status_signal.connect(self._update_ui_status)
@@ -150,15 +122,42 @@ class ArvynApp(ArvynOrb):
         self.worker.approval_signal.connect(self._toggle_approval_ui)
         self.worker.start()
 
+    def trigger_voice_input(self, should_start: bool):
+        """Handles Toggle-to-Talk logic from Dashboard mic button."""
+        if should_start:
+            if self.voice_worker and self.voice_worker.isRunning():
+                return
+            self.voice_worker = VoiceWorker()
+            self.voice_worker.text_received.connect(self._handle_voice_success)
+            self.voice_worker.status_signal.connect(self._update_ui_status)
+            self.voice_worker.start()
+        else:
+            if self.voice_worker and self.voice_worker.isRunning():
+                self.voice_worker.stop()
+
+    def _handle_voice_success(self, text):
+        if text:
+            self.dashboard.input_field.setText(text)
+            self.process_command(text)
+        else:
+            self.dashboard.append_log("No speech detected.")
+            self._update_ui_status("Ready")
+
     def kill_agent(self):
-        """Emergency stop logic."""
+        """
+        The only way to explicitly close the persistent browser session.
+        This triggers the orchestrator's cleanup() via the worker's thread exit.
+        """
         if self.worker and self.worker.isRunning():
-            logger.warning("Manual stop triggered.")
+            logger.warning("Agent execution and browser session killed by user.")
             self.worker.stop()
             self.worker.wait(1000)
             if self.worker.isRunning():
                 self.worker.terminate()
             self._update_ui_status("Stopped")
+            self.dashboard.append_log("Browser resources released.")
+        else:
+            self.dashboard.append_log("No active session to stop.")
 
     def _update_ui_status(self, status: str):
         self.dashboard.header.setText(f"ARVYN: {status.upper()}")
@@ -170,19 +169,6 @@ class ArvynApp(ArvynOrb):
             self.activateWindow()
         else:
             self.dashboard.interaction_stack.setCurrentIndex(0)
-
-    def trigger_voice_input(self):
-        if (self.voice_worker and self.voice_worker.isRunning()):
-            return
-        self.dashboard.append_log("Listening...")
-        self.voice_worker = VoiceWorker(self.voice)
-        self.voice_worker.text_received.connect(self._handle_voice_success)
-        self.voice_worker.start()
-
-    def _handle_voice_success(self, text):
-        if text:
-            self.dashboard.input_field.setText(text)
-            self.process_command(text)
 
     def handle_hitl_approval(self, approved: bool):
         if self.worker:
