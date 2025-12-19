@@ -4,7 +4,7 @@ import logging
 import asyncio
 import google.generativeai as genai
 from google.generativeai.types import RequestOptions
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Union
 
 from config import GEMINI_API_KEY, logger
 from core.state_schema import IntentOutput, VisualGrounding
@@ -14,8 +14,8 @@ genai.configure(api_key=GEMINI_API_KEY)
 
 class GeminiBrain:
     """
-    Advanced Reasoning Engine for Agent Arvyn (Production Grade).
-    Updated for robust Visual Grounding and coordinate-based site selection.
+    Advanced Visual-Reasoning Engine for Agent Arvyn.
+    Features: Recursive Planning, Visual Grounding, and Default Provider Mapping.
     """
     
     def __init__(self, model_name: str = "gemini-2.5-flash"):
@@ -50,70 +50,115 @@ class GeminiBrain:
             raise e
 
     async def parse_intent(self, user_input: str) -> IntentOutput:
-        """Normalized Entity Extraction with fuzzy correction logic."""
+        """
+        Sophisticated Entity & Intent Extraction.
+        Fixed: Includes Default Mapping for Rio Finance Bank to prevent validation errors.
+        """
         prompt = f"""
-        TASK: Extract intent and normalize the target entity.
+        TASK: Extract intent for a banking and browsing assistant.
         USER COMMAND: "{user_input}"
         
-        LOGIC:
-        1. Correct misspellings (e.g., "jio finance" -> "Jio Financial Services").
-        2. Format search queries specifically for finding "Official" sites.
+        LOGIC & DEFAULTS:
+        1. ACTIONS: Map to PAY_BILL, BUY_GOLD, UPDATE_PROFILE, LOGIN, NAVIGATE, or SEARCH.
+        2. DEFAULT PROVIDER: If the user mentions 'bill', 'gold', or 'bank' WITHOUT naming a specific bank, 
+           ALWAYS set "provider" to "Rio Finance Bank".
+        3. DATA: Extract amounts or specific values if mentioned.
         
         RETURN JSON:
         {{
-            "action": "NAVIGATE | SEARCH | CLICK | QUERY",
-            "target": "BROWSER | APP",
-            "provider": "Normalized Entity Name",
-            "search_query": "Optimized search query (e.g. 'Amazon official website')",
-            "urgency": "LOW"
+            "action": "PAY_BILL | BUY_GOLD | UPDATE_PROFILE | LOGIN | NAVIGATE | SEARCH | QUERY",
+            "target": "BANKING | UTILITY | BROWSER",
+            "provider": "Normalized Entity Name (Default: 'Rio Finance Bank' for banking tasks)",
+            "amount": float | null,
+            "search_query": "Optimized query if navigation is needed",
+            "urgency": "HIGH | MEDIUM | LOW"
         }}
         """
         try:
             raw_response = await self._call_with_retry(prompt)
             data = json.loads(raw_response.strip().replace("```json", "").replace("```", ""))
+            
+            # Post-processing to ensure provider is NEVER None (Safety against AI hallucinations)
+            if not data.get("provider") or data["provider"] == "NONE":
+                if data.get("action") in ["PAY_BILL", "BUY_GOLD", "UPDATE_PROFILE", "LOGIN"]:
+                    data["provider"] = "Rio Finance Bank"
+                else:
+                    data["provider"] = "UNKNOWN"
+                    
             return IntentOutput(**data)
         except Exception as e:
             logger.error(f"Intent Error: {e}")
-            raise Exception("I couldn't process that command intelligently.")
+            # Fallback to a safe object to prevent downstream crashes
+            return IntentOutput(action="QUERY", provider="UNKNOWN", target="BROWSER")
 
-    async def locate_official_link_on_page(self, screenshot_b64: str, target_entity: str) -> Optional[VisualGrounding]:
+    async def analyze_page_for_action(
+        self, 
+        screenshot_b64: str, 
+        goal: str, 
+        history: List[Dict[str, Any]],
+        user_context: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
-        VLM Task: Identify the official website link in the screenshot.
-        Uses visual cues to distinguish official results from ads.
+        THE CORE ENGINE: Visual Observation + Reasoning.
+        Analyzes a screenshot to determine the next kinetic step.
         """
-        # IMPROVED PROMPT: Provides more context on what an "Official Link" looks like visually
+        history_summary = "\n".join([f"- {h.get('action')}: {h.get('element')}" for h in history[-5:]])
+        
         prompt = f"""
-        Analyze this Google Search results page for '{target_entity}'.
+        GOAL: {goal}
+        CURRENT CONTEXT (User Data): {json.dumps(user_context)}
+        RECENT STEPS TAKEN:
+        {history_summary if history else "No actions taken yet."}
+
+        TASK: Analyze the screenshot and determine the SINGLE NEXT STEP to move closer to the goal.
+
+        STRATEGY:
+        1. LOGIN: If you see login fields and aren't logged in, use credentials from CURRENT CONTEXT.
+        2. DISCOVERY: On the Dashboard, identify 'Digital Gold', 'Bill Payments', or 'Profile' links.
+        3. FORM FILLING: Use CONTEXT (Consumer ID, Address, PIN) to fill specific fields.
+        4. INTERACTION: If a choice is required (e.g., 'Select Bank' or 'Enter PIN'), use ASK_USER.
         
-        TASK: Find the bounding box for the TITLE of the FIRST organic (non-ad) official website result.
-        
-        VISUAL CLUES:
-        - Organic results usually have a large blue/purple title.
-        - Look for a URL that clearly belongs to {target_entity} (e.g., {target_entity.lower()}.com).
-        - IGNORE results marked as 'Sponsored' or 'Ad'.
-        - Provide coordinates for the clickable text area.
-        
+        ACTION TYPES:
+        - CLICK: [ymin, xmin, ymax, xmax]
+        - TYPE: {{ "coordinates": [ymin, xmin, ymax, xmax], "text": "value" }}
+        - ASK_USER: "Voice prompt for the user"
+        - FINISHED: "Completion message"
+
         RETURN JSON ONLY:
         {{
-            "element_name": "Official Link for {target_entity}",
+            "thought": "Brief explanation of visual reasoning",
+            "action_type": "CLICK | TYPE | ASK_USER | FINISHED",
+            "element_name": "Name of target element",
             "coordinates": [ymin, xmin, ymax, xmax],
-            "confidence": float (0.0 to 1.0)
+            "input_text": "text to type if action is TYPE",
+            "voice_prompt": "Natural speech for ASK_USER or FINISHED"
         }}
-        
-        Note: coordinates must be in [0-1000] scale.
         """
         try:
             raw_response = await self._call_with_retry(prompt, image_data=screenshot_b64)
-            # Clean JSON from potential markdown markers
             clean_json = raw_response.strip().replace("```json", "").replace("```", "")
-            data = json.loads(clean_json)
-            
-            # Robustness check: Ensure coordinates are a valid list before creating the object
-            if not data.get("coordinates") or not isinstance(data["coordinates"], list):
-                logger.warning("VLM returned empty or invalid coordinates.")
-                return None
-                
+            return json.loads(clean_json)
+        except Exception as e:
+            logger.error(f"Visual Planning Error: {e}")
+            return {"action_type": "ASK_USER", "voice_prompt": "I'm having trouble analyzing the screen. Could you guide me?"}
+
+    async def locate_element(self, screenshot_b64: str, description: str) -> Optional[VisualGrounding]:
+        """Precise coordinate mapping for a specific element description."""
+        prompt = f"""
+        Find the [ymin, xmin, ymax, xmax] coordinates for: "{description}"
+        Return normalized coordinates [0-1000].
+        
+        RETURN JSON:
+        {{
+            "element_name": "{description}",
+            "coordinates": [ymin, xmin, ymax, xmax],
+            "confidence": 0.9
+        }}
+        """
+        try:
+            raw_response = await self._call_with_retry(prompt, image_data=screenshot_b64)
+            data = json.loads(raw_response.strip().replace("```json", "").replace("```", ""))
             return VisualGrounding(**data)
         except Exception as e:
-            logger.error(f"Visual Grounding Logic Error: {e}")
+            logger.error(f"Locator Error: {e}")
             return None

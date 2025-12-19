@@ -24,6 +24,7 @@ venv/
 .venv/
 env/
 ENV/
+.env
 
 # IDE / Editor Settings
 .vscode/

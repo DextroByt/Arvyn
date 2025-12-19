@@ -3326,3 +3326,98 @@ provider
 2025-12-19 13:52:16 | INFO | ArvynConfig | Memory Hit: Navigating directly to https://www.flipkart.com/
 2025-12-19 13:52:16 | INFO | ArvynConfig | Node: Executing Browser Action...
 2025-12-19 13:52:27 | WARNING | ArvynConfig | Agent session termination requested.
+2025-12-19 19:35:53 | INFO | ArvynConfig | Agent Arvyn Production Core initialized with fixed UI priority.
+2025-12-19 19:35:54 | INFO | ArvynConfig | GeminiBrain initialized with model: gemini-2.5-flash
+2025-12-19 19:35:54 | INFO | comtypes.client._code_cache | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-19 19:35:54 | INFO | comtypes.client._code_cache | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-19 19:35:54 | INFO | ArvynConfig | TTS engine ready.
+2025-12-19 19:35:54 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-19 19:35:54 | INFO | ArvynConfig | Persistent Orchestrator ready with gemini-2.5-flash.
+2025-12-19 19:35:54 | INFO | ArvynConfig | Arvyn Core compiled with Interactive Sub-Task support.
+2025-12-19 19:35:59 | INFO | ArvynConfig | VoiceWorker: Microphone hot.
+2025-12-19 19:36:06 | INFO | ArvynConfig | Command Submission: open kaggle
+2025-12-19 19:36:06 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 19:36:09 | INFO | ArvynConfig | Node: Executing Browser Action...
+2025-12-19 19:36:22 | INFO | ArvynConfig | Intelligent Browser Engine started at 1280x800.
+2025-12-19 19:36:22 | INFO | ArvynConfig | Navigating to https://www.google.com...
+2025-12-19 19:36:35 | INFO | ArvynConfig | Kinetic Layer: Executing precise click at (403, 222)
+2025-12-19 19:37:57 | WARNING | ArvynConfig | Agent session termination requested.
+2025-12-19 19:38:02 | INFO | ArvynConfig | VoiceWorker: Microphone hot.
+2025-12-19 19:38:12 | INFO | ArvynConfig | Command Submission: open GitHub
+2025-12-19 19:39:42 | INFO | ArvynConfig | Agent Arvyn Production Core initialized with fixed UI priority.
+2025-12-19 19:39:42 | INFO | ArvynConfig | GeminiBrain initialized with model: gemini-2.5-flash
+2025-12-19 19:39:43 | INFO | comtypes.client._code_cache | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-19 19:39:43 | INFO | comtypes.client._code_cache | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-19 19:39:43 | INFO | ArvynConfig | TTS engine ready.
+2025-12-19 19:39:43 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-19 19:39:43 | INFO | ArvynConfig | Persistent Orchestrator ready with gemini-2.5-flash.
+2025-12-19 19:39:43 | INFO | ArvynConfig | Arvyn Core compiled with Interactive Sub-Task support.
+2025-12-19 19:39:46 | INFO | ArvynConfig | VoiceWorker: Microphone hot.
+2025-12-19 19:39:51 | INFO | ArvynConfig | Command Submission: pay my electricity
+2025-12-19 19:39:51 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 19:39:57 | INFO | ArvynConfig | Node: Executing Browser Action...
+2025-12-19 19:39:58 | INFO | ArvynConfig | Intelligent Browser Engine started at 1280x800.
+2025-12-19 19:39:58 | INFO | ArvynConfig | Navigating to https://www.google.com...
+2025-12-19 19:40:14 | INFO | ArvynConfig | Kinetic Layer: Executing precise click at (293, 623)
+2025-12-19 20:25:19 | INFO | comtypes.client._code_cache | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-19 20:25:19 | INFO | comtypes.client._code_cache | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-19 20:25:19 | INFO | ArvynConfig | TTS engine ready.
+2025-12-19 20:25:19 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-19 20:25:19 | INFO | ArvynConfig | Arvyn Production Core initialized with Interactive Voice Support.
+2025-12-19 20:25:20 | INFO | ArvynConfig | GeminiBrain initialized with model: gemini-2.5-flash
+2025-12-19 20:25:20 | INFO | ArvynConfig | TTS engine ready.
+2025-12-19 20:25:20 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-19 20:25:20 | INFO | ArvynConfig | Persistent Orchestrator ready with gemini-2.5-flash.
+2025-12-19 20:25:20 | INFO | ArvynConfig | Arvyn Autonomous Core compiled.
+2025-12-19 20:25:24 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-19 20:25:29 | INFO | ArvynConfig | STT Result: pay my electricity bill
+2025-12-19 20:25:29 | INFO | ArvynConfig | Command Submission: pay my electricity bill
+2025-12-19 20:25:29 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 20:25:32 | ERROR | ArvynConfig | Intent Error: 1 validation error for IntentOutput
+provider
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.11/v/string_type
+2025-12-19 20:25:32 | ERROR | ArvynConfig | Intent Error: I couldn't process that command intelligently.
+2025-12-19 20:25:32 | INFO | ArvynConfig | Node: Autonomous Executor thinking...
+2025-12-19 20:25:32 | ERROR | ArvynConfig | Task Execution Error: 'intent'
+2025-12-19 20:34:02 | INFO | comtypes.client._code_cache | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-19 20:34:02 | INFO | comtypes.client._code_cache | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-19 20:34:02 | INFO | ArvynConfig | TTS engine ready.
+2025-12-19 20:34:02 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-19 20:34:02 | INFO | ArvynConfig | Arvyn Production Core initialized with Interactive Voice Support.
+2025-12-19 20:34:02 | INFO | ArvynConfig | GeminiBrain initialized with model: gemini-2.5-flash
+2025-12-19 20:34:02 | INFO | ArvynConfig | TTS engine ready.
+2025-12-19 20:34:02 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-19 20:34:02 | INFO | ArvynConfig | Persistent Orchestrator ready with gemini-2.5-flash.
+2025-12-19 20:34:02 | INFO | ArvynConfig | Arvyn Autonomous Core compiled.
+2025-12-19 20:34:05 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-19 20:34:13 | INFO | ArvynConfig | STT Result: open kaggle
+2025-12-19 20:34:13 | INFO | ArvynConfig | Command Submission: open kaggle
+2025-12-19 20:34:13 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 20:34:16 | INFO | ArvynConfig | Node: Autonomous Executor thinking...
+2025-12-19 20:34:18 | ERROR | ArvynConfig | Task Execution Error: 'NoneType' object has no attribute 'keyboard'
+2025-12-19 20:44:36 | INFO | comtypes.client._code_cache | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-19 20:44:36 | INFO | comtypes.client._code_cache | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-19 20:44:37 | INFO | ArvynConfig | TTS engine ready.
+2025-12-19 20:44:37 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-19 20:44:37 | INFO | ArvynConfig | Arvyn 2.0: Interactive Core initialized and pulsing.
+2025-12-19 20:44:37 | INFO | ArvynConfig | GeminiBrain initialized with model: gemini-2.5-flash
+2025-12-19 20:44:37 | INFO | ArvynConfig | TTS engine ready.
+2025-12-19 20:44:37 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-19 20:44:37 | INFO | ArvynConfig | Persistent Orchestrator ready with gemini-2.5-flash.
+2025-12-19 20:44:37 | INFO | ArvynConfig | Arvyn Autonomous Core compiled.
+2025-12-19 20:44:40 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-19 20:44:44 | INFO | ArvynConfig | STT Result: open GitHub
+2025-12-19 20:44:44 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 20:44:45 | ERROR | ArvynConfig | Intent Error: 503 The model is overloaded. Please try again later.
+2025-12-19 20:44:45 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-19 20:44:56 | INFO | ArvynConfig | Intelligent Browser Engine started and initialized at 1280x800.
+2025-12-19 20:45:06 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-19 20:45:13 | INFO | ArvynConfig | STT Result: open GitHub
+2025-12-19 20:45:13 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-19 20:45:15 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-19 20:45:37 | ERROR | ArvynConfig | Visual Planning Error: Unterminated string starting at: line 2 column 14 (char 15)
+2025-12-19 20:45:39 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-19 20:46:45 | INFO | ArvynConfig | STT Result: ok I am coming there are total three members in all of them are coming IIT se
+2025-12-19 20:46:51 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-19 20:46:57 | INFO | ArvynConfig | STT Result: open GitHub

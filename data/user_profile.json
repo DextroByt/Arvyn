@@ -4,10 +4,12 @@
             "name": "Rio Finance Bank",
             "url": "https://roshan-chaudhary13.github.io/rio_finance_bank/",
             "consumer_id": "8120000000",
-            "password": "admin123"
+            "password": "admin123",
+            "otp_preference": "SMS"
         }
     },
     "verified_sites": {
+        "RIO_BANK": "https://roshan-chaudhary13.github.io/rio_finance_bank/",
         "GITHUB": "https://github.com/",
         "AMAZON": "https://www.amazon.com/",
         "JIO_FINANCIAL_SERVICES": "https://www.jiofinance.com/",
@@ -16,10 +18,15 @@
     },
     "personal_info": {
         "full_name": "Akash Chakresh",
-        "email": "akash@gmail.com"
+        "email": "akash@gmail.com",
+        "phone": "+91-9876543210",
+        "address": "123, Tech Park, Mumbai, Maharashtra",
+        "Pin" : "696955"
     },
     "settings": {
         "auto_navigate_verified": true,
-        "vision_confidence_threshold": 0.6
+        "vision_confidence_threshold": 0.6,
+        "default_payment_method": "UPI",
+        "require_approval_for_payments": true
     }
 }

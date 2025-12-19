@@ -2,45 +2,47 @@ import sys
 import asyncio
 import logging
 from PyQt6.QtWidgets import QApplication, QStackedWidget
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QPropertyAnimation, QRect, QEasingCurve
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QPropertyAnimation, QRect, QEasingCurve, QTimer
 
-# Import config first to initialize logging correctly
+# Import config first for unified logging
 from config import Config, logger, ORB_SIZE, DASHBOARD_SIZE
 
 from gui.widget_orb import ArvynOrb
 from gui.dashboard import ArvynDashboard
 from gui.threads import AgentWorker, VoiceWorker
+from tools.voice import ArvynVoice
 
 class ArvynApp(ArvynOrb):
     """
     The Core Application Controller (Production Grade).
-    Manages persistent browser sessions and the Toggle-to-Talk lifecycle.
-    Fixed: Dashboard initialization order to prevent attribute errors.
+    Manages persistent browser sessions and the Recursive Interaction lifecycle.
+    Features: Animation Engine, Auto-Mic Toggle, and persistent TTS.
     """
     def __init__(self):
         super().__init__()
         
-        # --- 1. UI INITIALIZATION (Must come first) ---
+        # --- 1. CORE TOOLS & UI INITIALIZATION ---
+        self.voice = ArvynVoice()  # Voice output tool
         self._is_expanded = False
         self.container = QStackedWidget()
         
-        # Index 0: The Status Label (from ArvynOrb)
+        # Orb view (Index 0)
         self.container.addWidget(self.status_label)
         
-        # Index 1: The Dashboard (Crucial to initialize this BEFORE worker signals)
+        # Dashboard view (Index 1) - Initialized BEFORE worker connections
         self.dashboard = ArvynDashboard()
         self.container.addWidget(self.dashboard)
         
         self.layout.addWidget(self.container)
 
-        # --- 2. WORKER & SESSION INITIALIZATION ---
+        # --- 2. PERSISTENT WORKER INITIALIZATION ---
         self.worker = AgentWorker() 
         self._connect_worker_signals()
         self.worker.start()
 
         self.voice_worker = None
         
-        # Signal Connections for Dashboard UI
+        # Interaction Signal Connections
         self.clicked.connect(self.initiate_expansion)
         self.dashboard.command_submitted.connect(self.process_command)
         self.dashboard.mic_clicked.connect(self.trigger_voice_input)
@@ -48,18 +50,32 @@ class ArvynApp(ArvynOrb):
         self.dashboard.minimize_requested.connect(self.initiate_shrink)
         self.dashboard.stop_requested.connect(self.kill_agent)
 
+        # UI Window Positioning & States
         self.move_to_default_position()
         self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
         self.start_pulse()
         
-        logger.info("Agent Arvyn Production Core initialized with fixed UI priority.")
+        logger.info("Arvyn 2.0: Interactive Core initialized and pulsing.")
 
     def _connect_worker_signals(self):
-        """Connects signals from the persistent worker to the UI."""
+        """Connects the orchestrator worker to UI updates and TTS synthesis."""
         self.worker.log_signal.connect(self.dashboard.append_log)
         self.worker.status_signal.connect(self._update_ui_status)
         self.worker.screenshot_signal.connect(self.dashboard.update_screenshot)
         self.worker.approval_signal.connect(self._toggle_approval_ui)
+        
+        # Recursive Voice Signals for hands-free automation
+        self.worker.speak_signal.connect(self.voice.speak)
+        self.worker.auto_mic_signal.connect(self._handle_auto_mic_logic)
+
+    def _handle_auto_mic_logic(self, should_start: bool):
+        """
+        Orchestrates the 'Speak -> Listen' transition.
+        Automatically opens the mic after a delay to ensure the user hears Arvyn's question.
+        """
+        if should_start and not self.dashboard.is_listening:
+            # 1.5s delay allows the TTS engine to begin playing before the mic opens
+            QTimer.singleShot(1500, self.dashboard._toggle_mic)
 
     def move_to_default_position(self):
         screen = QApplication.primaryScreen().availableGeometry()
@@ -68,7 +84,7 @@ class ArvynApp(ArvynOrb):
         self.move(x, y)
 
     def initiate_expansion(self):
-        """Animates morphing from Orb into the Dashboard."""
+        """Morphs the Orb into the full Dashboard with easing animations."""
         if not self._is_expanded:
             self._is_expanded = True
             self.stop_pulse()
@@ -90,7 +106,7 @@ class ArvynApp(ArvynOrb):
             self.anim.start()
 
     def initiate_shrink(self):
-        """Animates dashboard back down into the small Orb."""
+        """Shrinks the dashboard back to a small orb."""
         if self._is_expanded:
             self._is_expanded = False
             self.container.setCurrentIndex(0)
@@ -116,12 +132,12 @@ class ArvynApp(ArvynOrb):
         self.dashboard.input_field.setFocus()
 
     def process_command(self, command_text: str):
-        """Submits a command to the persistent browser worker."""
-        logger.info(f"Command Submission: {command_text}")
-        self.worker.submit_command(command_text)
+        """Submits text or transcribed voice to the executor."""
+        if command_text.strip():
+            self.worker.submit_command(command_text)
 
     def trigger_voice_input(self, should_start: bool):
-        """Handles Toggle-to-Talk logic from Dashboard mic button."""
+        """Toggles the VoiceWorker for speech transcription."""
         if should_start:
             if self.voice_worker and self.voice_worker.isRunning():
                 return
@@ -138,29 +154,23 @@ class ArvynApp(ArvynOrb):
             self.dashboard.input_field.setText(text)
             self.process_command(text)
         else:
-            self.dashboard.append_log("No speech detected.")
             self._update_ui_status("Ready")
 
     def kill_agent(self):
-        """Shutdown the persistent browser session and application."""
+        """Cleanly releases browser and worker resources."""
         if self.worker and self.worker.isRunning():
-            logger.warning("Agent session termination requested.")
             self.worker.stop_persistent_session()
             self._update_ui_status("Stopped")
-            self.dashboard.append_log("Browser resources released.")
-        else:
-            self.dashboard.append_log("No active session.")
+            self.dashboard.append_log("Browser resources released successfully.")
 
     def _update_ui_status(self, status: str):
         self.dashboard.header.setText(f"ARVYN: {status.upper()}")
         self.status_label.setText(status)
 
     def _toggle_approval_ui(self, show: bool):
-        if show:
-            self.dashboard.interaction_stack.setCurrentIndex(1)
-            self.activateWindow()
-        else:
-            self.dashboard.interaction_stack.setCurrentIndex(0)
+        """Switches Dashboard view to the Human-In-The-Loop approval stack."""
+        self.dashboard.interaction_stack.setCurrentIndex(1 if show else 0)
+        if show: self.activateWindow()
 
     def handle_hitl_approval(self, approved: bool):
         if self.worker:
