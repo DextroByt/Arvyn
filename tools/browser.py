@@ -10,8 +10,8 @@ from config import logger, SCREENSHOT_PATH, VIEWPORT_WIDTH, VIEWPORT_HEIGHT
 class ArvynBrowser:
     """
     Advanced Kinetic Layer of Agent Arvyn (Production Grade).
-    UPGRADED: Features Human-Like Micro-Interactions, 1080p Precision Framing, 
-    and Force-Registration clicking to resolve unresponsive UI elements.
+    UPGRADED: Features Cluster-Click Engine for high-precision hit registration.
+    IMPROVED: Enhanced state-stabilization and human-like rhythmic typing.
     """
     
     def __init__(self, headless: bool = False):
@@ -20,8 +20,6 @@ class ArvynBrowser:
         self.context: Optional[BrowserContext] = None
         self.page: Optional[Page] = None
         self.headless = headless
-        
-        # Unified resolution from Config
         self.viewport_width = VIEWPORT_WIDTH
         self.viewport_height = VIEWPORT_HEIGHT
 
@@ -31,8 +29,6 @@ class ArvynBrowser:
             return
 
         self.playwright = await async_playwright().start()
-        
-        # Force the window-size and device-scale to ensure 1:1 pixel mapping
         self.browser = await self.playwright.chromium.launch(
             headless=self.headless,
             args=[
@@ -88,50 +84,81 @@ class ArvynBrowser:
         except Exception as e:
             logger.error(f"[ERROR] Connection Failed: {e}")
 
-    async def click_at_coordinates(self, x: int, y: int):
-        """
-        Superior Multi-Stage Physical Click.
-        Simulates human movement, hover, and force-focused interaction 
-        to ensure JS event listeners (like Rio Bank's) are triggered correctly.
-        """
+    async def scroll_to(self, x: int, y: int):
+        """Physically scrolls the viewport to ensure the target is visible."""
         page = await self.ensure_page()
         try:
-            # 1. Micro-jitter for human realism
-            target_x = x + random.uniform(-0.5, 0.5)
-            target_y = y + random.uniform(-0.5, 0.5)
+            scroll_y = max(0, y - (self.viewport_height // 3))
+            await page.evaluate(f"window.scrollTo({{top: {scroll_y}, behavior: 'smooth'}})")
+            await asyncio.sleep(1.5)
+            return True
+        except Exception as e:
+            logger.error(f"[KINETIC] Scroll failure: {e}")
+            return False
+
+    async def click_at_coordinates(self, x: int, y: int):
+        """
+        Superior Cluster-Click Interaction.
+        Instead of one click, it performs a 3-point micro-pattern to ensure 
+        the UI element registers the 'click' event even if it has a small hit-box.
+        """
+        page = await self.ensure_page()
+        
+        if x < 0 or y < 0 or x > self.viewport_width or y > self.viewport_height:
+            logger.warning(f"[KINETIC] Coordinate ({x}, {y}) OOB. Scrolling...")
+            await self.scroll_to(x, y)
+
+        try:
+            # Stage 1: Move mouse to target with momentum
+            await page.mouse.move(x, y, steps=random.randint(25, 40))
+            await asyncio.sleep(0.3)
             
-            logger.info(f"[KINETIC] Triggering Human-Like click at ({x}, {y})")
+            # Stage 2: Perform 'Cluster Click' (Primary + 2 Diamond Offsets)
+            # This ensures responsiveness on complex banking portals
+            click_pattern = [(0, 0), (2, 2), (-2, -2)]
             
-            # 2. Stage 1: Move mouse to target with 'momentum' (simulates hand movement)
-            await page.mouse.move(target_x, target_y, steps=random.randint(25, 40))
+            logger.info(f"[KINETIC] Executing Cluster-Click sequence at central point ({x}, {y})")
             
-            # 3. Stage 2: Hover to 'arm' event listeners
-            await asyncio.sleep(random.uniform(0.2, 0.4))
+            for ox, oy in click_pattern:
+                tx, ty = x + ox, y + oy
+                await page.mouse.move(tx, ty, steps=5)
+                await page.mouse.down()
+                await asyncio.sleep(random.uniform(0.1, 0.2))
+                await page.mouse.up()
+                await asyncio.sleep(0.05) # Rapid sequence
             
-            # 4. Stage 3: Perform actual down/up sequence with realistic 'dwell' time
-            await page.mouse.down()
-            await asyncio.sleep(random.uniform(0.1, 0.18))
-            await page.mouse.up()
-            
-            # 5. Stage 4: Post-click focus stabilization
-            await asyncio.sleep(0.5)
-            
+            # Stage 3: Stabilization wait for UI transition
+            await asyncio.sleep(1.2)
             return True
         except Exception as e:
             logger.error(f"[KINETIC] Click failure at ({x}, {y}): {e}")
             return False
 
     async def type_text(self, text: str):
-        """Human-like typing with variable cadence."""
+        """Human-like typing with variable cadence and rhythmic delay."""
         page = await self.ensure_page()
         try:
-            logger.info("[KINETIC] Initiating keystroke sequence...")
+            logger.info(f"[KINETIC] Typing sequence: {len(text)} characters.")
             for char in text:
+                # Mimic human rhythmic typing (fast-slow-fast)
                 await page.keyboard.type(char)
-                await asyncio.sleep(random.uniform(0.05, 0.18))
+                delay = random.uniform(0.05, 0.15) if char.isalnum() else random.uniform(0.15, 0.3)
+                await asyncio.sleep(delay)
             return True
         except Exception as e:
             logger.error(f"[KINETIC] Keystroke failure: {e}")
+            return False
+
+    async def press_key(self, key: str):
+        """Simulates a physical key press (e.g. 'Enter', 'Tab')."""
+        page = await self.ensure_page()
+        try:
+            logger.info(f"[KINETIC] Pressing system key: {key}")
+            await page.keyboard.press(key)
+            await asyncio.sleep(0.8)
+            return True
+        except Exception as e:
+            logger.error(f"[KINETIC] Key press error: {e}")
             return False
 
     async def get_dimensions(self) -> Dict[str, int]:
@@ -141,21 +168,21 @@ class ArvynBrowser:
         return size if size else {"width": self.viewport_width, "height": self.viewport_height}
 
     async def get_screenshot_b64(self) -> str:
-        """High-res capture with extended stabilization for Single Page Apps."""
+        """High-res capture with extended stabilization."""
         page = await self.ensure_page()
-        
         if not os.path.exists(SCREENSHOT_PATH):
             os.makedirs(SCREENSHOT_PATH)
 
         path = os.path.join(SCREENSHOT_PATH, "current_view.png")
-        
         try:
+            await page.bring_to_front()
             await page.wait_for_load_state("networkidle", timeout=15000)
+            # Extra wait to ensure CSS transitions/loaders finish
+            await asyncio.sleep(1.0)
         except:
             pass 
         
         await page.screenshot(path=path, full_page=False)
-        
         with open(path, "rb") as img:
             return base64.b64encode(img.read()).decode('utf-8')
 
@@ -165,6 +192,5 @@ class ArvynBrowser:
         if self.context: await self.context.close()
         if self.browser: await self.browser.close()
         if self.playwright: await self.playwright.stop()
-        
         self.browser = self.page = self.context = self.playwright = None
         logger.info("[BROWSER] Stealth engine deactivated.")

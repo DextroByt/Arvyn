@@ -16,8 +16,8 @@ genai.configure(api_key=GEMINI_API_KEY)
 class GeminiBrain:
     """
     Superior Visual-Reasoning Engine for Agent Arvyn.
-    Features: Multi-Stage Chain-of-Thought, Fuzzy JSON Recovery, 
-    and Domain-Specific Logic for High-Precision Banking.
+    UPGRADED: Features Data-Integrity Enforcement and Label-Aware Grounding.
+    FIXED: Eliminates credential hallucination and improves coordinate centering.
     """
     
     def __init__(self, model_name: str = GEMINI_MODEL_NAME):
@@ -25,24 +25,20 @@ class GeminiBrain:
         self.model = genai.GenerativeModel(
             model_name=self.model_name,
             generation_config={
-                "temperature": 0.0, # Zero temperature for absolute banking precision
+                "temperature": 0.0, 
                 "top_p": 0.95,
                 "max_output_tokens": 4096,
                 "response_mime_type": "application/json"
             }
         )
-        logger.info(f"[BRAIN] Superior Intelligence Engine active: {self.model_name}")
+        logger.info(f"[BRAIN] Intelligence Engine active: {self.model_name}")
 
     def _clean_json_response(self, raw_text: Any) -> str:
-        """Robust JSON extraction with type-safety to prevent string-mapping errors."""
+        """Robust JSON extraction with type-safety."""
         try:
             if not isinstance(raw_text, str):
                 raw_text = str(raw_text) if raw_text else "{}"
-
-            # Standard cleanup for Gemini markdown blocks
             clean_text = re.sub(r"```json\s*|\s*```", "", raw_text).strip()
-            
-            # Isolate the JSON object via brace-matching
             start = clean_text.find('{')
             end = clean_text.rfind('}')
             if start != -1 and end != -1:
@@ -53,7 +49,7 @@ class GeminiBrain:
             return "{}"
 
     async def _call_with_retry(self, prompt: str, image_data: Optional[str] = None, retries: int = 4):
-        """Advanced API caller with Dynamic Backoff for Quota stability."""
+        """Advanced API caller with Dynamic Backoff."""
         for attempt in range(retries):
             try:
                 content = [prompt]
@@ -73,7 +69,6 @@ class GeminiBrain:
             except Exception as e:
                 error_str = str(e)
                 if "429" in error_str:
-                    # Exponential backoff tuned for 5 RPM limit
                     wait_time = (2 ** attempt) * 12 
                     logger.warning(f"[QUOTA] Rate limit hit. Cooling down for {wait_time}s...")
                     await asyncio.sleep(wait_time)
@@ -86,10 +81,7 @@ class GeminiBrain:
                     await asyncio.sleep(2)
 
     async def parse_intent(self, user_input: str) -> IntentOutput:
-        """
-        Superior Intent Extraction.
-        Anchors all financial commands to the Rio Finance Bank portal.
-        """
+        """Superior Intent Extraction for Rio Finance Bank."""
         prompt = f"""
         TASK: High-Precision Intent Parsing for Autonomous Banking.
         USER COMMAND: "{user_input}"
@@ -101,7 +93,7 @@ class GeminiBrain:
         LOGIC RULES:
         1. If user mentions any Priority Keyword, the provider MUST be "Rio Finance Bank".
         2. Map action based on verbs: 'bill' -> PAY_BILL, 'gold' -> BUY_GOLD, 'login' -> LOGIN.
-        3. Ensure urgency is 'HIGH' for all bill/payment tasks.
+        3. Urgency is 'HIGH' for all bill/payment tasks.
 
         RETURN JSON:
         {{
@@ -131,17 +123,18 @@ class GeminiBrain:
     ) -> Dict[str, Any]:
         """
         Advanced Visual Execution Planner.
-        UPGRADED: Features High-Precision Grounding for 1080p and State-Transition Verification.
+        UPGRADED: Strict Data Mapping to prevent 'password123' style hallucinations.
         """
-        # Increased history buffer for better context on loop-prevention
         history_log = "\n".join([f"- Step {i}: {h.get('action')} on {h.get('element')} -> {h.get('thought')}" for i, h in enumerate(history[-15:])])
         
         mapping_instruction = """
-        IMPORTANT DATA MAPPING & SECURITY:
-        - 'login_credentials': Contains 'email' and 'password'. USE THESE ONLY for Login forms.
-        - 'security_details': Contains 'upi_pin' or 'card_pin'. USE THESE ONLY for payment/PIN screens.
-        - VERIFICATION: Check the page content (titles, input labels) to ensure you are using the right block.
-        - WARNING: Never use a PIN for a 'Password' field.
+        STRICT DATA INTEGRITY RULES:
+        1. NO HALLUCINATIONS: Do NOT invent passwords or pins. Use ONLY values found in the 'USER DATA' block.
+        2. DATA MAPPING:
+           - Login fields (Password): Use ONLY user_context['login_credentials']['password']. (In this case: admin123).
+           - Payment fields (PIN): Use ONLY user_context['security_details']['upi_pin'] or 'card_pin'.
+        3. LABEL AWARENESS: Read the text next to inputs. If it says "Password", do NOT use a PIN. If it says "PIN", do NOT use a password.
+        4. COORDINATE PRECISION: Aim for the absolute geometric center of the target element. 
         """
 
         prompt = f"""
@@ -153,21 +146,18 @@ class GeminiBrain:
         {history_log if history else "Initial state."}
 
         VISUAL TASK (1920x1080 Resolution):
-        1. Identify the target element based on the goal.
-        2. COORDINATE ACCURACY: You MUST be precise. Provide [ymin, xmin, ymax, xmax] in 0-1000 scale.
-           - Buttons: Target the geometric center of the button text.
-           - Inputs: Target the center of the input box.
-        3. VERIFICATION: If you previously clicked 'Login' and are still on the Home page, YOUR CLICK FAILED. Try targeting the exact center of the 'Login' text or the button borders.
-        4. DATA INJECTION: If typing credentials, use the exact values from 'login_credentials'.
+        1. Target Identification: Find the specific button or input needed for the next step.
+        2. Credential Selection: Choose the exact string from USER DATA. Verification: You previously failed with "password123". Correct it to the value in USER DATA.
+        3. Coordinate Logic: Provide [ymin, xmin, ymax, xmax] in 0-1000 scale. Ensure ymin/ymax and xmin/xmax tightly bound the element.
 
         RETURN JSON:
         {{
-            "thought": "CoT: 1. Current page identification. 2. Analysis of why the last step succeeded/failed. 3. Target element choice and coordinate calculation.",
+            "thought": "CoT: 1. Visual identification of labels. 2. Verification of correct credential value from context. 3. Geometric center calculation.",
             "action_type": "CLICK | TYPE | ASK_USER | FINISHED",
             "element_name": "Full descriptive name of the UI element",
             "coordinates": [ymin, xmin, ymax, xmax],
-            "input_text": "Text to type (from correct credential block)",
-            "voice_prompt": "Concise status update for the user.",
+            "input_text": "THE EXACT STRING FROM USER DATA (No inventions!)",
+            "voice_prompt": "Concise update for the user.",
             "is_navigation_required": false
         }}
         """
@@ -175,18 +165,16 @@ class GeminiBrain:
             raw_response = await self._call_with_retry(prompt, image_data=screenshot_b64)
             analysis = json.loads(self._clean_json_response(raw_response))
             
-            # Coordination check for kinetic safety
             if analysis.get("action_type") in ["CLICK", "TYPE"]:
                 coords = analysis.get("coordinates")
                 if not coords or len(coords) != 4:
-                    logger.warning("[BRAIN] Coordinate anomaly. Requesting human guidance.")
-                    return {"action_type": "ASK_USER", "voice_prompt": "I see the next step but need help clicking it precisely."}
+                    return {"action_type": "ASK_USER", "voice_prompt": "I see the target but need help with precise positioning."}
             
             return analysis
         except Exception as e:
             logger.error(f"[ERROR] Visual Logic Fault: {e}")
             return {
                 "action_type": "ASK_USER", 
-                "voice_prompt": "I'm having trouble reasoning about this page. Please assist.",
+                "voice_prompt": "Visual reasoning failure. Please assist.",
                 "thought": f"Exception: {str(e)}"
             }

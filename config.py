@@ -7,61 +7,49 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # --- HIGH-DPI & UI STABILITY ---
-# Forces the OS to handle scaling correctly so buttons don't get cut off on laptop screens
+# Forces the OS to handle scaling correctly so buttons don't get cut off
 os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
 
 # --- ROBUST LOGGING CONFIGURATION ---
-# Fixes UnicodeEncodeError (charmap) on Windows consoles (CMD/PowerShell)
-# Ensures high-fidelity UTF-8 logging remains available in the 'arvyn_session.log' file.
-
 class SafeStreamHandler(logging.StreamHandler):
     """A stream handler that falls back to stripping non-ASCII characters if encoding fails."""
     def emit(self, record):
         try:
             super().emit(record)
         except UnicodeEncodeError:
-            # Fallback: Strip emojis/special chars that the console cannot handle natively
             msg = self.format(record)
             self.stream.write(msg.encode('ascii', 'replace').decode('ascii') + self.terminator)
             self.flush()
 
-# Define standard format for all modules
 log_format = '%(asctime)s | %(levelname)s | [%(name)s] | %(message)s'
 date_format = '%Y-%m-%d %H:%M:%S'
 formatter = logging.Formatter(log_format, datefmt=date_format)
 
-# Configure the Root Logger
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
 
-# 1. File Handler (Always UTF-8 to keep full logs with emojis for debugging)
 file_handler = logging.FileHandler("arvyn_session.log", encoding='utf-8')
 file_handler.setFormatter(formatter)
 root_logger.addHandler(file_handler)
 
-# 2. Stream Handler (Console output with safety fallback for Windows encoding)
 stream_handler = SafeStreamHandler(sys.stdout)
 stream_handler.setFormatter(formatter)
 root_logger.addHandler(stream_handler)
 
-# Specific Config Logger
 logger = logging.getLogger("ArvynConfig")
 
 class Config:
     """
     Central configuration for Agent Arvyn.
-    Optimized for Gemini 2.5 Flash, High-Resolution Browsing, and Compact Dashboard Visibility.
+    UPGRADED: Minimized dimensions to prevent UI occlusion on banking portals.
     """
     
     # --- AI MODEL SETTINGS ---
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-    
-    # Updated to 'gemini-2.5-flash' for superior discovery speed and reasoning.
     GEMINI_MODEL_NAME = os.getenv("GEMINI_MODEL_NAME", "gemini-2.5-flash")
     
     # --- KINETIC & BROWSER SETTINGS ---
-    # High internal resolution (1080p) ensures the agent sees all elements correctly.
     VIEWPORT_WIDTH = 1920
     VIEWPORT_HEIGHT = 1080
     
@@ -76,18 +64,22 @@ class Config:
     # --- VOICE & INTERACTION ---
     DEFAULT_VOICE_ID = None  
     STT_ENERGY_THRESHOLD = 300 
-    COMMAND_TIMEOUT = 45 # Buffer for heavy banking sites and complex reasoning
+    COMMAND_TIMEOUT = 45 
     
-    # --- UI SETTINGS (SCALED FOR VISIBILITY) ---
+    # --- UI SETTINGS (SCALED FOR COMPACTNESS) ---
     THEME = "GlassMorphism_V2"
     ORB_COLOR = "#00d2ff"
     ACCENT_COLOR = "#00d2ff"
     ERROR_COLOR = "#ff4b2b"
     SUCCESS_COLOR = "#2ecc71"
     
-    ORB_SIZE = 85
-    # Scaled down to ensure UI controls (Minimize/Stop) remain accessible on all displays.
-    DASHBOARD_SIZE = (480, 720) 
+    # Reduced orb size to clear up the bottom corner
+    ORB_SIZE = 70 
+    
+    # --- UI SIZE REDUCTION ---
+    # Optimized from (480, 720) to (350, 620) to ensure background buttons (like Pay Bills) 
+    # are accessible while retaining all log/monitor features.
+    DASHBOARD_SIZE = (350, 620) 
     
     @classmethod
     def validate(cls):
@@ -108,7 +100,7 @@ class Config:
             logger.error(f"[ERROR] Directory Creation Failure: {e}")
             return False
 
-# --- CRITICAL: EXPORT ALL CONSTANTS FOR DIRECT IMPORT ---
+# --- CRITICAL: EXPORT ALL CONSTANTS ---
 ORB_SIZE = Config.ORB_SIZE
 DASHBOARD_SIZE = Config.DASHBOARD_SIZE
 ACCENT_COLOR = Config.ACCENT_COLOR
@@ -123,5 +115,4 @@ COMMAND_TIMEOUT = Config.COMMAND_TIMEOUT
 VIEWPORT_WIDTH = Config.VIEWPORT_WIDTH
 VIEWPORT_HEIGHT = Config.VIEWPORT_HEIGHT
 
-# Automatic validation on module import
 Config.validate()

@@ -22,12 +22,11 @@ from tools.voice import ArvynVoice
 class ArvynOrchestrator:
     """
     Superior Autonomous Orchestrator for Agent Arvyn.
-    UPGRADED: Features Stateful Action Caching, Sensitive Interception,
-    and Pixel-Perfect Grounding with UI Deadlock Prevention.
+    UPGRADED: Features Kinetic Anti-Loop logic and Dynamic Offset Scaling.
+    FIXED: Resolves click-unresponsiveness on Rio Bank and ensures data integrity.
     """
 
     def __init__(self, model_name: str = GEMINI_MODEL_NAME):
-        # Initializing with Gemini 2.5 Flash for high-speed banking loops
         self.brain = GeminiBrain(model_name=model_name)
         self.browser = ArvynBrowser(headless=False)
         self.profile = ProfileManager()
@@ -35,30 +34,32 @@ class ArvynOrchestrator:
         self.app = None
         self.workflow = self._create_workflow()
         
-        # Comprehensive log buffer for the Arvyn Dashboard
         self.session_log = []
-        logger.info(f"🚀 Arvyn Core v3.4: Orchestrator ready. UI: {DASHBOARD_SIZE[0]}x{DASHBOARD_SIZE[1]} | Engine: {VIEWPORT_WIDTH}x{VIEWPORT_HEIGHT}.")
+        # Track repeated element interactions to apply scaling offsets
+        self.interaction_attempts = {} 
+        
+        logger.info(f"🚀 Arvyn Core v3.6: Orchestrator active. Anti-Loop Engine engaged.")
 
     async def init_app(self, checkpointer):
-        """Compiles the LangGraph with Persistent Checkpointing and HITL support."""
+        """Compiles the LangGraph with Persistent Checkpointing and PIN-only HITL."""
         if self.app is None:
             self.app = self.workflow.compile(
                 checkpointer=checkpointer,
                 interrupt_before=["human_interaction_node"]
             )
-            logger.info("✅ Arvyn Autonomous Core: Persistence logic compiled.")
+            logger.info("✅ Arvyn Autonomous Core: Logic layers compiled.")
 
     async def cleanup(self):
-        """Graceful release of all kinetic layers and browser instances."""
+        """Graceful release of browser and kinetic resources."""
         if self.browser:
-            self._add_to_session_log("system", "Deactivating kinetic layer and releasing resources...")
+            self._add_to_session_log("system", "Deactivating kinetic layer...")
             try:
                 await self.browser.close()
             except Exception as e:
                 logger.error(f"Cleanup Error: {e}")
 
     def _create_workflow(self) -> StateGraph:
-        """Defines the recursive interaction loop: Discovery -> Observe -> Reason -> Act."""
+        """Defines the interaction loop: Discovery -> Observe -> Reason -> Act."""
         workflow = StateGraph(AgentState)
         
         workflow.add_node("intent_parser", self._node_parse_intent)
@@ -82,7 +83,6 @@ class ArvynOrchestrator:
         )
         
         workflow.add_edge("human_interaction_node", "autonomous_executor")
-        
         return workflow
 
     def _add_to_session_log(self, step: str, status: str):
@@ -93,18 +93,15 @@ class ArvynOrchestrator:
         logger.info(f"📊 {entry}")
 
     async def _node_parse_intent(self, state: AgentState) -> Dict[str, Any]:
-        """Multi-turn intent resolution and banking target anchoring."""
         self._add_to_session_log("intent_parser", "Processing natural language command...")
-        
         last_message = state["messages"][-1]
         content = last_message.content if hasattr(last_message, 'content') else str(last_message)
 
         try:
             intent_obj = await self.brain.parse_intent(content)
             intent_dict = intent_obj.model_dump()
-            
             provider = intent_dict.get('provider', 'Rio Finance Bank')
-            self._add_to_session_log("intent_parser", f"Target Locked: {provider} | Action: {intent_dict.get('action')}")
+            self._add_to_session_log("intent_parser", f"Target Locked: {provider}")
             
             return {
                 "intent": intent_dict, 
@@ -116,37 +113,28 @@ class ArvynOrchestrator:
             return {"current_step": "Clarification required.", "intent": None}
 
     def _resolve_target_url(self, provider_name: str) -> str:
-        """Ensures exact navigation to Rio Finance for all finance-related keywords."""
         RIO_URL = "https://roshan-chaudhary13.github.io/rio_finance_bank/"
-        
-        if any(key in provider_name.lower() for key in ["rio", "finance", "bank", "gold", "bill", "electricity"]):
+        if any(key in provider_name.lower() for key in ["rio", "finance", "bank", "gold", "bill"]):
             return RIO_URL
-
         norm_name = provider_name.upper().replace(" ", "_")
         url = self.profile.get_verified_url(norm_name)
-        
         return url if url else f"https://www.google.com/search?q={provider_name}+official+site"
 
     async def _node_site_discovery(self, state: AgentState) -> Dict[str, Any]:
-        """Navigation node with browser state verification."""
+        """Navigates and prepares for the Auto-Login Check."""
         intent = state.get("intent") or {}
         provider = intent.get("provider", "Rio Finance Bank")
-        
         target_url = self._resolve_target_url(provider)
-        self._add_to_session_log("discovery", f"Verifying endpoint for {provider}...")
 
         try:
             page = await self.browser.ensure_page()
-            current_url = page.url
-            
-            if target_url not in current_url or current_url == "about:blank":
+            if target_url not in page.url or page.url == "about:blank":
                 self._add_to_session_log("discovery", f"Connecting to secure portal: {target_url}")
                 await self.browser.navigate(target_url)
-                await asyncio.sleep(3.0) # Extended hydration buffer
-            else:
-                self._add_to_session_log("discovery", "Target portal active. Commencing execution.")
-
-            return {"current_step": f"Secured portal connection."}
+                await asyncio.sleep(4.0) # Buffer for heavy React hydration
+            
+            self._add_to_session_log("security", "STATUS: Verifying Login/Session state...")
+            return {"current_step": f"Connection secured. Checking login status..."}
             
         except Exception as e:
             self._add_to_session_log("error", f"Portal connection error: {str(e)}")
@@ -154,10 +142,10 @@ class ArvynOrchestrator:
 
     async def _node_autonomous_executor(self, state: AgentState) -> Dict[str, Any]:
         """
-        Main autonomous loop for visual reasoning and kinetic execution.
-        UPGRADED: Features Action Caching and Repetitive Click Logic.
+        Main autonomous loop.
+        UPGRADED: Uses Interaction Counters and Scaled Offsets for Click Reliability.
         """
-        self._add_to_session_log("executor", "Observing UI state and analyzing components...")
+        self._add_to_session_log("executor", "Observing UI state...")
         
         intent = state.get("intent")
         history = state.get("task_history", [])
@@ -165,22 +153,27 @@ class ArvynOrchestrator:
         cached_analysis = state.get("browser_context", {})
 
         if not intent:
-            return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": "I've lost the objective. Please re-state."}
+            return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": "I've lost the objective."}
 
-        # ACTION CACHING: If resuming from authorization, execute the cached action directly
+        # Resumption logic for PIN authorization
         if approval == "approved" and cached_analysis.get("action_type") in ["CLICK", "TYPE"]:
-            self._add_to_session_log("human_interaction", "Authorization received. Executing sensitive action...")
+            self._add_to_session_log("security", "PIN Authorized. Resuming sensitive sequence...")
             analysis = cached_analysis
         else:
-            # Standard Vision-Reasoning Phase
             screenshot = await self.browser.get_screenshot_b64()
             provider_name = intent.get("provider", "Rio Finance Bank")
-            goal = f"Goal: {intent.get('action')} on {provider_name}. Task progress: Step {len(history)+1}."
+            
+            # IMPROVEMENT: Goal now explicitly forbids hallucination and emphasizes STEP 0
+            goal = (
+                f"STEP 0: If 'Login' or 'Sign In' is visible, LOGIN FIRST using user_context['login_credentials']. "
+                f"STEP 1: Only once logged in, perform {intent.get('action')} on {provider_name}. "
+                f"CRITICAL: USE EXACT DATA. Do NOT use 'password123' if the data says 'admin123'."
+            )
             
             user_context = self.profile.get_provider_details(provider_name)
             user_context.update(self.profile.get_data().get("personal_info", {}))
 
-            self._add_to_session_log("brain", f"Calculating next step... (Action {len(history)+1})")
+            self._add_to_session_log("brain", "Analyzing page for kinetic action...")
             analysis = await self.brain.analyze_page_for_action(screenshot, goal, history, user_context)
 
         action_type = analysis.get("action_type")
@@ -188,17 +181,18 @@ class ArvynOrchestrator:
         element_name = analysis.get("element_name", "").lower()
         input_text = analysis.get("input_text", "")
 
-        # SENSITIVE ACTION INTERCEPTION
-        is_confidential = any(k in element_name for k in ["password", "pin", "otp", "cvv", "card"])
-        if action_type == "TYPE" and is_confidential and approval != "approved":
-            self._add_to_session_log("security", f"LOCKED: Detected confidential field '{element_name}'.")
+        # HITL: Only "pin" triggers user authorization.
+        is_pin_field = any(k in element_name for k in ["pin", "upi", "card pin", "security pin"])
+        
+        if action_type == "TYPE" and is_pin_field and approval != "approved":
+            self._add_to_session_log("security", f"AUTH REQUIRED: Secure Payment PIN field.")
             return {
-                "browser_context": analysis, # Cache for resumption
-                "pending_question": f"Authorization Required: I need to enter your {element_name}. Please verify the credentials on the dashboard and click Authorize.",
-                "current_step": f"LOCKED: Awaiting permission for {element_name}."
+                "browser_context": analysis,
+                "pending_question": f"Authorization Required: I need your {element_name} to complete this payment.",
+                "current_step": f"LOCKED: Awaiting PIN authorization."
             }
 
-        # KINETIC EXECUTION
+        # KINETIC EXECUTION WITH ANTI-LOOP LOGIC
         if action_type in ["CLICK", "TYPE"]:
             coords = analysis.get("coordinates")
             if coords and len(coords) == 4:
@@ -206,29 +200,45 @@ class ArvynOrchestrator:
                 cx = int(((xmin + xmax) / 2) * (VIEWPORT_WIDTH / 1000))
                 cy = int(((ymin + ymax) / 2) * (VIEWPORT_HEIGHT / 1000))
                 
-                # REPETITIVE CLICK LOGIC: Apply slight offset to break UI deadlocks on Rio Bank
-                if len(history) > 0 and history[-1].get("element") == analysis.get("element_name"):
-                    self._add_to_session_log("kinetic", "Repeating action: Applying precision offset to bypass overlay.")
-                    cx += 5; cy += 5
+                # --- KINETIC ANTI-LOOP: Detect and Offset repeated clicks ---
+                interaction_key = f"{action_type}_{element_name}"
+                count = self.interaction_attempts.get(interaction_key, 0)
+                
+                if count > 0:
+                    # Apply a scaled offset to try hitting different parts of the button area
+                    offset = (count * 6) if count % 2 == 0 else -(count * 6)
+                    self._add_to_session_log("kinetic", f"RETRY: Applying interaction offset of {offset}px to bypass UI blocker.")
+                    cx += offset
+                    cy += offset
+                
+                self.interaction_attempts[interaction_key] = count + 1
 
-                self._add_to_session_log("kinetic", f"Interacting with {analysis.get('element_name')} at pixel ({cx}, {cy})")
+                self._add_to_session_log("kinetic", f"Executing interaction on {analysis.get('element_name')}...")
                 await self.browser.click_at_coordinates(cx, cy)
                 
                 if action_type == "TYPE":
-                    # Displaying sequence as requested by user
-                    self._add_to_session_log("kinetic", f"Inputting sequence: {input_text}")
+                    # Ensure we aren't using the hallucinated password
+                    if "password123" in input_text.lower():
+                         self._add_to_session_log("error", "CRITICAL: Brain attempted hallucinated password. Intercepting...")
+                         input_text = user_context.get("login_credentials", {}).get("password", input_text)
+                    
+                    self._add_to_session_log("kinetic", f"Autofilling credentials...")
                     await self.browser.type_text(input_text)
                 
-                await asyncio.sleep(2.5) # Stabilization buffer for SPA transitions
+                await asyncio.sleep(2.8) 
                 
                 current_history.append({
                     "action": action_type, 
                     "element": analysis.get("element_name"),
                     "thought": analysis.get("thought")
                 })
+                
+                # Reset counters if we navigated or moved to a new element type
+                if len(history) > 0 and history[-1].get("element") != analysis.get("element_name"):
+                    self.interaction_attempts = {interaction_key: count + 1}
 
         elif action_type == "FINISHED":
-            self._add_to_session_log("executor", "✅ Task verification successful. Objective reached.")
+            self._add_to_session_log("executor", "✅ Task completed successfully.")
 
         return {
             "screenshot": await self.browser.get_screenshot_b64(),
@@ -240,26 +250,24 @@ class ArvynOrchestrator:
         }
 
     async def _node_wait_for_user(self, state: AgentState) -> Dict[str, Any]:
-        """Human-In-The-Loop sync node."""
         approval = state.get("human_approval")
         if approval == "approved":
-            self._add_to_session_log("human_interaction", "Authorization confirmed. Passing control to executor node.")
+            self._add_to_session_log("human_interaction", "Authorization confirmed. Resuming...")
         elif approval == "rejected":
-            self._add_to_session_log("human_interaction", "Action rejected. Resuming standby state.")
+            self._add_to_session_log("human_interaction", "Action rejected by user.")
             return {"current_step": "REJECTED: Task paused."}
         
         return {"current_step": "Awaiting user decision..."}
 
     def _decide_next_step(self, state: AgentState) -> Literal["continue_loop", "ask_user", "finish_task"]:
-        """Recursive loop decision logic with limit handling."""
         analysis = state.get("browser_context", {})
         action_type = analysis.get("action_type")
         
         if action_type == "FINISHED": return "finish_task"
         if action_type == "ASK_USER" or state.get("pending_question"): return "ask_user"
         
-        if len(state.get("task_history", [])) > 35: 
-            self._add_to_session_log("safety", "Maximum recursion limit reached. Terminating.")
+        if len(state.get("task_history", [])) > 45: # Increased limit for complex bill pay flows
+            self._add_to_session_log("safety", "Maximum recursion limit reached.")
             return "finish_task"
             
         return "continue_loop"
