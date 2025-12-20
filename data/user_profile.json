@@ -1,14 +1,26 @@
 {
     "providers": {
-        "RIO_BANK": {
+        "RIO_FINANCE_BANK": {
             "name": "Rio Finance Bank",
             "url": "https://roshan-chaudhary13.github.io/rio_finance_bank/",
-            "consumer_id": "8120000000",
-            "password": "admin123",
-            "otp_preference": "SMS"
+            "login_credentials": {
+                "email": "akash@gmail.com",
+                "consumer_id": "8120000000",
+                "password": "admin123"
+            },
+            "security_details": {
+                "upi_pin": "696955",
+                "card_pin": "696955",
+                "otp_preference": "SMS"
+            },
+            "account_metadata": {
+                "account_id": "RIO-778899",
+                "notes": "Primary target for Bill Pay and Gold tasks."
+            }
         }
     },
     "verified_sites": {
+        "RIO_FINANCE_BANK": "https://roshan-chaudhary13.github.io/rio_finance_bank/",
         "RIO_BANK": "https://roshan-chaudhary13.github.io/rio_finance_bank/",
         "GITHUB": "https://github.com/",
         "AMAZON": "https://www.amazon.com/",
@@ -20,13 +32,18 @@
         "full_name": "Akash Chakresh",
         "email": "akash@gmail.com",
         "phone": "+91-9876543210",
-        "address": "123, Tech Park, Mumbai, Maharashtra",
-        "Pin" : "696955"
+        "address": "123, Tech Park, Mumbai, Maharashtra"
     },
     "settings": {
         "auto_navigate_verified": true,
         "vision_confidence_threshold": 0.6,
         "default_payment_method": "UPI",
-        "require_approval_for_payments": true
+        "require_approval_for_payments": true,
+        "strict_banking_mode": true
+    },
+    "task_registry": {
+        "active_goal": null,
+        "step_count": 0,
+        "status": "IDLE"
     }
 }

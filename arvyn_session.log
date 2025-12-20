@@ -3511,3 +3511,876 @@ provider
 2025-12-19 21:16:59 | INFO | ArvynConfig | Orchestrator: Terminating browser session.
 2025-12-19 21:16:59 | INFO | ArvynConfig | Browser resources released.
 2025-12-19 21:16:59 | INFO | ArvynConfig | AgentWorker: Event loop closed safely.
+2025-12-20 19:49:17 | INFO | comtypes.client._code_cache | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-20 19:49:17 | INFO | comtypes.client._code_cache | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-20 19:49:17 | INFO | ArvynConfig | TTS engine ready.
+2025-12-20 19:49:17 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-20 19:49:17 | INFO | ArvynConfig | Arvyn 2.0: Interactive Core initialized and pulsing.
+2025-12-20 19:49:18 | INFO | ArvynConfig | GeminiBrain initialized with model: gemini-2.5-flash
+2025-12-20 19:49:18 | INFO | ArvynConfig | TTS engine ready.
+2025-12-20 19:49:18 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-20 19:49:18 | INFO | ArvynConfig | Persistent Orchestrator ready with gemini-2.5-flash.
+2025-12-20 19:49:18 | INFO | ArvynConfig | Arvyn Autonomous Core compiled.
+2025-12-20 19:49:26 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-20 19:49:31 | INFO | ArvynConfig | STT Result: pay my electricity bill
+2025-12-20 19:49:31 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-20 19:49:34 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-20 19:49:46 | INFO | ArvynConfig | Intelligent Browser Engine started and initialized at 1280x800.
+2025-12-20 19:49:53 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-20 19:50:18 | INFO | ArvynConfig | STT Result: 1 minut 1 minut tum mujhe kya bol raha hai ki tu Flipkart bagaira hi open kar pa raha tha abe yaar FIR matlab kya mere ko to logic Badha
+2025-12-20 19:50:18 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-20 19:50:23 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-20 19:50:27 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-20 19:50:27 | ERROR | ArvynConfig | Task Execution Error: Page.screenshot: Target page, context or browser has been closed
+2025-12-20 19:50:29 | INFO | ArvynConfig | STT Result: open Flipkart and search for
+2025-12-20 19:50:29 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-20 19:50:32 | INFO | ArvynConfig | Navigating to https://www.flipkart.com/...
+2025-12-20 19:50:32 | ERROR | ArvynConfig | Navigation failed for https://www.flipkart.com/: Page.goto: Target page, context or browser has been closed
+2025-12-20 19:50:32 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-20 19:50:32 | ERROR | ArvynConfig | Task Execution Error: Page.screenshot: Target page, context or browser has been closed
+2025-12-20 19:50:51 | INFO | ArvynConfig | AgentWorker: Event loop closed safely.
+2025-12-20 19:51:11 | INFO | comtypes.client._code_cache | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-20 19:51:11 | INFO | comtypes.client._code_cache | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-20 19:51:11 | INFO | ArvynConfig | TTS engine ready.
+2025-12-20 19:51:11 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-20 19:51:12 | INFO | ArvynConfig | Arvyn 2.0: Interactive Core initialized and pulsing.
+2025-12-20 19:51:12 | INFO | ArvynConfig | GeminiBrain initialized with model: gemini-2.5-flash
+2025-12-20 19:51:13 | INFO | ArvynConfig | TTS engine ready.
+2025-12-20 19:51:13 | INFO | ArvynConfig | Voice Utility initialized.
+2025-12-20 19:51:13 | INFO | ArvynConfig | Persistent Orchestrator ready with gemini-2.5-flash.
+2025-12-20 19:51:13 | INFO | ArvynConfig | Arvyn Autonomous Core compiled.
+2025-12-20 19:51:15 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-20 19:51:23 | INFO | ArvynConfig | STT Result: open Flipkart and search for best mobile phones
+2025-12-20 19:51:23 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-20 19:51:38 | INFO | ArvynConfig | Intelligent Browser Engine started and initialized at 1280x800.
+2025-12-20 19:51:38 | INFO | ArvynConfig | Navigating to https://www.flipkart.com/...
+2025-12-20 19:51:42 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-20 19:52:00 | INFO | ArvynConfig | VoiceWorker: Microphone engaged for user response.
+2025-12-20 19:52:13 | INFO | ArvynConfig | STT Result: search for mobile phones
+2025-12-20 19:52:13 | INFO | ArvynConfig | Node: Parsing Intent...
+2025-12-20 19:52:15 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-20 19:52:20 | INFO | ArvynConfig | Kinetic Layer: Executing precise click at (473, 41)
+2025-12-20 19:52:20 | INFO | ArvynConfig | Kinetic Layer: Typing sequence initiated.
+2025-12-20 19:52:22 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-20 19:52:26 | INFO | ArvynConfig | Kinetic Layer: Executing precise click at (400, 41)
+2025-12-20 19:52:27 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-20 19:52:33 | INFO | ArvynConfig | Kinetic Layer: Executing precise click at (654, 41)
+2025-12-20 19:52:35 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-20 19:52:39 | INFO | ArvynConfig | Kinetic Layer: Executing precise click at (323, 41)
+2025-12-20 19:52:41 | INFO | ArvynConfig | Node: Autonomous Executor reasoning...
+2025-12-20 19:52:53 | INFO | ArvynConfig | Kinetic Layer: Executing precise click at (473, 26)
+2025-12-20 19:52:53 | INFO | ArvynConfig | Kinetic Layer: Typing sequence initiated.
+2025-12-20 19:52:55 | ERROR | ArvynConfig | Task Execution Error: Page.screenshot: Target page, context or browser has been closed
+2025-12-20 20:20:08 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-20 20:20:08 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-20 20:20:08 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 20:20:08 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 20:20:08 | INFO | [ArvynConfig] | Arvyn 2.0: Interactive Core initialized and pulsing.
+2025-12-20 20:20:09 | INFO | [ArvynConfig] | GeminiBrain v2.0 (Production) initialized with: gemini-1.5-pro
+2025-12-20 20:20:09 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 20:20:09 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 20:21:02 | WARNING | [ArvynConfig] | Gemini API Attempt 1 failed: 404 models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2025-12-20 20:21:03 | WARNING | [ArvynConfig] | Gemini API Attempt 2 failed: 404 models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2025-12-20 20:21:04 | WARNING | [ArvynConfig] | Gemini API Attempt 3 failed: 404 models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2025-12-20 20:21:04 | ERROR | [ArvynConfig] | Intent Extraction Failure: 404 models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2025-12-20 20:21:16 | ERROR | [ArvynConfig] | AgentWorker Execution Error: Timeout 5000ms exceeded.
+2025-12-20 20:37:37 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-20 20:37:37 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Mode: gemini-2.5-flash
+2025-12-20 20:39:02 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-20 20:39:02 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Mode: gemini-2.5-flash
+2025-12-20 20:39:04 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-20 20:39:04 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-20 20:39:04 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 20:39:04 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 20:39:04 | INFO | [ArvynConfig] | 🛡️ Arvyn App v3.0: Core Controller active and pulsing.
+2025-12-20 20:39:05 | INFO | [ArvynConfig] | [BRAIN] GeminiBrain initialized with: gemini-2.5-flash
+2025-12-20 20:39:05 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 20:39:05 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 20:39:05 | INFO | [ArvynConfig] | 🚀 Arvyn Core v3.0: Orchestrator initialized with gemini-2.5-flash at 1920x1080.
+2025-12-20 20:39:05 | INFO | [ArvynConfig] | ✅ Arvyn Autonomous Core: Logic Graph compiled with Persistence.
+2025-12-20 20:39:10 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-20 20:39:18 | INFO | [ArvynConfig] | 🗣️ Transcribed: pay my electricity bill
+2025-12-20 20:39:18 | INFO | [ArvynConfig] | 📊 [20:39:18] [INTENT_PARSER] Processing natural language command...
+2025-12-20 20:39:22 | ERROR | [ArvynConfig] | [ERROR] Intent Extraction Failure: 1 validation error for IntentOutput
+urgency
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.11/v/string_type
+2025-12-20 20:39:22 | INFO | [ArvynConfig] | 📊 [20:39:22] [INTENT_PARSER] Target Locked: Rio Finance Bank | Primary Action: QUERY
+2025-12-20 20:39:22 | INFO | [ArvynConfig] | 📊 [20:39:22] [DISCOVERY] Verifying endpoint for Rio Finance Bank...
+2025-12-20 20:39:23 | INFO | [ArvynConfig] | [BROWSER] Stealth engine active at 1920x1080.
+2025-12-20 20:39:23 | INFO | [ArvynConfig] | 📊 [20:39:23] [DISCOVERY] Connecting to secure portal: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-20 20:39:23 | INFO | [ArvynConfig] | [NETWORK] Navigating to: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-20 20:39:30 | INFO | [ArvynConfig] | 📊 [20:39:30] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:39:30 | INFO | [ArvynConfig] | 📊 [20:39:30] [BRAIN] Calculating next step... (Action 1)
+2025-12-20 20:39:34 | INFO | [ArvynConfig] | 📊 [20:39:34] [KINETIC] Interacting with Login button at pixel (1530, 48)
+2025-12-20 20:39:37 | INFO | [ArvynConfig] | 📊 [20:39:37] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:39:37 | INFO | [ArvynConfig] | 📊 [20:39:37] [BRAIN] Calculating next step... (Action 2)
+2025-12-20 20:39:43 | INFO | [ArvynConfig] | 📊 [20:39:43] [KINETIC] Interacting with Email address text input at pixel (959, 513)
+2025-12-20 20:39:43 | INFO | [ArvynConfig] | 📊 [20:39:43] [KINETIC] Inputting sequence: akash@gmail.com
+2025-12-20 20:39:47 | INFO | [ArvynConfig] | 📊 [20:39:47] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:39:47 | INFO | [ArvynConfig] | 📊 [20:39:47] [BRAIN] Calculating next step... (Action 3)
+2025-12-20 20:39:52 | INFO | [ArvynConfig] | 📊 [20:39:52] [KINETIC] Interacting with Password text input at pixel (959, 544)
+2025-12-20 20:39:52 | INFO | [ArvynConfig] | 📊 [20:39:52] [KINETIC] Inputting sequence: [ENCRYPTED]
+2025-12-20 20:39:56 | INFO | [ArvynConfig] | 📊 [20:39:56] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:39:56 | INFO | [ArvynConfig] | 📊 [20:39:56] [BRAIN] Calculating next step... (Action 4)
+2025-12-20 20:40:00 | INFO | [ArvynConfig] | 📊 [20:40:00] [KINETIC] Interacting with Sign in button at pixel (958, 665)
+2025-12-20 20:40:02 | INFO | [ArvynConfig] | 📊 [20:40:02] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:40:02 | INFO | [ArvynConfig] | 📊 [20:40:02] [BRAIN] Calculating next step... (Action 5)
+2025-12-20 20:40:07 | INFO | [ArvynConfig] | 📊 [20:40:07] [KINETIC] Interacting with Sign in button at pixel (959, 665)
+2025-12-20 20:40:09 | INFO | [ArvynConfig] | 📊 [20:40:09] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:40:09 | INFO | [ArvynConfig] | 📊 [20:40:09] [BRAIN] Calculating next step... (Action 6)
+2025-12-20 20:40:10 | WARNING | [ArvynConfig] | [RETRY] Attempt 1 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-2.5-flash
+Please retry in 50.832551087s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 5
+}
+, retry_delay {
+  seconds: 50
+}
+]
+2025-12-20 20:40:12 | WARNING | [ArvynConfig] | [RETRY] Attempt 2 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-2.5-flash
+Please retry in 48.355553934s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 5
+}
+, retry_delay {
+  seconds: 48
+}
+]
+2025-12-20 20:40:16 | WARNING | [ArvynConfig] | [RETRY] Attempt 3 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-2.5-flash
+Please retry in 44.886408652s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 5
+}
+, retry_delay {
+  seconds: 44
+}
+]
+2025-12-20 20:40:21 | ERROR | [ArvynConfig] | [ERROR] JSON Cleaning Error: expected string or bytes-like object
+2025-12-20 20:40:21 | INFO | [ArvynConfig] | 📊 [20:40:21] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:40:21 | INFO | [ArvynConfig] | 📊 [20:40:21] [BRAIN] Calculating next step... (Action 6)
+2025-12-20 20:40:26 | INFO | [ArvynConfig] | 📊 [20:40:26] [KINETIC] Interacting with Sign in button at pixel (959, 665)
+2025-12-20 20:40:28 | INFO | [ArvynConfig] | 📊 [20:40:28] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:40:29 | INFO | [ArvynConfig] | 📊 [20:40:29] [BRAIN] Calculating next step... (Action 7)
+2025-12-20 20:40:32 | INFO | [ArvynConfig] | 📊 [20:40:32] [KINETIC] Interacting with Sign in button at pixel (959, 666)
+2025-12-20 20:40:35 | INFO | [ArvynConfig] | 📊 [20:40:35] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:40:35 | INFO | [ArvynConfig] | 📊 [20:40:35] [BRAIN] Calculating next step... (Action 8)
+2025-12-20 20:40:40 | INFO | [ArvynConfig] | 📊 [20:40:40] [KINETIC] Interacting with Sign in button at pixel (958, 665)
+2025-12-20 20:40:43 | INFO | [ArvynConfig] | 📊 [20:40:43] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:40:43 | INFO | [ArvynConfig] | 📊 [20:40:43] [BRAIN] Calculating next step... (Action 9)
+2025-12-20 20:40:44 | WARNING | [ArvynConfig] | [RETRY] Attempt 1 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 17.185235985s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 17
+}
+]
+2025-12-20 20:40:46 | WARNING | [ArvynConfig] | [RETRY] Attempt 2 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 14.694330411s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 14
+}
+]
+2025-12-20 20:40:50 | WARNING | [ArvynConfig] | [RETRY] Attempt 3 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 11.240068787s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 11
+}
+]
+2025-12-20 20:40:55 | ERROR | [ArvynConfig] | [ERROR] JSON Cleaning Error: expected string or bytes-like object
+2025-12-20 20:40:55 | INFO | [ArvynConfig] | 📊 [20:40:55] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:40:55 | INFO | [ArvynConfig] | 📊 [20:40:55] [BRAIN] Calculating next step... (Action 9)
+2025-12-20 20:40:55 | WARNING | [ArvynConfig] | [RETRY] Attempt 1 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 5.533904559s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 5
+}
+]
+2025-12-20 20:40:56 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-20 20:40:58 | WARNING | [ArvynConfig] | [RETRY] Attempt 2 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 3.068664525s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 3
+}
+]
+2025-12-20 20:40:59 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-20 20:40:59 | INFO | [ArvynConfig] | 📊 [20:40:59] [SYSTEM] Deactivating kinetic layer and browser engine...
+2025-12-20 20:40:59 | INFO | [ArvynConfig] | [BROWSER] Resources released.
+2025-12-20 20:41:00 | WARNING | [ArvynConfig] | VoiceWorker: Audio unintelligible.
+2025-12-20 20:48:52 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-20 20:48:52 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Mode: gemini-2.5-flash
+2025-12-20 20:48:53 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-20 20:48:53 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-20 20:48:53 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 20:48:53 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 20:48:53 | INFO | [ArvynConfig] | 🛡️ Arvyn App v3.0: Core Controller active and pulsing.
+2025-12-20 20:48:54 | INFO | [ArvynConfig] | [BRAIN] GeminiBrain initialized with: gemini-2.5-flash
+2025-12-20 20:48:54 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 20:48:54 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 20:48:54 | INFO | [ArvynConfig] | 🚀 Arvyn Core v3.0: Orchestrator initialized with gemini-2.5-flash at 1920x1080.
+2025-12-20 20:48:54 | INFO | [ArvynConfig] | ✅ Arvyn Autonomous Core: Logic Graph compiled with Persistence.
+2025-12-20 20:48:57 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-20 20:49:02 | INFO | [ArvynConfig] | 🗣️ Transcribed: pay my electricity bill
+2025-12-20 20:49:02 | INFO | [ArvynConfig] | 📊 [20:49:02] [INTENT_PARSER] Processing natural language command...
+2025-12-20 20:49:02 | WARNING | [ArvynConfig] | [RETRY] Attempt 1 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 58.306214636s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 58
+}
+]
+2025-12-20 20:49:05 | WARNING | [ArvynConfig] | [RETRY] Attempt 2 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 55.912213817s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 55
+}
+]
+2025-12-20 20:49:08 | WARNING | [ArvynConfig] | [RETRY] Attempt 3 failed: 400 API key expired. Please renew the API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key expired. Please renew the API key."
+]
+2025-12-20 20:49:08 | ERROR | [ArvynConfig] | [ERROR] Intent Extraction Failure: 400 API key expired. Please renew the API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key expired. Please renew the API key."
+]
+2025-12-20 20:49:08 | INFO | [ArvynConfig] | 📊 [20:49:08] [INTENT_PARSER] Target Locked: Rio Finance Bank | Primary Action: QUERY
+2025-12-20 20:49:08 | INFO | [ArvynConfig] | 📊 [20:49:08] [DISCOVERY] Verifying endpoint for Rio Finance Bank...
+2025-12-20 20:49:09 | INFO | [ArvynConfig] | [BROWSER] Stealth engine active at 1920x1080.
+2025-12-20 20:49:09 | INFO | [ArvynConfig] | 📊 [20:49:09] [DISCOVERY] Connecting to secure portal: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-20 20:49:09 | INFO | [ArvynConfig] | [NETWORK] Navigating to: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-20 20:49:15 | INFO | [ArvynConfig] | 📊 [20:49:15] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:49:15 | INFO | [ArvynConfig] | 📊 [20:49:15] [BRAIN] Calculating next step... (Action 1)
+2025-12-20 20:49:16 | WARNING | [ArvynConfig] | [RETRY] Attempt 1 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 44.823863833s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 44
+}
+]
+2025-12-20 20:49:18 | WARNING | [ArvynConfig] | [RETRY] Attempt 2 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 42.289427356s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 42
+}
+]
+2025-12-20 20:49:22 | WARNING | [ArvynConfig] | [RETRY] Attempt 3 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 38.773718181s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 38
+}
+]
+2025-12-20 20:49:27 | ERROR | [ArvynConfig] | [ERROR] JSON Cleaning Error: expected string or bytes-like object
+2025-12-20 20:49:27 | INFO | [ArvynConfig] | 📊 [20:49:27] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:49:27 | INFO | [ArvynConfig] | 📊 [20:49:27] [BRAIN] Calculating next step... (Action 1)
+2025-12-20 20:49:28 | WARNING | [ArvynConfig] | [RETRY] Attempt 1 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 32.964273225s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 32
+}
+]
+2025-12-20 20:49:30 | WARNING | [ArvynConfig] | [RETRY] Attempt 2 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 30.455009413s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 30
+}
+]
+2025-12-20 20:49:34 | WARNING | [ArvynConfig] | [RETRY] Attempt 3 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 26.929173017s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 26
+}
+]
+2025-12-20 20:49:39 | ERROR | [ArvynConfig] | [ERROR] JSON Cleaning Error: expected string or bytes-like object
+2025-12-20 20:49:39 | INFO | [ArvynConfig] | 📊 [20:49:39] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:49:39 | INFO | [ArvynConfig] | 📊 [20:49:39] [BRAIN] Calculating next step... (Action 1)
+2025-12-20 20:49:40 | WARNING | [ArvynConfig] | [RETRY] Attempt 1 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 21.182375141s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 21
+}
+]
+2025-12-20 20:49:43 | WARNING | [ArvynConfig] | [RETRY] Attempt 2 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 17.456857757s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 17
+}
+]
+2025-12-20 20:49:48 | WARNING | [ArvynConfig] | [RETRY] Attempt 3 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 13.924787029s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 13
+}
+]
+2025-12-20 20:49:53 | ERROR | [ArvynConfig] | [ERROR] JSON Cleaning Error: expected string or bytes-like object
+2025-12-20 20:49:53 | INFO | [ArvynConfig] | 📊 [20:49:53] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:49:53 | INFO | [ArvynConfig] | 📊 [20:49:53] [BRAIN] Calculating next step... (Action 1)
+2025-12-20 20:49:53 | WARNING | [ArvynConfig] | [RETRY] Attempt 1 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 7.365824634s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 7
+}
+]
+2025-12-20 20:49:56 | WARNING | [ArvynConfig] | [RETRY] Attempt 2 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 4.830695381s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 4
+}
+]
+2025-12-20 20:50:01 | WARNING | [ArvynConfig] | [RETRY] Attempt 3 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 131.327681ms. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+}
+]
+2025-12-20 20:50:02 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-20 20:50:02 | INFO | [ArvynConfig] | 📊 [20:50:02] [SYSTEM] Deactivating kinetic layer and browser engine...
+2025-12-20 20:50:02 | INFO | [ArvynConfig] | [BROWSER] Resources released.
+2025-12-20 20:53:23 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-20 20:53:23 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Mode: gemini-2.5-flash
+2025-12-20 20:53:24 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-20 20:53:24 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-20 20:53:25 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 20:53:25 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 20:53:25 | INFO | [ArvynConfig] | 🛡️ Arvyn App v3.0: Core Controller active and pulsing.
+2025-12-20 20:53:25 | INFO | [ArvynConfig] | [BRAIN] GeminiBrain initialized with: gemini-2.5-flash
+2025-12-20 20:53:25 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 20:53:25 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 20:53:25 | INFO | [ArvynConfig] | 🚀 Arvyn Core v3.0: Orchestrator initialized with gemini-2.5-flash at 1920x1080.
+2025-12-20 20:53:25 | INFO | [ArvynConfig] | ✅ Arvyn Autonomous Core: Logic Graph compiled with Persistence.
+2025-12-20 20:53:28 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-20 20:53:33 | INFO | [ArvynConfig] | 🗣️ Transcribed: pay my electricity bill
+2025-12-20 20:53:33 | INFO | [ArvynConfig] | 📊 [20:53:33] [INTENT_PARSER] Processing natural language command...
+2025-12-20 20:53:38 | ERROR | [ArvynConfig] | [ERROR] Intent Extraction Failure: 1 validation error for IntentOutput
+urgency
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.11/v/string_type
+2025-12-20 20:53:38 | INFO | [ArvynConfig] | 📊 [20:53:38] [INTENT_PARSER] Target Locked: Rio Finance Bank | Primary Action: QUERY
+2025-12-20 20:53:38 | INFO | [ArvynConfig] | 📊 [20:53:38] [DISCOVERY] Verifying endpoint for Rio Finance Bank...
+2025-12-20 20:53:39 | INFO | [ArvynConfig] | [BROWSER] Stealth engine active at 1920x1080.
+2025-12-20 20:53:39 | INFO | [ArvynConfig] | 📊 [20:53:39] [DISCOVERY] Connecting to secure portal: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-20 20:53:39 | INFO | [ArvynConfig] | [NETWORK] Navigating to: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-20 20:53:46 | INFO | [ArvynConfig] | 📊 [20:53:46] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:53:46 | INFO | [ArvynConfig] | 📊 [20:53:46] [BRAIN] Calculating next step... (Action 1)
+2025-12-20 20:53:50 | INFO | [ArvynConfig] | 📊 [20:53:50] [KINETIC] Interacting with Login button at pixel (1559, 48)
+2025-12-20 20:53:53 | INFO | [ArvynConfig] | 📊 [20:53:53] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:53:53 | INFO | [ArvynConfig] | 📊 [20:53:53] [BRAIN] Calculating next step... (Action 2)
+2025-12-20 20:53:57 | INFO | [ArvynConfig] | 📊 [20:53:57] [KINETIC] Interacting with Login button at pixel (1573, 45)
+2025-12-20 20:53:59 | INFO | [ArvynConfig] | 📊 [20:53:59] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:53:59 | INFO | [ArvynConfig] | 📊 [20:53:59] [BRAIN] Calculating next step... (Action 3)
+2025-12-20 20:54:02 | INFO | [ArvynConfig] | 📊 [20:54:02] [KINETIC] Interacting with Login button at pixel (1582, 44)
+2025-12-20 20:54:05 | INFO | [ArvynConfig] | 📊 [20:54:05] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:54:05 | INFO | [ArvynConfig] | 📊 [20:54:05] [BRAIN] Calculating next step... (Action 4)
+2025-12-20 20:54:08 | INFO | [ArvynConfig] | 📊 [20:54:08] [KINETIC] Interacting with Login button at pixel (1573, 48)
+2025-12-20 20:54:11 | INFO | [ArvynConfig] | 📊 [20:54:11] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:54:11 | INFO | [ArvynConfig] | 📊 [20:54:11] [BRAIN] Calculating next step... (Action 5)
+2025-12-20 20:54:14 | INFO | [ArvynConfig] | 📊 [20:54:14] [KINETIC] Interacting with Login button at pixel (1582, 51)
+2025-12-20 20:54:16 | INFO | [ArvynConfig] | 📊 [20:54:16] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:54:17 | INFO | [ArvynConfig] | 📊 [20:54:17] [BRAIN] Calculating next step... (Action 6)
+2025-12-20 20:54:17 | WARNING | [ArvynConfig] | [RETRY] Attempt 1 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-2.5-flash
+Please retry in 43.788321692s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 5
+}
+, retry_delay {
+  seconds: 43
+}
+]
+2025-12-20 20:54:20 | WARNING | [ArvynConfig] | [RETRY] Attempt 2 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-2.5-flash
+Please retry in 41.015160918s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 5
+}
+, retry_delay {
+  seconds: 41
+}
+]
+2025-12-20 20:54:23 | WARNING | [ArvynConfig] | [RETRY] Attempt 3 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-2.5-flash
+Please retry in 37.52332424s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 5
+}
+, retry_delay {
+  seconds: 37
+}
+]
+2025-12-20 20:54:28 | ERROR | [ArvynConfig] | [ERROR] JSON Cleaning Error: expected string or bytes-like object
+2025-12-20 20:54:28 | INFO | [ArvynConfig] | 📊 [20:54:28] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:54:28 | INFO | [ArvynConfig] | 📊 [20:54:28] [BRAIN] Calculating next step... (Action 6)
+2025-12-20 20:54:29 | WARNING | [ArvynConfig] | [RETRY] Attempt 1 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-2.5-flash
+Please retry in 31.762439853s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 5
+}
+, retry_delay {
+  seconds: 31
+}
+]
+2025-12-20 20:54:32 | WARNING | [ArvynConfig] | [RETRY] Attempt 2 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-2.5-flash
+Please retry in 29.252134922s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 5
+}
+, retry_delay {
+  seconds: 29
+}
+]
+2025-12-20 20:54:39 | INFO | [ArvynConfig] | 📊 [20:54:39] [KINETIC] Interacting with Login button at pixel (1573, 56)
+2025-12-20 20:54:41 | INFO | [ArvynConfig] | 📊 [20:54:41] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:54:41 | INFO | [ArvynConfig] | 📊 [20:54:41] [BRAIN] Calculating next step... (Action 7)
+2025-12-20 20:54:45 | INFO | [ArvynConfig] | 📊 [20:54:45] [KINETIC] Interacting with Login button at pixel (1573, 45)
+2025-12-20 20:54:48 | INFO | [ArvynConfig] | 📊 [20:54:48] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:54:48 | INFO | [ArvynConfig] | 📊 [20:54:48] [BRAIN] Calculating next step... (Action 8)
+2025-12-20 20:54:52 | INFO | [ArvynConfig] | 📊 [20:54:52] [KINETIC] Interacting with Login button at pixel (1590, 42)
+2025-12-20 20:54:54 | INFO | [ArvynConfig] | 📊 [20:54:54] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 20:54:55 | INFO | [ArvynConfig] | 📊 [20:54:55] [BRAIN] Calculating next step... (Action 9)
+2025-12-20 20:54:58 | INFO | [ArvynConfig] | 📊 [20:54:58] [KINETIC] Interacting with Login button at pixel (1553, 45)
+2025-12-20 20:55:03 | CRITICAL | [ArvynConfig] | FATAL UI EXCEPTION:
+Traceback (most recent call last):
+  File "C:\Users\AKASH\Desktop\FinAgent IITB\Arvyn\gui\dashboard.py", line 185, in _toggle_mic
+    def _toggle_mic(self):
+KeyboardInterrupt
+
+2025-12-20 20:55:06 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-20 20:55:06 | INFO | [ArvynConfig] | 📊 [20:55:06] [SYSTEM] Deactivating kinetic layer and browser engine...
+2025-12-20 20:55:06 | ERROR | [ArvynConfig] | Cleanup Error: Page.close: Connection closed while reading from the driver

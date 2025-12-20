@@ -1,16 +1,18 @@
 import asyncio
 import logging
 import queue
+import time
 import speech_recognition as sr
-from PyQt6.QtCore import QThread, pyqtSignal, QTimer
+from PyQt6.QtCore import QThread, pyqtSignal
 from langgraph.checkpoint.memory import MemorySaver
 from core.agent_orchestrator import ArvynOrchestrator
 from config import logger
 
 class VoiceWorker(QThread):
     """
-    Advanced Manual-Stop Voice Worker.
-    Optimized for streaming audio chunks and high-accuracy transcription.
+    Superior Voice Interaction Layer.
+    Features: Adaptive ambient noise calibration, chunk-based streaming, 
+    and high-accuracy Google Web Speech integration.
     """
     text_received = pyqtSignal(str)
     status_signal = pyqtSignal(str)
@@ -20,23 +22,29 @@ class VoiceWorker(QThread):
         self.recognizer = sr.Recognizer()
         self.mic = sr.Microphone()
         self._is_active = True
+        
+        # Optimize for banking environments (often has background noise)
+        self.recognizer.energy_threshold = 300 
+        self.recognizer.dynamic_energy_threshold = True
 
     def stop(self):
-        """Triggers the end of the recording loop."""
+        """Signals the recording loop to terminate and begin transcription."""
         self._is_active = False
 
     def run(self):
-        self.status_signal.emit("Listening...")
-        logger.info("VoiceWorker: Microphone engaged for user response.")
+        self.status_signal.emit("LISTENING")
+        logger.info("🎙️ VoiceWorker: Microphone active.")
         
         try:
             with self.mic as source:
-                self.recognizer.adjust_for_ambient_noise(source, duration=0.6)
+                # 0.8s calibration for superior noise cancellation
+                self.recognizer.adjust_for_ambient_noise(source, duration=0.8)
                 audio_chunks = []
                 
                 while self._is_active:
                     try:
-                        chunk = self.recognizer.listen(source, timeout=1, phrase_time_limit=3)
+                        # Listen in small bursts to allow for manual 'Stop' interruption
+                        chunk = self.recognizer.listen(source, timeout=1, phrase_time_limit=4)
                         audio_chunks.append(chunk)
                     except sr.WaitTimeoutError:
                         continue
@@ -45,19 +53,25 @@ class VoiceWorker(QThread):
                     self.text_received.emit("")
                     return
 
+                # Compile chunks into a single audio object for the STT Engine
                 combined_audio = sr.AudioData(
                     b"".join([c.get_raw_data() for c in audio_chunks]),
                     audio_chunks[0].sample_rate,
                     audio_chunks[0].sample_width
                 )
 
-            self.status_signal.emit("Transcribing...")
+            self.status_signal.emit("ANALYZING VOICE")
             text = self.recognizer.recognize_google(combined_audio)
-            logger.info(f"STT Result: {text}")
-            self.text_received.emit(text)
             
+            if text:
+                logger.info(f"🗣️ Transcribed: {text}")
+                self.text_received.emit(text)
+            else:
+                self.text_received.emit("")
+                
         except sr.UnknownValueError:
-            logger.warning("VoiceWorker: Could not understand audio.")
+            logger.warning("VoiceWorker: Audio unintelligible.")
+            self.status_signal.emit("RETRY SPEAKING")
             self.text_received.emit("")
         except Exception as e:
             logger.error(f"VoiceWorker Critical Error: {e}")
@@ -65,8 +79,9 @@ class VoiceWorker(QThread):
 
 class AgentWorker(QThread):
     """
-    The Global Session Orchestration Worker.
-    Fixed: Proper event loop management and awaited cleanup to prevent RuntimeWarnings.
+    The Global Session Orchestration Worker (Production Grade).
+    Features: Recursive Execution Monitoring, Proper Log piping, 
+    and hardened Async Lifecycle management.
     """
     log_signal = pyqtSignal(str)
     screenshot_signal = pyqtSignal(str)
@@ -76,6 +91,7 @@ class AgentWorker(QThread):
     auto_mic_signal = pyqtSignal(bool)
     finished_signal = pyqtSignal(dict)
 
+    # Persistence layer for multi-turn banking sessions
     _shared_checkpointer = MemorySaver()
 
     def __init__(self):
@@ -84,21 +100,23 @@ class AgentWorker(QThread):
         self.orchestrator = None
         self.loop = None
         self._is_running = True
-        self.config = {"configurable": {"thread_id": "arvyn_banking_session_v4"}}
+        
+        # Unique session ID for Rio Finance Bank automation
+        self.session_config = {"configurable": {"thread_id": "arvyn_banking_v2_prod"}}
 
     def submit_command(self, user_command: str):
+        """Thread-safe command submission."""
         self.command_queue.put(user_command)
 
     def stop_persistent_session(self):
-        """Clean shutdown of browser and internal event loops."""
+        """Forces a graceful cleanup of browser and worker threads."""
         self._is_running = False
-        if self.orchestrator and self.loop and self.loop.is_running():
-            # Schedule the awaited cleanup in the worker's event loop
+        if self.orchestrator and self.loop:
             asyncio.run_coroutine_threadsafe(self.orchestrator.cleanup(), self.loop)
         self.command_queue.put(None)
 
     def run(self):
-        """Initializes the event loop and manages the task processing cycle."""
+        """Initializes the background async environment for Arvyn's Brain."""
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
         
@@ -110,80 +128,101 @@ class AgentWorker(QThread):
                 command = self.command_queue.get()
                 if command is None: break 
                 
+                # Execute the full LangGraph workflow for the command
                 self.loop.run_until_complete(self.execute_task(command))
                 self.command_queue.task_done()
         except Exception as e:
-            logger.error(f"AgentWorker Runtime Error: {e}")
+            logger.error(f"AgentWorker Main Loop Error: {e}")
         finally:
-            # Ensure the loop handles the cleanup coroutine before closing
+            self._shutdown_loop()
+
+    def _shutdown_loop(self):
+        """Ensures all pending browser/api tasks are finished before thread exit."""
+        try:
             pending = asyncio.all_tasks(self.loop)
             if pending:
                 self.loop.run_until_complete(asyncio.gather(*pending))
             self.loop.close()
-            logger.info("AgentWorker: Event loop closed safely.")
+            logger.info("✅ AgentWorker: Async loop closed safely.")
+        except Exception as e:
+            logger.error(f"Loop Shutdown Error: {e}")
 
     async def execute_task(self, user_command: str):
-        """Processes a command through the recursive autonomous banking loop."""
+        """Routes a user command through the upgraded Autonomous Orchestrator."""
         try:
-            self.status_signal.emit("Thinking...")
-            self.log_signal.emit(f"User Request: {user_command}")
+            self.status_signal.emit("THINKING")
+            
+            # Start the Session Log in the UI
+            self.log_signal.emit(f"--- NEW TASK: {user_command.upper()} ---")
             
             initial_input = {"messages": [("user", user_command)]}
 
-            if not self.orchestrator.app:
-                raise Exception("Orchestrator App not properly initialized.")
-
-            async for event in self.orchestrator.app.astream(initial_input, config=self.config):
+            # astream allows real-time UI updates as each node finishes
+            async for event in self.orchestrator.app.astream(initial_input, config=self.session_config):
                 if not self._is_running: return
+                
                 for node_name, output in event.items():
+                    # Synchronize the Orchestrator's internal logs with the GUI
+                    self._sync_orchestrator_logs()
                     self._handle_node_output(node_name, output)
 
-            state_data = self.orchestrator.app.get_state(self.config)
+            # Final state check for HITL (Human-in-the-loop) requirements
+            state_data = self.orchestrator.app.get_state(self.session_config)
             values = state_data.values or {}
-            next_nodes = state_data.next or []
-
-            if "human_interaction_node" in next_nodes:
+            
+            if "human_interaction_node" in (state_data.next or []):
                 question = values.get("pending_question")
                 if question:
-                    self.status_signal.emit("Questioning...")
+                    self.status_signal.emit("AWAITING USER")
                     self.speak_signal.emit(question)
+                    # Production Feature: Wait for speech to finish before opening mic
                     self.auto_mic_signal.emit(True) 
                 self.approval_signal.emit(True)
             else:
-                self.status_signal.emit("Ready")
+                self.status_signal.emit("READY")
                 
         except Exception as e:
-            logger.error(f"Task Execution Error: {e}")
-            self.log_signal.emit(f"Internal System Error: {str(e)}")
-            self.status_signal.emit("Error")
+            logger.error(f"AgentWorker Execution Error: {e}")
+            self.log_signal.emit(f"⚠️ SYSTEM ERROR: {str(e)}")
+            self.status_signal.emit("ERROR")
+
+    def _sync_orchestrator_logs(self):
+        """Pipes the high-fidelity Orchestrator session logs to the Dashboard."""
+        if hasattr(self.orchestrator, 'session_log'):
+            # Fetch any logs not yet emitted to the UI
+            while self.orchestrator.session_log:
+                log_entry = self.orchestrator.session_log.pop(0)
+                self.log_signal.emit(log_entry)
 
     def _handle_node_output(self, node_name: str, output: dict):
+        """Processes outputs from the graph for real-time visual feedback."""
         if not output: return
 
-        if "messages" in output:
-            for msg in output["messages"]:
-                content = msg[1] if isinstance(msg, tuple) else getattr(msg, 'content', str(msg))
-                if content.strip():
-                    self.log_signal.emit(content)
-        
-        if "current_step" in output:
-            self.status_signal.emit(output["current_step"])
-            
+        # Update screenshot for the Dashboard Monitor
         if "screenshot" in output and output["screenshot"]:
             self.screenshot_signal.emit(output["screenshot"])
+        
+        # Update the mini-status bar
+        if "current_step" in output:
+            self.status_signal.emit(output["current_step"].upper())
 
     def resume_with_approval(self, approved: bool):
+        """Resumes a paused banking transaction after user confirmation."""
         if self.loop and self.loop.is_running():
             asyncio.run_coroutine_threadsafe(self._resume_logic(approved), self.loop)
 
     async def _resume_logic(self, approved: bool):
         decision = "approved" if approved else "rejected"
-        await self.orchestrator.app.update_state(self.config, {"human_approval": decision})
-        self.log_signal.emit(f"Manual Override: {decision}")
+        await self.orchestrator.app.update_state(self.session_config, {"human_approval": decision})
+        
+        self.log_signal.emit(f"🛡️ USER DECISION: {decision.upper()}")
         self.approval_signal.emit(False)
         
-        async for event in self.orchestrator.app.astream(None, config=self.config):
+        # Continue streaming after the pause
+        async for event in self.orchestrator.app.astream(None, config=self.session_config):
             if not self._is_running: return
             for node_name, output in event.items():
+                self._sync_orchestrator_logs()
                 self._handle_node_output(node_name, output)
-        self.status_signal.emit("Ready")
+        
+        self.status_signal.emit("READY")
