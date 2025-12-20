@@ -6,6 +6,11 @@ from dotenv import load_dotenv
 # Load environment variables from .env
 load_dotenv()
 
+# --- HIGH-DPI & UI STABILITY ---
+# Forces the OS to handle scaling correctly so buttons don't get cut off on laptop screens
+os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
+
 # --- ROBUST LOGGING CONFIGURATION ---
 # Fixes UnicodeEncodeError (charmap) on Windows consoles (CMD/PowerShell)
 # Ensures high-fidelity UTF-8 logging remains available in the 'arvyn_session.log' file.
@@ -46,7 +51,7 @@ logger = logging.getLogger("ArvynConfig")
 class Config:
     """
     Central configuration for Agent Arvyn.
-    Optimized for Gemini 2.5 Flash, High-Resolution Browsing, and Dashboard Visibility.
+    Optimized for Gemini 2.5 Flash, High-Resolution Browsing, and Compact Dashboard Visibility.
     """
     
     # --- AI MODEL SETTINGS ---
@@ -56,7 +61,7 @@ class Config:
     GEMINI_MODEL_NAME = os.getenv("GEMINI_MODEL_NAME", "gemini-2.5-flash")
     
     # --- KINETIC & BROWSER SETTINGS ---
-    # Increased to Full HD (1920x1080) to ensure banking sites display all elements.
+    # High internal resolution (1080p) ensures the agent sees all elements correctly.
     VIEWPORT_WIDTH = 1920
     VIEWPORT_HEIGHT = 1080
     
@@ -71,9 +76,9 @@ class Config:
     # --- VOICE & INTERACTION ---
     DEFAULT_VOICE_ID = None  
     STT_ENERGY_THRESHOLD = 300 
-    COMMAND_TIMEOUT = 30 # High buffer for heavy banking sites
+    COMMAND_TIMEOUT = 45 # Buffer for heavy banking sites and complex reasoning
     
-    # --- UI SETTINGS (EXPANDED COMMAND CENTER) ---
+    # --- UI SETTINGS (SCALED FOR VISIBILITY) ---
     THEME = "GlassMorphism_V2"
     ORB_COLOR = "#00d2ff"
     ACCENT_COLOR = "#00d2ff"
@@ -81,8 +86,8 @@ class Config:
     SUCCESS_COLOR = "#2ecc71"
     
     ORB_SIZE = 85
-    # Dashboard size expanded to comfortably show the high-resolution site feed.
-    DASHBOARD_SIZE = (500, 750)
+    # Scaled down to ensure UI controls (Minimize/Stop) remain accessible on all displays.
+    DASHBOARD_SIZE = (480, 720) 
     
     @classmethod
     def validate(cls):

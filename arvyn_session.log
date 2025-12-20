@@ -4384,3 +4384,262 @@ KeyboardInterrupt
 2025-12-20 20:55:06 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
 2025-12-20 20:55:06 | INFO | [ArvynConfig] | 📊 [20:55:06] [SYSTEM] Deactivating kinetic layer and browser engine...
 2025-12-20 20:55:06 | ERROR | [ArvynConfig] | Cleanup Error: Page.close: Connection closed while reading from the driver
+2025-12-20 21:14:51 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-20 21:14:51 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Mode: gemini-2.5-flash
+2025-12-20 21:14:52 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-20 21:14:52 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-20 21:14:52 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 21:14:52 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 21:14:52 | INFO | [ArvynConfig] | 🛡️ Arvyn App v3.0: Core Controller active and pulsing.
+2025-12-20 21:14:53 | INFO | [ArvynConfig] | [BRAIN] Superior Intelligence Engine initialized with: gemini-2.5-flash
+2025-12-20 21:14:53 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 21:14:53 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 21:14:53 | INFO | [ArvynConfig] | 🚀 Arvyn Core v3.0: Orchestrator initialized with gemini-2.5-flash at 1920x1080.
+2025-12-20 21:14:53 | INFO | [ArvynConfig] | ✅ Arvyn Autonomous Core: Logic Graph compiled with Persistence.
+2025-12-20 21:14:56 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-20 21:15:01 | INFO | [ArvynConfig] | 🗣️ Transcribed: pay my electricity bill
+2025-12-20 21:15:01 | INFO | [ArvynConfig] | 📊 [21:15:01] [INTENT_PARSER] Processing natural language command...
+2025-12-20 21:15:04 | INFO | [ArvynConfig] | 📊 [21:15:04] [INTENT_PARSER] Target Locked: Rio Finance Bank | Primary Action: PAY_BILL
+2025-12-20 21:15:04 | INFO | [ArvynConfig] | 📊 [21:15:04] [DISCOVERY] Verifying endpoint for Rio Finance Bank...
+2025-12-20 21:15:05 | INFO | [ArvynConfig] | [BROWSER] 1080p Stealth Engine active at 1920x1080.
+2025-12-20 21:15:05 | INFO | [ArvynConfig] | 📊 [21:15:05] [DISCOVERY] Connecting to secure portal: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-20 21:15:05 | INFO | [ArvynConfig] | [NETWORK] Connecting to: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-20 21:15:13 | INFO | [ArvynConfig] | 📊 [21:15:13] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:15:13 | INFO | [ArvynConfig] | 📊 [21:15:13] [BRAIN] Calculating next step... (Action 1)
+2025-12-20 21:15:19 | INFO | [ArvynConfig] | 📊 [21:15:19] [KINETIC] Interacting with Pay Bills at pixel (1400, 31)
+2025-12-20 21:15:19 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (1400, 31)
+2025-12-20 21:15:22 | INFO | [ArvynConfig] | 📊 [21:15:22] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:15:22 | INFO | [ArvynConfig] | 📊 [21:15:22] [BRAIN] Calculating next step... (Action 2)
+2025-12-20 21:15:27 | INFO | [ArvynConfig] | 📊 [21:15:27] [KINETIC] Interacting with Email address at pixel (959, 509)
+2025-12-20 21:15:27 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (959, 509)
+2025-12-20 21:15:28 | INFO | [ArvynConfig] | 📊 [21:15:28] [KINETIC] Inputting sequence: akash@gmail.com
+2025-12-20 21:15:28 | INFO | [ArvynConfig] | [KINETIC] Initiating keystroke sequence...
+2025-12-20 21:15:32 | INFO | [ArvynConfig] | 📊 [21:15:32] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:15:32 | INFO | [ArvynConfig] | 📊 [21:15:32] [BRAIN] Calculating next step... (Action 3)
+2025-12-20 21:15:37 | INFO | [ArvynConfig] | 📊 [21:15:37] [KINETIC] Interacting with Password at pixel (959, 555)
+2025-12-20 21:15:37 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (959, 555)
+2025-12-20 21:15:37 | INFO | [ArvynConfig] | 📊 [21:15:37] [KINETIC] Inputting sequence: [ENCRYPTED]
+2025-12-20 21:15:37 | INFO | [ArvynConfig] | [KINETIC] Initiating keystroke sequence...
+2025-12-20 21:15:41 | INFO | [ArvynConfig] | 📊 [21:15:41] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:15:41 | INFO | [ArvynConfig] | 📊 [21:15:41] [BRAIN] Calculating next step... (Action 4)
+2025-12-20 21:15:46 | INFO | [ArvynConfig] | 📊 [21:15:46] [KINETIC] Interacting with Sign in at pixel (959, 670)
+2025-12-20 21:15:46 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (959, 670)
+2025-12-20 21:15:49 | INFO | [ArvynConfig] | 📊 [21:15:49] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:15:49 | INFO | [ArvynConfig] | 📊 [21:15:49] [BRAIN] Calculating next step... (Action 5)
+2025-12-20 21:16:07 | INFO | [ArvynConfig] | 📊 [21:16:07] [KINETIC] Interacting with Password at pixel (960, 532)
+2025-12-20 21:16:07 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (960, 532)
+2025-12-20 21:16:08 | INFO | [ArvynConfig] | 📊 [21:16:08] [KINETIC] Inputting sequence: [ENCRYPTED]
+2025-12-20 21:16:08 | INFO | [ArvynConfig] | [KINETIC] Initiating keystroke sequence...
+2025-12-20 21:16:11 | INFO | [ArvynConfig] | 📊 [21:16:11] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:16:11 | INFO | [ArvynConfig] | 📊 [21:16:11] [BRAIN] Calculating next step... (Action 6)
+2025-12-20 21:16:17 | INFO | [ArvynConfig] | 📊 [21:16:17] [KINETIC] Interacting with Sign in button at pixel (958, 665)
+2025-12-20 21:16:17 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (958, 665)
+2025-12-20 21:16:17 | ERROR | [ArvynConfig] | [KINETIC] Coordinate failure at (958, 665): Mouse.move: Connection closed while reading from the driver
+2025-12-20 21:16:19 | WARNING | [asyncio] | socket.send() raised exception.
+2025-12-20 21:16:19 | ERROR | [ArvynConfig] | AgentWorker Execution Error: Page.screenshot: Connection closed while reading from the driver
+2025-12-20 21:16:19 | CRITICAL | [ArvynConfig] | FATAL UI EXCEPTION:
+Traceback (most recent call last):
+  File "C:\Users\AKASH\Desktop\FinAgent IITB\Arvyn\gui\dashboard.py", line 204, in append_log
+    def append_log(self, text: str, category: str = "general"):
+KeyboardInterrupt
+
+2025-12-20 21:16:21 | CRITICAL | [ArvynConfig] | FATAL UI EXCEPTION:
+Traceback (most recent call last):
+  File "C:\Users\AKASH\Desktop\FinAgent IITB\Arvyn\gui\dashboard.py", line 185, in _toggle_mic
+    def _toggle_mic(self):
+KeyboardInterrupt
+
+2025-12-20 21:35:13 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-20 21:35:13 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Mode: gemini-2.5-flash
+2025-12-20 21:35:15 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-20 21:35:15 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-20 21:35:15 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 21:35:15 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 21:35:15 | INFO | [ArvynConfig] | 🛡️ Arvyn App v3.0: Core Controller active and pulsing.
+2025-12-20 21:35:16 | INFO | [ArvynConfig] | [BRAIN] Superior Intelligence Engine initialized with: gemini-2.5-flash
+2025-12-20 21:35:16 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 21:35:16 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 21:35:16 | INFO | [ArvynConfig] | 🚀 Arvyn Core v3.2: Orchestrator ready. UI: 480x720 | Engine: 1920x1080.
+2025-12-20 21:35:16 | INFO | [ArvynConfig] | ✅ Arvyn Autonomous Core: Logic Graph compiled with Persistence.
+2025-12-20 21:35:20 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-20 21:35:25 | INFO | [ArvynConfig] | 🗣️ Transcribed: pay my electricity bill
+2025-12-20 21:35:25 | INFO | [ArvynConfig] | 📊 [21:35:25] [INTENT_PARSER] Processing natural language command...
+2025-12-20 21:35:29 | INFO | [ArvynConfig] | 📊 [21:35:29] [INTENT_PARSER] Target Locked: Rio Finance Bank | Action: PAY_BILL
+2025-12-20 21:35:29 | INFO | [ArvynConfig] | 📊 [21:35:29] [DISCOVERY] Verifying endpoint for Rio Finance Bank...
+2025-12-20 21:35:30 | INFO | [ArvynConfig] | [BROWSER] 1080p Stealth Engine active at 1920x1080.
+2025-12-20 21:35:30 | INFO | [ArvynConfig] | 📊 [21:35:30] [DISCOVERY] Connecting to secure portal: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-20 21:35:30 | INFO | [ArvynConfig] | [NETWORK] Connecting to: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-20 21:35:38 | INFO | [ArvynConfig] | 📊 [21:35:38] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:35:38 | INFO | [ArvynConfig] | 📊 [21:35:38] [BRAIN] Calculating next step... (Action 1)
+2025-12-20 21:35:42 | INFO | [ArvynConfig] | 📊 [21:35:42] [KINETIC] Interacting with Login button at pixel (1582, 53)
+2025-12-20 21:35:42 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (1582, 53)
+2025-12-20 21:35:44 | INFO | [ArvynConfig] | 📊 [21:35:44] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:35:45 | INFO | [ArvynConfig] | 📊 [21:35:45] [BRAIN] Calculating next step... (Action 2)
+2025-12-20 21:35:51 | INFO | [ArvynConfig] | 📊 [21:35:51] [KINETIC] Interacting with Login button at pixel (885, 51)
+2025-12-20 21:35:51 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (885, 51)
+2025-12-20 21:35:54 | INFO | [ArvynConfig] | 📊 [21:35:54] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:35:54 | INFO | [ArvynConfig] | 📊 [21:35:54] [BRAIN] Calculating next step... (Action 3)
+2025-12-20 21:36:03 | INFO | [ArvynConfig] | 📊 [21:36:03] [KINETIC] Interacting with Login button at pixel (909, 33)
+2025-12-20 21:36:03 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (909, 33)
+2025-12-20 21:36:05 | INFO | [ArvynConfig] | 📊 [21:36:05] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:36:05 | INFO | [ArvynConfig] | 📊 [21:36:05] [BRAIN] Calculating next step... (Action 4)
+2025-12-20 21:36:10 | INFO | [ArvynConfig] | 📊 [21:36:10] [KINETIC] Interacting with Login button at pixel (1756, 52)
+2025-12-20 21:36:10 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (1756, 52)
+2025-12-20 21:36:12 | INFO | [ArvynConfig] | 📊 [21:36:12] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:36:13 | INFO | [ArvynConfig] | 📊 [21:36:13] [BRAIN] Calculating next step... (Action 5)
+2025-12-20 21:36:17 | INFO | [ArvynConfig] | 📊 [21:36:17] [KINETIC] Interacting with Login button at pixel (1775, 33)
+2025-12-20 21:36:17 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (1775, 33)
+2025-12-20 21:36:20 | INFO | [ArvynConfig] | 📊 [21:36:20] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:36:20 | INFO | [ArvynConfig] | 📊 [21:36:20] [BRAIN] Calculating next step... (Action 6)
+2025-12-20 21:36:20 | WARNING | [ArvynConfig] | [QUOTA] Rate limit hit. Cooling down for 12s... (Attempt 1)
+2025-12-20 21:36:36 | INFO | [ArvynConfig] | 📊 [21:36:36] [KINETIC] Interacting with Email address at pixel (959, 515)
+2025-12-20 21:36:36 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (959, 515)
+2025-12-20 21:36:37 | INFO | [ArvynConfig] | 📊 [21:36:37] [KINETIC] Inputting sequence: akash@gmail.com
+2025-12-20 21:36:37 | INFO | [ArvynConfig] | [KINETIC] Initiating keystroke sequence...
+2025-12-20 21:36:40 | INFO | [ArvynConfig] | 📊 [21:36:40] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:36:40 | INFO | [ArvynConfig] | 📊 [21:36:40] [BRAIN] Calculating next step... (Action 7)
+2025-12-20 21:36:46 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-20 21:36:55 | INFO | [ArvynConfig] | 🗣️ Transcribed: why authorised
+2025-12-20 21:36:55 | INFO | [ArvynConfig] | 📊 [21:36:55] [INTENT_PARSER] Processing natural language command...
+2025-12-20 21:37:02 | INFO | [ArvynConfig] | 📊 [21:37:02] [INTENT_PARSER] Target Locked: Rio Finance Bank | Action: QUERY
+2025-12-20 21:37:02 | INFO | [ArvynConfig] | 📊 [21:37:02] [DISCOVERY] Verifying endpoint for Rio Finance Bank...
+2025-12-20 21:37:02 | INFO | [ArvynConfig] | 📊 [21:37:02] [DISCOVERY] Target portal active. Commencing execution.
+2025-12-20 21:37:02 | INFO | [ArvynConfig] | 📊 [21:37:02] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:37:02 | INFO | [ArvynConfig] | 📊 [21:37:02] [BRAIN] Calculating next step... (Action 1)
+2025-12-20 21:37:08 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-20 21:37:11 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-20 21:37:11 | INFO | [ArvynConfig] | 📊 [21:37:11] [SYSTEM] Deactivating kinetic layer and releasing resources...
+2025-12-20 21:37:12 | INFO | [ArvynConfig] | [BROWSER] Stealth engine deactivated.
+2025-12-20 21:37:12 | INFO | [ArvynConfig] | ✅ AgentWorker: Async loop closed safely.
+2025-12-20 21:47:11 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-20 21:47:11 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Mode: gemini-2.5-flash
+2025-12-20 21:47:13 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-20 21:47:13 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-20 21:47:13 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 21:47:13 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 21:47:13 | INFO | [ArvynConfig] | 🛡️ Arvyn App v3.0: Core Controller active and pulsing.
+2025-12-20 21:47:14 | INFO | [ArvynConfig] | [BRAIN] Superior Intelligence Engine initialized with: gemini-2.5-flash
+2025-12-20 21:47:14 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 21:47:14 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 21:47:14 | INFO | [ArvynConfig] | 🚀 Arvyn Core v3.3: Orchestrator ready. UI: 480x720 | Engine: 1920x1080.
+2025-12-20 21:47:14 | INFO | [ArvynConfig] | ✅ Arvyn Autonomous Core: Logic Graph compiled with Persistence.
+2025-12-20 21:47:22 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-20 21:47:27 | INFO | [ArvynConfig] | 🗣️ Transcribed: pay my electricity bill
+2025-12-20 21:47:27 | INFO | [ArvynConfig] | 📊 [21:47:27] [INTENT_PARSER] Processing natural language command...
+2025-12-20 21:47:31 | INFO | [ArvynConfig] | 📊 [21:47:31] [INTENT_PARSER] Target Locked: Rio Finance Bank | Action: PAY_BILL
+2025-12-20 21:47:31 | INFO | [ArvynConfig] | 📊 [21:47:31] [DISCOVERY] Verifying endpoint for Rio Finance Bank...
+2025-12-20 21:47:32 | INFO | [ArvynConfig] | [BROWSER] 1080p Stealth Engine active at 1920x1080.
+2025-12-20 21:47:32 | INFO | [ArvynConfig] | 📊 [21:47:32] [DISCOVERY] Connecting to secure portal: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-20 21:47:32 | INFO | [ArvynConfig] | [NETWORK] Connecting to: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-20 21:47:39 | INFO | [ArvynConfig] | 📊 [21:47:39] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:47:39 | INFO | [ArvynConfig] | 📊 [21:47:39] [BRAIN] Calculating next step... (Action 1)
+2025-12-20 21:47:42 | INFO | [ArvynConfig] | 📊 [21:47:42] [KINETIC] Interacting with Login button at pixel (1582, 53)
+2025-12-20 21:47:42 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (1582, 53)
+2025-12-20 21:47:45 | INFO | [ArvynConfig] | 📊 [21:47:45] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:47:45 | INFO | [ArvynConfig] | 📊 [21:47:45] [BRAIN] Calculating next step... (Action 2)
+2025-12-20 21:47:49 | INFO | [ArvynConfig] | 📊 [21:47:49] [KINETIC] Interacting with Login button at pixel (1756, 56)
+2025-12-20 21:47:49 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (1756, 56)
+2025-12-20 21:47:52 | INFO | [ArvynConfig] | 📊 [21:47:52] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:47:52 | INFO | [ArvynConfig] | 📊 [21:47:52] [BRAIN] Calculating next step... (Action 3)
+2025-12-20 21:47:57 | INFO | [ArvynConfig] | 📊 [21:47:57] [KINETIC] Interacting with Login button at pixel (1754, 34)
+2025-12-20 21:47:57 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (1754, 34)
+2025-12-20 21:48:00 | INFO | [ArvynConfig] | 📊 [21:48:00] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:48:00 | INFO | [ArvynConfig] | 📊 [21:48:00] [BRAIN] Calculating next step... (Action 4)
+2025-12-20 21:48:01 | WARNING | [ArvynConfig] | [QUOTA] Rate limit hit. Cooling down for 12s... (Attempt 1)
+2025-12-20 21:48:13 | WARNING | [ArvynConfig] | [QUOTA] Rate limit hit. Cooling down for 24s... (Attempt 2)
+2025-12-20 21:48:38 | WARNING | [ArvynConfig] | [QUOTA] Rate limit hit. Cooling down for 48s... (Attempt 3)
+2025-12-20 21:48:52 | CRITICAL | [ArvynConfig] | FATAL UI EXCEPTION:
+Traceback (most recent call last):
+  File "C:\Users\AKASH\Desktop\FinAgent IITB\Arvyn\gui\dashboard.py", line 185, in _toggle_mic
+    def _toggle_mic(self):
+KeyboardInterrupt
+
+2025-12-20 21:49:26 | WARNING | [ArvynConfig] | [QUOTA] Rate limit hit. Cooling down for 96s... (Attempt 4)
+2025-12-20 21:49:45 | CRITICAL | [ArvynConfig] | FATAL UI EXCEPTION:
+Traceback (most recent call last):
+  File "C:\Users\AKASH\Desktop\FinAgent IITB\Arvyn\gui\dashboard.py", line 185, in _toggle_mic
+    def _toggle_mic(self):
+KeyboardInterrupt
+
+2025-12-20 21:51:01 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-20 21:51:01 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Mode: gemini-2.5-flash
+2025-12-20 21:51:03 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-20 21:51:03 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-20 21:51:03 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 21:51:03 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 21:51:03 | INFO | [ArvynConfig] | 🛡️ Arvyn App v3.0: Core Controller active and pulsing.
+2025-12-20 21:51:04 | INFO | [ArvynConfig] | [BRAIN] Superior Intelligence Engine initialized with: gemini-2.5-flash
+2025-12-20 21:51:04 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 21:51:04 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 21:51:04 | INFO | [ArvynConfig] | 🚀 Arvyn Core v3.3: Orchestrator ready. UI: 480x720 | Engine: 1920x1080.
+2025-12-20 21:51:04 | INFO | [ArvynConfig] | ✅ Arvyn Autonomous Core: Logic Graph compiled with Persistence.
+2025-12-20 21:51:06 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-20 21:51:14 | INFO | [ArvynConfig] | 🗣️ Transcribed: pay my electricity bill
+2025-12-20 21:51:14 | INFO | [ArvynConfig] | 📊 [21:51:14] [INTENT_PARSER] Processing natural language command...
+2025-12-20 21:51:18 | INFO | [ArvynConfig] | 📊 [21:51:18] [INTENT_PARSER] Target Locked: Rio Finance Bank | Action: PAY_BILL
+2025-12-20 21:51:18 | INFO | [ArvynConfig] | 📊 [21:51:18] [DISCOVERY] Verifying endpoint for Rio Finance Bank...
+2025-12-20 21:51:19 | INFO | [ArvynConfig] | [BROWSER] 1080p Stealth Engine active at 1920x1080.
+2025-12-20 21:51:19 | INFO | [ArvynConfig] | 📊 [21:51:19] [DISCOVERY] Connecting to secure portal: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-20 21:51:19 | INFO | [ArvynConfig] | [NETWORK] Connecting to: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-20 21:51:26 | INFO | [ArvynConfig] | 📊 [21:51:26] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:51:27 | INFO | [ArvynConfig] | 📊 [21:51:27] [BRAIN] Calculating next step... (Action 1)
+2025-12-20 21:51:31 | INFO | [ArvynConfig] | 📊 [21:51:31] [KINETIC] Interacting with Login button at pixel (1582, 53)
+2025-12-20 21:51:31 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (1582, 53)
+2025-12-20 21:51:33 | INFO | [ArvynConfig] | 📊 [21:51:33] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:51:34 | INFO | [ArvynConfig] | 📊 [21:51:34] [BRAIN] Calculating next step... (Action 2)
+2025-12-20 21:51:40 | INFO | [ArvynConfig] | 📊 [21:51:40] [KINETIC] Interacting with Login button at pixel (885, 51)
+2025-12-20 21:51:40 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (885, 51)
+2025-12-20 21:51:42 | INFO | [ArvynConfig] | 📊 [21:51:42] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 21:51:43 | INFO | [ArvynConfig] | 📊 [21:51:43] [BRAIN] Calculating next step... (Action 3)
+2025-12-20 21:51:47 | INFO | [ArvynConfig] | 📊 [21:51:47] [KINETIC] Interacting with Login button at pixel (1745, 36)
+2025-12-20 21:51:47 | INFO | [ArvynConfig] | [KINETIC] Executing precision click at (1745, 36)
+2025-12-20 21:51:49 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-20 21:51:49 | INFO | [ArvynConfig] | 📊 [21:51:49] [SYSTEM] Deactivating kinetic layer and releasing resources...
+2025-12-20 21:51:49 | INFO | [ArvynConfig] | [BROWSER] Stealth engine deactivated.
+2025-12-20 21:51:49 | ERROR | [ArvynConfig] | AgentWorker Execution Error: Page.screenshot: Target page, context or browser has been closed
+2025-12-20 21:51:49 | INFO | [ArvynConfig] | ✅ AgentWorker: Async loop closed safely.
+2025-12-20 22:00:41 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-20 22:00:41 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Mode: gemini-2.5-flash
+2025-12-20 22:00:42 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-20 22:00:42 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-20 22:00:43 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 22:00:43 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 22:00:43 | INFO | [ArvynConfig] | 🛡️ Arvyn App v3.0: Core Controller active and pulsing.
+2025-12-20 22:00:43 | INFO | [ArvynConfig] | [BRAIN] Superior Intelligence Engine active: gemini-2.5-flash
+2025-12-20 22:00:43 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-20 22:00:43 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-20 22:00:43 | INFO | [ArvynConfig] | 🚀 Arvyn Core v3.4: Orchestrator ready. UI: 480x720 | Engine: 1920x1080.
+2025-12-20 22:00:43 | INFO | [ArvynConfig] | ✅ Arvyn Autonomous Core: Persistence logic compiled.
+2025-12-20 22:00:47 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-20 22:00:52 | INFO | [ArvynConfig] | 🗣️ Transcribed: pay my electricity bill
+2025-12-20 22:00:52 | INFO | [ArvynConfig] | 📊 [22:00:52] [INTENT_PARSER] Processing natural language command...
+2025-12-20 22:00:55 | INFO | [ArvynConfig] | 📊 [22:00:55] [INTENT_PARSER] Target Locked: Rio Finance Bank | Action: PAY_BILL
+2025-12-20 22:00:55 | INFO | [ArvynConfig] | 📊 [22:00:55] [DISCOVERY] Verifying endpoint for Rio Finance Bank...
+2025-12-20 22:00:56 | INFO | [ArvynConfig] | [BROWSER] High-Precision Engine active at 1920x1080.
+2025-12-20 22:00:56 | INFO | [ArvynConfig] | 📊 [22:00:56] [DISCOVERY] Connecting to secure portal: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-20 22:00:56 | INFO | [ArvynConfig] | [NETWORK] Connecting to: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-20 22:01:06 | INFO | [ArvynConfig] | 📊 [22:01:06] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 22:01:06 | INFO | [ArvynConfig] | 📊 [22:01:06] [BRAIN] Calculating next step... (Action 1)
+2025-12-20 22:01:09 | INFO | [ArvynConfig] | 📊 [22:01:09] [KINETIC] Interacting with Pay Bills link at pixel (1396, 53)
+2025-12-20 22:01:09 | INFO | [ArvynConfig] | [KINETIC] Triggering Human-Like click at (1396, 53)
+2025-12-20 22:01:13 | INFO | [ArvynConfig] | 📊 [22:01:13] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 22:01:13 | INFO | [ArvynConfig] | 📊 [22:01:13] [BRAIN] Calculating next step... (Action 2)
+2025-12-20 22:01:17 | INFO | [ArvynConfig] | 📊 [22:01:17] [KINETIC] Repeating action: Applying precision offset to bypass overlay.
+2025-12-20 22:01:17 | INFO | [ArvynConfig] | 📊 [22:01:17] [KINETIC] Interacting with Pay Bills link at pixel (1589, 42)
+2025-12-20 22:01:17 | INFO | [ArvynConfig] | [KINETIC] Triggering Human-Like click at (1589, 42)
+2025-12-20 22:01:21 | INFO | [ArvynConfig] | 📊 [22:01:21] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 22:01:22 | INFO | [ArvynConfig] | 📊 [22:01:22] [BRAIN] Calculating next step... (Action 3)
+2025-12-20 22:01:27 | INFO | [ArvynConfig] | 📊 [22:01:27] [KINETIC] Repeating action: Applying precision offset to bypass overlay.
+2025-12-20 22:01:27 | INFO | [ArvynConfig] | 📊 [22:01:27] [KINETIC] Interacting with Pay Bills link at pixel (1589, 48)
+2025-12-20 22:01:27 | INFO | [ArvynConfig] | [KINETIC] Triggering Human-Like click at (1589, 48)
+2025-12-20 22:01:31 | INFO | [ArvynConfig] | 📊 [22:01:31] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 22:01:31 | INFO | [ArvynConfig] | 📊 [22:01:31] [BRAIN] Calculating next step... (Action 4)
+2025-12-20 22:01:36 | INFO | [ArvynConfig] | 📊 [22:01:36] [KINETIC] Repeating action: Applying precision offset to bypass overlay.
+2025-12-20 22:01:36 | INFO | [ArvynConfig] | 📊 [22:01:36] [KINETIC] Interacting with Pay Bills link at pixel (1512, 41)
+2025-12-20 22:01:36 | INFO | [ArvynConfig] | [KINETIC] Triggering Human-Like click at (1512, 41)
+2025-12-20 22:01:40 | INFO | [ArvynConfig] | 📊 [22:01:40] [EXECUTOR] Observing UI state and analyzing components...
+2025-12-20 22:01:40 | INFO | [ArvynConfig] | 📊 [22:01:40] [BRAIN] Calculating next step... (Action 5)
+2025-12-20 22:02:05 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-20 22:02:05 | INFO | [ArvynConfig] | 📊 [22:02:05] [SYSTEM] Deactivating kinetic layer and releasing resources...
+2025-12-20 22:02:05 | INFO | [ArvynConfig] | [BROWSER] Stealth engine deactivated.
+2025-12-20 22:02:05 | INFO | [ArvynConfig] | ✅ AgentWorker: Async loop closed safely.

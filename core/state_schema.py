@@ -69,7 +69,9 @@ class IntentOutput(BaseModel):
     amount: Optional[float] = Field(default=None, description="Monetary value for transactions")
     search_query: Optional[str] = Field(default=None, description="Optimized string for discovery")
     
-    urgency: str = Field(
+    # FIXED: Changed from 'str' to 'Optional[str]' to prevent Pydantic validation crashes 
+    # when the LLM returns a null value for urgency.
+    urgency: Optional[str] = Field(
         default="LOW", 
         description="Priority level for task execution: HIGH | MEDIUM | LOW"
     )
@@ -79,6 +81,7 @@ class VisualGrounding(BaseModel):
     Structured output for VLM (Vision Language Model) coordinate mapping.
     Maps pixel-space elements to normalized coordinates for kinetic execution.
     """
+    # Expanded to ensure the agent always logs its reasoning before performing a click
     thought: str = Field(description="Visual analysis of the current element and its role.")
     
     element_name: str = Field(default="Target UI Element")

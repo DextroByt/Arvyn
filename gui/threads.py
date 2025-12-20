@@ -79,9 +79,9 @@ class VoiceWorker(QThread):
 
 class AgentWorker(QThread):
     """
-    The Global Session Orchestration Worker (Production Grade).
-    Features: Recursive Execution Monitoring, Proper Log piping, 
-    and hardened Async Lifecycle management.
+    Superior Session Orchestration Worker.
+    UPGRADED: Intelligent Task Resumption, Confidentiality-Aware Voice, 
+    and hardened Async State Management.
     """
     log_signal = pyqtSignal(str)
     screenshot_signal = pyqtSignal(str)
@@ -101,8 +101,8 @@ class AgentWorker(QThread):
         self.loop = None
         self._is_running = True
         
-        # Unique session ID for Rio Finance Bank automation
-        self.session_config = {"configurable": {"thread_id": "arvyn_banking_v2_prod"}}
+        # Consistent session ID to maintain history across turns
+        self.session_config = {"configurable": {"thread_id": "arvyn_banking_prod_v3"}}
 
     def submit_command(self, user_command: str):
         """Thread-safe command submission."""
@@ -128,7 +128,7 @@ class AgentWorker(QThread):
                 command = self.command_queue.get()
                 if command is None: break 
                 
-                # Execute the full LangGraph workflow for the command
+                # Execute/Resume the LangGraph workflow
                 self.loop.run_until_complete(self.execute_task(command))
                 self.command_queue.task_done()
         except Exception as e:
@@ -148,48 +148,84 @@ class AgentWorker(QThread):
             logger.error(f"Loop Shutdown Error: {e}")
 
     async def execute_task(self, user_command: str):
-        """Routes a user command through the upgraded Autonomous Orchestrator."""
+        """
+        Intelligent Task Routing.
+        UPGRADED: Fixes 'A new task got created' by resuming the existing session
+        if the agent is currently interrupted/paused for user input.
+        """
         try:
-            self.status_signal.emit("THINKING")
-            
-            # Start the Session Log in the UI
-            self.log_signal.emit(f"--- NEW TASK: {user_command.upper()} ---")
-            
-            initial_input = {"messages": [("user", user_command)]}
-
-            # astream allows real-time UI updates as each node finishes
-            async for event in self.orchestrator.app.astream(initial_input, config=self.session_config):
-                if not self._is_running: return
-                
-                for node_name, output in event.items():
-                    # Synchronize the Orchestrator's internal logs with the GUI
-                    self._sync_orchestrator_logs()
-                    self._handle_node_output(node_name, output)
-
-            # Final state check for HITL (Human-in-the-loop) requirements
+            # Check current state to see if we are in an interrupt
             state_data = self.orchestrator.app.get_state(self.session_config)
-            values = state_data.values or {}
-            
-            if "human_interaction_node" in (state_data.next or []):
-                question = values.get("pending_question")
-                if question:
-                    self.status_signal.emit("AWAITING USER")
-                    self.speak_signal.emit(question)
-                    # Production Feature: Wait for speech to finish before opening mic
-                    self.auto_mic_signal.emit(True) 
-                self.approval_signal.emit(True)
+            next_nodes = state_data.next or []
+
+            if "human_interaction_node" in next_nodes:
+                self.log_signal.emit(f"Continuing current task with: {user_command}")
+                # Update state with the user response and set approval to proceed
+                await self.orchestrator.app.update_state(
+                    self.session_config, 
+                    {"messages": [("user", user_command)], "human_approval": "approved"}
+                )
+                
+                # Resume execution from the current point
+                async for event in self.orchestrator.app.astream(None, config=self.session_config):
+                    if not self._is_running: return
+                    for node_name, output in event.items():
+                        self._sync_orchestrator_logs()
+                        self._handle_node_output(node_name, output)
             else:
-                self.status_signal.emit("READY")
+                # Normal New Task Entry
+                self.status_signal.emit("THINKING")
+                self.log_signal.emit(f"--- NEW TASK: {user_command.upper()} ---")
+                
+                initial_input = {"messages": [("user", user_command)]}
+
+                # Start streaming the graph
+                async for event in self.orchestrator.app.astream(initial_input, config=self.session_config):
+                    if not self._is_running: return
+                    for node_name, output in event.items():
+                        self._sync_orchestrator_logs()
+                        self._handle_node_output(node_name, output)
+
+            # Final check to see if we hit a NEW interaction node
+            self._check_for_interaction()
                 
         except Exception as e:
             logger.error(f"AgentWorker Execution Error: {e}")
             self.log_signal.emit(f"⚠️ SYSTEM ERROR: {str(e)}")
             self.status_signal.emit("ERROR")
 
+    def _check_for_interaction(self):
+        """
+        Hardened Interaction Logic.
+        UPGRADED: Suppresses Mic for confidential data (passwords/PINs) as requested.
+        """
+        state_data = self.orchestrator.app.get_state(self.session_config)
+        values = state_data.values or {}
+        next_nodes = state_data.next or []
+
+        if "human_interaction_node" in next_nodes:
+            question = values.get("pending_question")
+            if question:
+                self.status_signal.emit("AWAITING USER")
+                self.speak_signal.emit(question)
+                
+                # CONFIDENTIALITY PROTECTION: Detect password/PIN prompts
+                sensitive_keys = ["password", "pin", "credential", "otp", "code"]
+                is_confidential = any(k in question.lower() for k in sensitive_keys)
+                
+                if not is_confidential:
+                    # Only auto-trigger mic for non-confidential queries
+                    self.auto_mic_signal.emit(True) 
+                else:
+                    self.log_signal.emit("🔒 CONFIDENTIAL STEP: Mic disabled. Use buttons to Authorize.")
+            
+            self.approval_signal.emit(True)
+        else:
+            self.status_signal.emit("READY")
+
     def _sync_orchestrator_logs(self):
         """Pipes the high-fidelity Orchestrator session logs to the Dashboard."""
         if hasattr(self.orchestrator, 'session_log'):
-            # Fetch any logs not yet emitted to the UI
             while self.orchestrator.session_log:
                 log_entry = self.orchestrator.session_log.pop(0)
                 self.log_signal.emit(log_entry)
@@ -197,32 +233,32 @@ class AgentWorker(QThread):
     def _handle_node_output(self, node_name: str, output: dict):
         """Processes outputs from the graph for real-time visual feedback."""
         if not output: return
-
-        # Update screenshot for the Dashboard Monitor
         if "screenshot" in output and output["screenshot"]:
             self.screenshot_signal.emit(output["screenshot"])
-        
-        # Update the mini-status bar
         if "current_step" in output:
             self.status_signal.emit(output["current_step"].upper())
 
     def resume_with_approval(self, approved: bool):
-        """Resumes a paused banking transaction after user confirmation."""
+        """Manual trigger from the Dashboard buttons."""
         if self.loop and self.loop.is_running():
             asyncio.run_coroutine_threadsafe(self._resume_logic(approved), self.loop)
 
     async def _resume_logic(self, approved: bool):
+        """Logic for manual Authorize/Reject button presses."""
         decision = "approved" if approved else "rejected"
+        
+        # Inject the human decision into the graph state
         await self.orchestrator.app.update_state(self.session_config, {"human_approval": decision})
         
         self.log_signal.emit(f"🛡️ USER DECISION: {decision.upper()}")
         self.approval_signal.emit(False)
         
-        # Continue streaming after the pause
+        # Resume the graph stream from the interruption point
         async for event in self.orchestrator.app.astream(None, config=self.session_config):
             if not self._is_running: return
             for node_name, output in event.items():
                 self._sync_orchestrator_logs()
                 self._handle_node_output(node_name, output)
         
-        self.status_signal.emit("READY")
+        # Re-check for nested or sequential interactions
+        self._check_for_interaction()
