@@ -32,7 +32,8 @@
         "full_name": "Akash Chakresh",
         "email": "akash@gmail.com",
         "phone": "+91-9876543210",
-        "address": "123, Tech Park, Mumbai, Maharashtra"
+        "address": "123, Tech Park, Mumbai, Maharashtra",
+        "upi id": "akash3651@okrio"
     },
     "settings": {
         "auto_navigate_verified": true,
@@ -45,5 +46,27 @@
         "active_goal": null,
         "step_count": 0,
         "status": "IDLE"
+    },
+    "automation_preferences": {
+        "bill_payments": [
+            {
+                "category": "ELECTRICITY",
+                "provider_name": "Tata Power",
+                "consumer_number": "1548203948",
+                "auto_select": true
+            },
+            {
+                "category": "INTERNET",
+                "provider_name": "Jio Fiber / Mobile",
+                "consumer_number": "7982103948",
+                "auto_select": true
+            },
+            {
+                "category": "MOBILE",
+                "provider_name": "BSNL",
+                "mobile_number": "9420193847",
+                "auto_select": true
+            }
+        ]
     }
 }
