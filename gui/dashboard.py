@@ -23,7 +23,10 @@ class ArvynDashboard(QFrame):
     """
     command_submitted = pyqtSignal(str)
     mic_clicked = pyqtSignal(bool)
+    mic2_clicked = pyqtSignal(bool)
+    chat_submitted = pyqtSignal(str)
     approval_given = pyqtSignal(bool)
+    session_info_submitted = pyqtSignal(str, str)
     minimize_requested = pyqtSignal()
     stop_requested = pyqtSignal()
 
@@ -131,6 +134,33 @@ class ArvynDashboard(QFrame):
         self.visual_monitor.setStyleSheet("color: #555; font-size: 10px; font-weight: bold; letter-spacing: 1px;")
         layout.addWidget(self.visual_monitor)
 
+        # --- 2b. Session Panel (compact) ---
+        self.session_panel = QFrame()
+        self.session_panel.setObjectName("SessionPanel")
+        self.session_panel.setFixedSize(310, 110)
+        sp_layout = QVBoxLayout(self.session_panel)
+        sp_layout.setContentsMargins(8, 8, 8, 8)
+        sp_layout.setSpacing(6)
+
+        self.session_title = QLabel("Active Session: None")
+        self.session_title.setStyleSheet("font-weight:700; color: #ffffff; font-size: 11px;")
+        sp_layout.addWidget(self.session_title)
+
+        self.session_info_input = QLineEdit()
+        self.session_info_input.setPlaceholderText("Provide missing info (key:value)...")
+        sp_layout.addWidget(self.session_info_input)
+
+        btn_row = QHBoxLayout()
+        self.btn_session_submit = QPushButton("Provide")
+        self.btn_session_submit.setFixedHeight(32)
+        self.btn_session_submit.clicked.connect(self._submit_session_info)
+        btn_row.addStretch()
+        btn_row.addWidget(self.btn_session_submit)
+        sp_layout.addLayout(btn_row)
+
+        self.session_panel.setStyleSheet("background: rgba(0,0,0,0.25); border-radius: 10px; border: 1px solid rgba(255,255,255,10);")
+        layout.addWidget(self.session_panel)
+
         # --- 3. Interaction Status ---
         self.interaction_stack = QStackedWidget()
         self.interaction_stack.setFixedHeight(55)
@@ -173,6 +203,22 @@ class ArvynDashboard(QFrame):
         self.log_area.setPlaceholderText("Streaming precision autonomous logic...")
         layout.addWidget(self.log_area)
 
+        # --- 4b. Agent Chat Input (real-time chat) ---
+        chat_layout = QHBoxLayout()
+        chat_layout.setSpacing(8)
+        self.chat_input = QLineEdit()
+        self.chat_input.setPlaceholderText("Chat with Arvyn (agent conversation)...")
+        self.chat_input.returnPressed.connect(self._handle_chat_submit)
+
+        self.chat_mic = QPushButton("🗨️")
+        self.chat_mic.setFixedSize(40, 40)
+        self.chat_mic.setStyleSheet("background-color: #6a5acd; border-radius: 20px; border: none; font-size: 16px;")
+        self.chat_mic.clicked.connect(lambda: self.chat_submitted.emit(self.chat_input.text().strip()))
+
+        chat_layout.addWidget(self.chat_input)
+        chat_layout.addWidget(self.chat_mic)
+        layout.addLayout(chat_layout)
+
         # --- 5. Unified Command Input ---
         cmd_layout = QHBoxLayout()
         cmd_layout.setSpacing(10)
@@ -186,7 +232,13 @@ class ArvynDashboard(QFrame):
         self.btn_mic.setStyleSheet("background-color: #ff3b30; border-radius: 21px; border: none; font-size: 20px;")
         self.btn_mic.clicked.connect(self._toggle_mic)
 
+        self.btn_mic2 = QPushButton("🎧")
+        self.btn_mic2.setFixedSize(42, 42)
+        self.btn_mic2.setStyleSheet("background-color: #1e90ff; border-radius: 21px; border: none; font-size: 18px;")
+        self.btn_mic2.clicked.connect(self._toggle_mic2)
+
         cmd_layout.addWidget(self.input_field)
+        cmd_layout.addWidget(self.btn_mic2)
         cmd_layout.addWidget(self.btn_mic)
         layout.addLayout(cmd_layout)
 
@@ -200,6 +252,37 @@ class ArvynDashboard(QFrame):
             self.btn_mic.setStyleSheet("background-color: #ff3b30; border-radius: 21px; border: none; font-size: 20px;")
             self.append_log("[VOICE] ANALYZING SEQUENCE", category="system")
         self.mic_clicked.emit(self.is_listening)
+
+    def _toggle_mic2(self):
+        # Secondary mic — emits separate signal for alternate capture mode
+        if not getattr(self, 'is_listening2', False):
+            self.is_listening2 = True
+            self.btn_mic2.setStyleSheet("background-color: #4cd964; border-radius: 21px; border: none; font-size: 18px;")
+            self.append_log("[VOICE] ALT MIC ACTIVE - LISTENING", category="system")
+        else:
+            self.is_listening2 = False
+            self.btn_mic2.setStyleSheet("background-color: #1e90ff; border-radius: 21px; border: none; font-size: 18px;")
+            self.append_log("[VOICE] ALT MIC STOPPED", category="system")
+        self.mic2_clicked.emit(getattr(self, 'is_listening2', False))
+
+    def _submit_session_info(self):
+        session_name = self.session_title.text().replace('Active Session: ', '')
+        info_text = self.session_info_input.text().strip()
+        if session_name and info_text:
+            self.append_log(f"Session info submitted for {session_name}", category="autonomous")
+            self.session_info_submitted.emit(session_name, info_text)
+            self.session_info_input.clear()
+
+    def set_active_session(self, session_name: str, missing_info: str = ''):
+        self.session_title.setText(f"Active Session: {session_name}")
+        self.session_info_input.setText(missing_info)
+
+    def _handle_chat_submit(self):
+        text = self.chat_input.text().strip()
+        if text:
+            self.chat_submitted.emit(text)
+            self.chat_input.clear()
+            self.append_log(f"CHAT SENT: {text}", category="discovery")
 
     def _handle_submit(self):
         text = self.input_field.text().strip()

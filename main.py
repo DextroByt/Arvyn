@@ -71,6 +71,12 @@ class ArvynApp(ArvynOrb):
         self.clicked.connect(self.initiate_expansion)
         self.dashboard.command_submitted.connect(self.process_command)
         self.dashboard.mic_clicked.connect(self.trigger_voice_input)
+        # Secondary mic (alternate capture mode)
+        self.dashboard.mic2_clicked.connect(self.trigger_voice_input)
+        # Session info submissions from dashboard -> forward to worker
+        self.dashboard.session_info_submitted.connect(self._handle_session_info)
+        # Agent chat input
+        self.dashboard.chat_submitted.connect(self._handle_agent_chat)
         self.dashboard.approval_given.connect(self.handle_hitl_approval)
         self.dashboard.minimize_requested.connect(self.initiate_shrink)
         self.dashboard.stop_requested.connect(self.kill_agent)
@@ -98,6 +104,7 @@ class ArvynApp(ArvynOrb):
         self.worker.approval_signal.connect(self._toggle_approval_ui)
         self.worker.speak_signal.connect(self.voice.speak)
         self.worker.auto_mic_signal.connect(self._handle_auto_mic_logic)
+        self.worker.session_signal.connect(self.dashboard.set_active_session)
 
     def _handle_auto_mic_logic(self, should_start: bool):
         """Triggers the microphone automatically after TTS sequences."""
@@ -222,6 +229,27 @@ class ArvynApp(ArvynOrb):
         """Signals the worker to resume or abort based on user input."""
         if self.worker:
             self.worker.resume_with_approval(approved)
+
+    def _handle_session_info(self, session_name: str, info_text: str):
+        """Forward session-provided missing info to background worker/orchestrator."""
+        if not self.worker:
+            self.dashboard.append_log("No worker available to accept session info.", category="error")
+            return
+        try:
+            self.worker.submit_session_info(session_name, info_text)
+            self.dashboard.append_log(f"Session info forwarded: {session_name}", category="autonomous")
+        except Exception as e:
+            self.dashboard.append_log(f"Failed to forward session info: {e}", category="error")
+
+    def _handle_agent_chat(self, text: str):
+        """Handle agent-chat messages separately from main commands."""
+        t = (text or "").strip()
+        if not t:
+            return
+        # show in dashboard and forward as a normal user command prefixed for chat context
+        self.dashboard.append_log(f"CHAT: {t}", category="discovery")
+        if self.worker:
+            self.worker.submit_command(f"CHAT::{t}")
 
 if __name__ == "__main__":
     os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"

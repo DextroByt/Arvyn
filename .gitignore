@@ -16,8 +16,7 @@ logs/
 
 # Local Data and User Profiles
 # Excludes local user data stored in the data folder
-data/
-*.json
+
 
 # Virtual Environments
 venv/

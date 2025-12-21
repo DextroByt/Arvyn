@@ -84,7 +84,7 @@ class Config:
     ERROR_COLOR = "#ff4b2b"
     SUCCESS_COLOR = "#2ecc71"
     ORB_SIZE = 70 
-    DASHBOARD_SIZE = (350, 620) 
+    DASHBOARD_SIZE = (420, 700) 
     
     @classmethod
     def validate(cls):

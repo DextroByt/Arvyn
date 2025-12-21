@@ -2,6 +2,7 @@ import json
 import logging
 import asyncio
 import time
+import sys
 from typing import Dict, List, Any, Union, Literal, Optional
 from langgraph.graph import StateGraph, END
 
@@ -18,6 +19,7 @@ from core.qwen_logic import QwenBrain
 from tools.browser import ArvynBrowser
 from tools.data_store import ProfileManager
 from tools.voice import ArvynVoice
+from core.session_manager import SessionManager
 
 class ArvynOrchestrator:
     """
@@ -32,6 +34,12 @@ class ArvynOrchestrator:
         self.browser = ArvynBrowser(headless=False)
         self.profile = ProfileManager()
         self.voice = ArvynVoice()
+        self.sessions = SessionManager()
+        # Increase Python recursion limit to avoid langgraph recursion errors
+        try:
+            sys.setrecursionlimit(10000)
+        except Exception:
+            pass
         self.app = None
         self.workflow = self._create_workflow()
         
@@ -46,9 +54,15 @@ class ArvynOrchestrator:
     async def init_app(self, checkpointer):
         """Compiles the LangGraph for Full Autonomy (Zero-Authorization)."""
         if self.app is None:
-            self.app = self.workflow.compile(
-                checkpointer=checkpointer
-            )
+            try:
+                # Increase recursion limit for complex autonomous graphs
+                self.app = self.workflow.compile(
+                    checkpointer=checkpointer,
+                    recursion_limit=200
+                )
+            except TypeError:
+                # Fallback if the compile signature doesn't accept recursion_limit
+                self.app = self.workflow.compile(checkpointer=checkpointer)
             logger.info("✅ Arvyn Autonomous Core: Logic layers compiled for Zero-Auth flow.")
 
     async def cleanup(self):
@@ -104,11 +118,16 @@ class ArvynOrchestrator:
             intent_dict = intent_obj.model_dump()
             provider = intent_dict.get('provider', 'Rio Finance Bank')
             self._add_to_session_log("intent_parser", f"Target Locked: {provider}")
-            
+            # Start a short-lived session for task tracking
+            task_action = intent_dict.get('action', 'QUERY')
+            sess = self.sessions.start_session(task_action, {"provider": provider})
+            self._add_to_session_log('session', f"Session started: {sess.id} for {task_action}")
+
             return {
-                "intent": intent_dict, 
-                "task_history": [], 
-                "current_step": f"Initiating workflow for {provider}..."
+                "intent": intent_dict,
+                "task_history": [],
+                "current_step": f"Initiating workflow for {provider}...",
+                "session_id": sess.id
             }
         except Exception as e:
             logger.error(f"Intent Extraction Failure: {e}")
@@ -169,6 +188,20 @@ class ArvynOrchestrator:
 
         # Enforce section targeting for critical actions (e.g., PAY_BILL)
         target_action = intent.get('action', '').upper() if intent else ''
+        # Heuristic: infer bill_type from the last user message for preference matching
+        bill_type = None
+        try:
+            last_msg_obj = state.get('messages', [])[-1] if state.get('messages') else None
+            last_msg_text = last_msg_obj.content if last_msg_obj and hasattr(last_msg_obj, 'content') else str(last_msg_obj or '')
+            lm = (last_msg_text or '').lower()
+            if 'electric' in lm or 'electricity' in lm:
+                bill_type = 'ELECTRICITY'
+            elif 'mobile' in lm or 'phone' in lm:
+                bill_type = 'MOBILE'
+            elif 'internet' in lm or 'broadband' in lm or 'wifi' in lm:
+                bill_type = 'INTERNET'
+        except Exception:
+            bill_type = None
         async def _ensure_on_bill_page(retries: int = 2) -> bool:
             """Ensure the current page is the billing/payment page; try to find and click relevant links if not."""
             bill_keywords = ['bill', 'pay bill', 'bill payment', 'electricity bill', 'pay my bill']
@@ -249,45 +282,193 @@ class ArvynOrchestrator:
             # 1) Ensure on bill page
             if not await _ensure_on_bill_page_local(retries=2):
                 return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": "I can't reach the bill payment section."}
+            # 2) Determine target bill type from user message
+            # Scan last few messages for context, not just the very last one
+            msgs = state.get('messages', [])
+            bill_type = None
+            
+            # Iterate backwards through last 3 messages to find intent
+            for m in reversed(msgs[-3:]):
+                content = (m.content if hasattr(m, 'content') else str(m)).lower()
+                if 'electric' in content or 'electricity' in content or 'power' in content:
+                    bill_type = 'ELECTRICITY'
+                    break
+                elif 'mobile' in content or 'phone' in content or 'recharge' in content:
+                    bill_type = 'MOBILE'
+                    break
+                elif 'internet' in content or 'broadband' in content or 'wifi' in content or 'fiber' in content:
+                    bill_type = 'INTERNET'
+                    break
 
-            # 2) Try to find the specific electricity bill/provider entry
-            target_names = [provider_name, 'electricity', 'electricity bill', 'pay electricity', 'pay bill']
-            found_entry = False
-            for name in target_names:
-                try:
-                    if await self.browser.find_and_click_text(name):
-                        found_entry = True
-                        await asyncio.sleep(2.0)
+            # fallback to automation preferences ONLY if bill_type is still None
+            # And prevent defaulting to the first one if multiple are set to auto_select—this causes the "Always Electricity" bug.
+            if not bill_type:
+                prefs = self.profile.get_data().get('automation_preferences', {}).get('bill_payments', [])
+                auto_candidates = [p for p in prefs if p.get('auto_select')]
+                
+                if len(auto_candidates) == 1:
+                    # Only one preferred bill type? Safe to auto-select.
+                    bill_type = auto_candidates[0].get('category')
+                elif len(auto_candidates) > 1:
+                    # Ambiguous! Multiple bills marked for auto-pay. Don't guess 'Electricity'.
+                    # We will likely find "Electricity", "Mobile", etc. on screen and click one, or ask user.
+                    pass 
+
+            # 2.1) CLICK CATEGORY (e.g. "Electricity", "Mobile")
+            if bill_type:
+                category_variants = []
+                if bill_type == 'ELECTRICITY':
+                    category_variants = ['Electricity', 'Electricity Bill', 'Power', 'Light Bill']
+                elif bill_type == 'MOBILE':
+                    category_variants = ['Mobile', 'Prepaid', 'Postpaid', 'Recharge', 'Mobile Recharge']
+                elif bill_type == 'INTERNET':
+                    category_variants = ['Broadband', 'Internet', 'Fiber', 'Landline']
+
+                cat_clicked = False
+                for cv in category_variants:
+                    try:
+                        # Use exact match preference to avoid 'Mobile' matching 'Automobile' etc.
+                        if await self.browser.find_and_click_text(cv, exact=True):
+                            self._add_to_session_log('executor', f"Selected Category: {cv}")
+                            cat_clicked = True
+                            await asyncio.sleep(2.0)
+                            break
+                    except Exception:
+                        continue
+                
+                if not cat_clicked:
+                     self._add_to_session_log('executor', f"Could not explicitly click category for {bill_type}, proceeding to provider search...")
+
+            # 2.2) SELECT PROVIDER
+            target_provider_name = provider_name
+            consumer_number = None
+
+            prefs = self.profile.get_data().get('automation_preferences', {}).get('bill_payments', [])
+            matched_pref = None
+            
+            # Logic: Match provider name explicitly OR match by bill_type
+            if prefs:
+                for p in prefs:
+                    pname = p.get('provider_name', '')
+                    # 1. Match by specific provider name if known
+                    if pname and provider_name and pname.lower() in provider_name.lower():
+                        matched_pref = p
                         break
-                except Exception:
-                    continue
+                    # 2. Match by Category (if we have a focused bill_type)
+                    if bill_type and p.get('category') == bill_type and p.get('auto_select'):
+                        matched_pref = p
+                        break # Found the preference for this category
+            
+            if matched_pref:
+                target_provider_name = matched_pref.get('provider_name')
+                consumer_number = matched_pref.get('consumer_number') or matched_pref.get('mobile_number')
+            
+            if target_provider_name and target_provider_name.lower() != 'rio finance bank':
+                 self._add_to_session_log('executor', f"Selecting Provider: {target_provider_name}")
+                 try:
+                     if not await self.browser.find_and_click_text(target_provider_name, exact=True):
+                         pass
+                     await asyncio.sleep(2.0) 
+                 except Exception:
+                     pass
 
-            if not found_entry:
-                # attempt to click a generic 'pay' button
+            # 2.3) FILL CONSUMER NUMBER
+            if consumer_number:
+                self._add_to_session_log('executor', f"Injecting Consumer ID: {consumer_number}")
+                cnum_script = """
+                (val) => {
+                    const inputs = Array.from(document.querySelectorAll('input'));
+                    let best = null;
+                    for(const el of inputs){
+                        const txt = ((el.placeholder||'') + ' ' + (el.name||'') + ' ' + (el.id||'') + ' ' + (el.getAttribute('aria-label')||'')).toLowerCase();
+                        if(txt.includes('consumer') || txt.includes('customer') || txt.includes('number') || txt.includes('mobile') || txt.includes('id')){
+                             if(!txt.includes('email') && !txt.includes('user')){ best = el; break; }
+                        }
+                    }
+                    if(best){ best.focus(); best.value = val; best.dispatchEvent(new Event('input', { bubbles: true })); best.dispatchEvent(new Event('change', { bubbles: true })); return true; }
+                    return false;
+                }
+                """
                 try:
-                    if await self.browser.find_and_click_text('pay'):
-                        found_entry = True
-                        await asyncio.sleep(2.0)
+                    await self.browser.page.evaluate(cnum_script, str(consumer_number))
+                    await self.browser.type_text(str(consumer_number))
+                    await asyncio.sleep(1.0)
                 except Exception:
                     pass
 
-            if not found_entry:
-                return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": "Couldn't locate the bill entry to pay. Shall I try manual steps?"}
-
-            # 3) On the payment page, select a payment method if available
-            payment_methods = ['Net Banking', 'Credit Card', 'Debit Card', 'UPI', 'Wallet']
-            selected_method = None
-            for m in payment_methods:
+            # 2.4) FETCH BILL / PROCEED
+            fetch_labels = ['Fetch Bill', 'Get Bill', 'View Bill', 'Proceed', 'Next', 'Continue']
+            for fl in fetch_labels:
                 try:
-                    if await self.browser.select_option_by_text('', m):
-                        selected_method = m
-                        await asyncio.sleep(1.0)
+                    if await self.browser.find_and_click_text(fl):
+                        await asyncio.sleep(3.0)
                         break
                 except Exception:
                     continue
+            
+            # NOW try to find the "Pay" button
+            pay_entry_labels = ['Pay', 'Pay Now', 'Pay Bill', 'Make Payment']
+            found_entry = False
+            for pl in pay_entry_labels:
+                 try:
+                     if await self.browser.find_and_click_text(pl):
+                         found_entry = True
+                         await asyncio.sleep(2.0)
+                         break
+                 except Exception:
+                     continue
+
+            if not found_entry and not await self.browser.find_text('UPI'):
+                  return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": "I selected the details but couldn't find the 'Pay' button. Shall I try manual steps?"}
+
+            # 3) On the payment page, select a payment method
+            settings = self.profile.get_data().get('settings', {})
+            personal_info = self.profile.get_data().get('personal_info', {})
+            preferred = settings.get('default_payment_method') or 'UPI'
+            selected_method = None
+            
+            self._add_to_session_log('executor', f"Selecting payment method: {preferred}")
+            
+            # Refined keywords to prevent 'Select All' behavior
+            method_keywords = {
+                'UPI': ['UPI', 'Unified Payment Interface', 'VPA', 'GooglePay', 'PhonePe', 'Paytm'],
+                'CREDIT_CARD': ['Credit Card', 'Debit Card'], # Removed generic 'Card' to avoid ambiguity
+                'NET_BANKING': ['Net Banking', 'Internet Banking']
+            }
+            
+            target_keywords = method_keywords.get(preferred, [preferred])
+            if preferred == 'UPI': 
+                 # Prioritize explicit UPI text
+                 if 'UPI' not in target_keywords: target_keywords.insert(0, 'UPI')
+
+            method_clicked = False
+            for kw in target_keywords:
+                try:
+                    # Attempt click. loop breaks immediately on success.
+                    if await self.browser.find_and_click_text(kw, exact=True):
+                        selected_method = preferred
+                        method_clicked = True
+                        await asyncio.sleep(1.5)
+                        break
+                except Exception: continue
+            
+            if not method_clicked:
+                 self._add_to_session_log('executor', f"Could not explicitly select {preferred}, checking if already visible...")
+
+            # If UPI is selected or default, inject details
+            if selected_method == 'UPI' or (not selected_method and preferred == 'UPI'):
+                # Check for UPI fields and inject
+                upi_id = personal_info.get('upi id') or personal_info.get('upi_id')
+                upi_pin = personal_info.get('upi_pin') or personal_info.get('pin')
+                
+                if upi_id:
+                    self._add_to_session_log('kinetic', f"Injecting UPI ID for {upi_id}...")
+                    await self.browser.fill_upi_details(upi_id, upi_pin if upi_pin else "")
+                else:
+                     self._add_to_session_log('kinetic', "No UPI ID found in profile. Skipping injection.")
 
             # 4) Attempt to click confirm/pay buttons
-            confirm_labels = ['confirm', 'pay now', 'pay', 'proceed to pay']
+            confirm_labels = ['Pay Now', 'Pay', 'Proceed to Pay', 'Make Payment', 'Confirm']
             paid = False
             for lab in confirm_labels:
                 try:
@@ -300,9 +481,18 @@ class ArvynOrchestrator:
 
             if not paid:
                 return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": "Reached payment step but couldn't finish payment automatically. Provide payment confirmation?"}
+            # 5) Success: navigate back to dashboard/safe page and clear task
+            try:
+                await self.browser.navigate('about:blank')
+            except Exception:
+                pass
+            try:
+                self.profile.clear_task()
+            except Exception:
+                pass
 
-            # 5) Success
-            return {"browser_context": {"action_type": "FINISHED"}, "current_step": "Payment completed (automated steps)."}
+            self._add_to_session_log('executor', 'Returning to dashboard and stopping current task.')
+            return {"browser_context": {"action_type": "FINISHED"}, "current_step": "Bill Task Completed. Payment processed via UPI."}
 
 
         self._add_to_session_log("brain", f"Qubrid Engine: Analyzing page for {intent.get('action')}...")
@@ -354,6 +544,22 @@ class ArvynOrchestrator:
                 
                 interaction_key = f"{action_type}_{element_name.lower()}"
                 count = self.interaction_attempts.get(interaction_key, 0)
+                MAX_INTERACTION_ATTEMPTS = 6
+                if count >= MAX_INTERACTION_ATTEMPTS:
+                    self._add_to_session_log("safety", f"Max attempts reached for '{element_name}'. Asking user.")
+                    # Mark this interaction as disabled to avoid repeated ASK_USER loops
+                    try:
+                        self.interaction_attempts[interaction_key] = MAX_INTERACTION_ATTEMPTS + 100
+                    except Exception:
+                        pass
+                    # Mark session awaiting user intervention with a cooldown
+                    try:
+                        sess = self.sessions.get_session()
+                        if sess:
+                            self.sessions.update_session(awaiting_user=True, awaiting_user_until=time.time() + 300)
+                    except Exception:
+                        pass
+                    return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": f"I've tried interacting with '{element_name}' several times without effect. Shall I keep trying?"}
                 
                 # Dynamic Drift Correction (Maintained as secondary safety layer)
                 if count > 0:
@@ -361,34 +567,89 @@ class ArvynOrchestrator:
                     offset_y = (count * 20) if count % 3 == 0 else 0 
                     cx += offset_x
                     cy += offset_y
-                    self._add_to_session_log("kinetic", f"Applying drift offset {count} to improve DOM search...")
+                    self._add_to_session_log("kinetic", f"Applying drift offset {count} to improve visual search...")
                 
                 self.interaction_attempts[interaction_key] = count + 1
                 self._add_to_session_log("kinetic", f"Executing Hardened Interaction on '{element_name}'...")
                 
-                # v5.1 HARDENED CALL: Browser now performs direct DOM click if possible
-                # Special-case: if element looks like login/email field, attempt robust autofill first
-                if 'email' in element_name.lower() or 'user' in element_name.lower():
+                # v5.1 HARDENED CALL: Browser performs direct interaction if possible
+                # Special-case: if element looks like login/email/password field, attempt robust autofill first
+                filled = {}
+                # If user asked to PAY_BILL and we have an automation preference, try clicking that provider first
+                tried_pref_click = False
+                if target_action == 'PAY_BILL':
+                    try:
+                        prefs = self.profile.get_data().get('automation_preferences', {}).get('bill_payments', [])
+                        if prefs:
+                            # prefer matching category first
+                            pref_name = None
+                            if bill_type:
+                                for p in prefs:
+                                    if p.get('category') == bill_type and p.get('auto_select'):
+                                        pref_name = p.get('provider_name')
+                                        break
+                            # fallback: if intent provider matches a preference entry, use that
+                            if not pref_name:
+                                for p in prefs:
+                                    pname = p.get('provider_name')
+                                    if pname and provider_name and pname.lower() in provider_name.lower() and p.get('auto_select'):
+                                        pref_name = pname
+                                        break
+
+                            if pref_name:
+                                self._add_to_session_log('kinetic', f"Attempting preferred provider click: {pref_name}")
+                                clicked_pref = await self.browser.find_and_click_text(pref_name)
+                                tried_pref_click = True
+                                if clicked_pref:
+                                    self._add_to_session_log('kinetic', f"Preferred provider '{pref_name}' clicked — bypassing VLM coords.")
+                                    success = True
+                                else:
+                                    # continue to coordinate-based attempt below
+                                    success = False
+                    except Exception:
+                        tried_pref_click = False
+                if any(k in element_name.lower() for k in ['email', 'user', 'password', 'pass']):
                     creds = self.profile.get_provider_credentials(provider_name)
                     if creds:
                         filled = await self.browser.fill_login_fields(creds)
-                        # If autofill succeeded for email and password, mark success and continue
-                        if filled.get('email'):
-                            self._add_to_session_log('kinetic', 'Autofilled login fields from profile.')
+                        # If autofill succeeded for either, mark success
+                        if filled.get('email') or filled.get('password'):
+                            self._add_to_session_log('kinetic', 'Autofilled credentials from profile.')
                             success = True
                         else:
-                            # fallback to clicking at coords
                             success = await self.browser.click_at_coordinates(cx, cy, element_hint=element_name)
                     else:
                         success = await self.browser.click_at_coordinates(cx, cy, element_hint=element_name)
                 else:
                     success = await self.browser.click_at_coordinates(cx, cy, element_hint=element_name)
                 if success:
-                    if action_type == "TYPE":
+                    # If autofill handled the input, skip further typing to prevent duplication/errors
+                    is_autofilled = filled.get('email') or filled.get('password')
+                    
+                    if action_type == "TYPE" and not is_autofilled:
                         self._add_to_session_log("kinetic", "Inputting secured sequence...")
                         # Prefer profile credentials for login-related fields to avoid LLM hallucinated values
                         ename = element_name.lower()
                         creds = self.profile.get_provider_credentials(provider_name)
+                        # consumer number autofill: check automation_preferences for matching provider/category
+                        consumer_number = None
+                        try:
+                            prefs = self.profile.get_data().get('automation_preferences', {}).get('bill_payments', [])
+                            if prefs:
+                                # If provider explicitly listed, prefer that consumer number
+                                for p in prefs:
+                                    pname = p.get('provider_name','').lower() if p.get('provider_name') else ''
+                                    if pname and pname in provider_name.lower():
+                                        consumer_number = p.get('consumer_number') or p.get('mobile_number')
+                                        break
+                                # Otherwise prefer entry by category
+                                if not consumer_number and bill_type:
+                                    for p in prefs:
+                                        if p.get('category') == bill_type:
+                                            consumer_number = p.get('consumer_number') or p.get('mobile_number')
+                                            break
+                        except Exception:
+                            consumer_number = None
                         # sanitize analysis input_text
                         if isinstance(input_text, str) and len(input_text) > 256:
                             input_text = input_text[:256]
@@ -400,9 +661,29 @@ class ArvynOrchestrator:
                             else:
                                 await self.browser.type_text(input_text)
                         elif any(k in ename for k in ("pass", "password", "pwd")):
-                            preferred = creds.get('password')
-                            if preferred:
-                                await self.browser.type_text(preferred)
+                            # specialized check for transaction password
+                            if 'trans' in ename or 'pin' in ename:
+                                sec = self.profile.get_data().get('security_details', {})
+                                t_pass = sec.get('transaction_password') or sec.get('card_pin') or sec.get('upi_pin')
+                                if t_pass:
+                                    await self.browser.type_text(t_pass)
+                                else:
+                                    # Fallback to login password if no specific transaction pin/pass found (though usually risky)
+                                    preferred = creds.get('password')
+                                    if preferred:
+                                        await self.browser.type_text(preferred)
+                                    else:
+                                        await self.browser.type_text(input_text)
+                            else:
+                                preferred = creds.get('password')
+                                if preferred:
+                                    await self.browser.type_text(preferred)
+                                else:
+                                    await self.browser.type_text(input_text)
+                        elif any(k in ename for k in ("consumer", "consumer no", "consumer number", "mobile no", "mobile")):
+                            # Use automation preference consumer_number when available
+                            if consumer_number:
+                                await self.browser.type_text(str(consumer_number))
                             else:
                                 await self.browser.type_text(input_text)
                         else:

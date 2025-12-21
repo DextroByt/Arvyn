@@ -84,6 +84,7 @@ class AgentWorker(QThread):
     speak_signal = pyqtSignal(str)
     auto_mic_signal = pyqtSignal(bool)
     finished_signal = pyqtSignal(dict)
+    session_signal = pyqtSignal(str, str)
 
     _shared_checkpointer = MemorySaver()
 
@@ -118,6 +119,29 @@ class AgentWorker(QThread):
 
     def submit_command(self, user_command: str):
         self.command_queue.put(user_command)
+
+    def submit_session_info(self, session_name: str, info_text: str):
+        """Thread-safe entrypoint: forward session info to the orchestrator's SessionManager."""
+        if not self.loop or not self.orchestrator:
+            # Queue a lightweight command fallback if orchestrator not ready
+            self.submit_command(f"SESSION_INFO::{session_name}::{info_text}")
+            return
+        try:
+            asyncio.run_coroutine_threadsafe(self._submit_session_info_async(session_name, info_text), self.loop)
+        except Exception as e:
+            logger.error(f"Failed to submit session info: {e}")
+
+    async def _submit_session_info_async(self, session_name: str, info_text: str):
+        try:
+            # Update the in-memory session parameters
+            sess = getattr(self.orchestrator, 'sessions', None)
+            if sess:
+                sess.update_session(missing_info=info_text)
+                self.log_signal.emit(f"Session updated: {session_name} -> {info_text}")
+            else:
+                self.log_signal.emit(f"No session manager available to update: {session_name}")
+        except Exception as e:
+            logger.error(f"_submit_session_info_async error: {e}")
 
     def stop_persistent_session(self):
         self._is_running = False
@@ -170,9 +194,15 @@ class AgentWorker(QThread):
                 
                 async for event in self.orchestrator.app.astream(None, config=self.session_config):
                     if not self._is_running: return
-                    for node_name, output in event.items():
-                        self._sync_orchestrator_logs()
-                        self._handle_node_output(node_name, output)
+                    try:
+                        for node_name, output in event.items():
+                            self._sync_orchestrator_logs()
+                            self._handle_node_output(node_name, output)
+                    except RecursionError as re:
+                        logger.error(f"Graph recursion error during astream: {re}")
+                        self.log_signal.emit(f"⚠️ SYSTEM: Graph recursion error — aborting this task.")
+                        self.status_signal.emit("ERROR")
+                        return
             else:
                 self.status_signal.emit("ANALYZING")
                 self.log_signal.emit(f"--- QUBRID-QWEN AUTONOMOUS TASK: {user_command.upper()} ---")
@@ -187,9 +217,15 @@ class AgentWorker(QThread):
 
                 async for event in self.orchestrator.app.astream(initial_input, config=self.session_config):
                     if not self._is_running: return
-                    for node_name, output in event.items():
-                        self._sync_orchestrator_logs()
-                        self._handle_node_output(node_name, output)
+                    try:
+                        for node_name, output in event.items():
+                            self._sync_orchestrator_logs()
+                            self._handle_node_output(node_name, output)
+                    except RecursionError as re:
+                        logger.error(f"Graph recursion error during astream: {re}")
+                        self.log_signal.emit(f"⚠️ SYSTEM: Graph recursion error — aborting this task.")
+                        self.status_signal.emit("ERROR")
+                        return
 
             self._check_for_interaction()
                 
@@ -225,6 +261,16 @@ class AgentWorker(QThread):
             while self.orchestrator.session_log:
                 log_entry = self.orchestrator.session_log.pop(0)
                 self.log_signal.emit(log_entry)
+        # Emit current session info if present
+        try:
+            sess_mgr = getattr(self.orchestrator, 'sessions', None)
+            if sess_mgr:
+                s = sess_mgr.get_session()
+                if s:
+                    missing = s.params.get('missing_info', '') if hasattr(s, 'params') else ''
+                    self.session_signal.emit(s.task_type, missing)
+        except Exception:
+            pass
 
     def _handle_node_output(self, node_name: str, output: dict):
         if not output: return

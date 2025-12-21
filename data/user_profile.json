@@ -10,6 +10,7 @@
             "security_details": {
                 "upi_pin": "875436",
                 "card_pin": "696955",
+                "transaction_password": "947936",
                 "otp_preference": "SMS"
             },
             "account_metadata": {

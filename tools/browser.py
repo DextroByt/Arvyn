@@ -197,7 +197,7 @@ class ArvynBrowser:
         try:
             result = await self.page.evaluate(script, {"hint": hint, "x": x, "y": y, "action": action})
         except Exception as e:
-            logger.error(f"[KINETIC] DOM Sync Script Error (main frame): {e}")
+            logger.error(f"[KINETIC] Visual Sync Script Error (main frame): {e}")
             result = {"x": x, "y": y, "found": False}
 
         # If not found in main frame, attempt to evaluate inside child frames (covers iframes)
@@ -220,9 +220,47 @@ class ArvynBrowser:
         return result
 
     async def click_at_coordinates(self, x: int, y: int, element_hint: str = ""):
-        """v5.1 High-Precision Interaction: VLM Reasoning + DOM Execution."""
+        """v5.2 High-Precision Interaction: Locator Priority + DOM Sync + VLM Fallback."""
         page = await self.ensure_page()
         
+        # 0. Intelligent Locator Attempt (Direct DOM Access)
+        # Prioritize finding the element using Playwright's Engine if a hint depends on text
+        if element_hint and len(element_hint) > 1:
+            try:
+                # Clean hint
+                clean_hint = element_hint.strip()
+                logger.info(f"[KINETIC] Intelligent Interaction: Attempting DOM Locator click for '{clean_hint}'...")
+                
+                # Strategies: Text Exact, Text Partial, Role+Name
+                strategies = [
+                    page.get_by_text(clean_hint, exact=True),
+                    page.get_by_role("button", name=clean_hint),
+                    page.get_by_role("link", name=clean_hint),
+                    page.get_by_placeholder(clean_hint),
+                    page.get_by_label(clean_hint),
+                    # Fallback to loose text match
+                    page.get_by_text(clean_hint, exact=False)
+                ]
+                
+                for loc in strategies:
+                    try:
+                        if await loc.count() > 0:
+                            # Iterate to find the first visible one
+                            count = await loc.count()
+                            for i in range(count):
+                                item = loc.nth(i)
+                                if await item.is_visible():
+                                    await item.scroll_into_view_if_needed()
+                                    # Flash for debugging
+                                    await item.evaluate("el => { el.style.outline = '3px solid #00ff00'; setTimeout(() => el.style.outline = '', 1000); }")
+                                    await item.click(timeout=1500)
+                                    await asyncio.sleep(0.5)
+                                    return True
+                    except Exception:
+                        continue
+            except Exception as e:
+                logger.debug(f"[KINETIC] Locator strategy interrupted: {e}")
+
         # OOB Protection
         if x < 0 or y < 0 or x > self.viewport_width or y > self.viewport_height:
             await self.scroll_to(x, y)
@@ -232,7 +270,7 @@ class ArvynBrowser:
         tx, ty = result['x'], result['y']
 
         if result.get('found'):
-            logger.info(f"[KINETIC] Semantic Anchor: Locked on '{element_hint}' via DOM Sync at ({tx}, {ty})")
+            logger.info(f"[KINETIC] Semantic Anchor: Locked on '{element_hint}' via Visual Sync at ({tx}, {ty})")
         else:
             logger.warning(f"[KINETIC] Anchor Failed: Defaulting to VLM coords ({x}, {y})")
 
@@ -296,19 +334,34 @@ class ArvynBrowser:
         """Return True if `text` appears in page content (case-insensitive)."""
         page = await self.ensure_page()
         try:
-            found = await page.evaluate("(t) => document.body && document.body.innerText.toLowerCase().includes(t)", text.lower())
-            return bool(found)
+            # Check frames too
+            found = False
+            for frame in page.frames:
+                try:
+                    if await frame.evaluate("(t) => document.body && document.body.innerText.toLowerCase().includes(t)", text.lower()):
+                        found = True
+                        break
+                except Exception: continue
+            return found
         except Exception as e:
             logger.debug(f"[KINETIC] find_text error: {e}")
-            try:
-                content = await page.content()
-                return text.lower() in content.lower()
-            except Exception:
-                return False
+            return False
 
-    async def find_and_click_text(self, text: str) -> bool:
+    async def find_and_click_text(self, text: str, exact: bool = False) -> bool:
         """Find element by visible text and click it (searches frames). Returns True on success."""
         page = await self.ensure_page()
+        
+        # 0. Intelligent Locator First
+        try:
+            loc = page.get_by_text(text, exact=exact)
+            if await loc.count() > 0:
+                for i in range(await loc.count()):
+                    if await loc.nth(i).is_visible():
+                        await loc.nth(i).click(timeout=1000)
+                        return True
+        except Exception:
+            pass
+
         # JS with fuzzy (Levenshtein) matcher to tolerate OCR/LLM variations
         script = """
             (t) => {
@@ -485,8 +538,14 @@ class ArvynBrowser:
                         await page.keyboard.type(char, delay=random.randint(30, 90))
                     results['email'] = True
                 else:
-                    # Fallback selectors
-                    selectors = ["input[name*=email]","input[id*=email]","input[placeholder*=email]","input[name*=user]","input[placeholder*=user]"]
+                    # Fallback selectors - exclude password fields to prevent incorrect filling
+                    selectors = [
+                        "input[name*=email]:not([type='password'])",
+                        "input[id*=email]:not([type='password'])",
+                        "input[placeholder*=email]:not([type='password'])",
+                        "input[name*=user]:not([type='password'])",
+                        "input[placeholder*=user]:not([type='password'])"
+                    ]
                     for sel in selectors:
                         try:
                             if await page.is_visible(sel):
@@ -530,3 +589,80 @@ class ArvynBrowser:
                 logger.error(f"[KINETIC] Password fill error: {e}")
 
         return results
+
+    async def fill_upi_details(self, upi_id: str, upi_pin: str) -> bool:
+        """Inject UPI credentials into the payment form using simulated typing."""
+        page = await self.ensure_page()
+        try:
+            # 1. Find and fill UPI ID/VPA field
+            vpa_script = """
+                () => {
+                    const inputs = Array.from(document.querySelectorAll('input'));
+                    let best = null;
+                    for(const el of inputs){
+                        const txt = ((el.placeholder||'') + ' ' + (el.name||'') + ' ' + (el.id||'') + ' ' + (el.getAttribute('aria-label')||'')).toLowerCase();
+                        if(txt.includes('vpa') || txt.includes('upi') || txt.includes('id') && !txt.includes('user') && !txt.includes('email')){ best = el; break; }
+                    }
+                    if(best){ try{ best.scrollIntoView({behavior:'auto',block:'center'}); best.focus(); best.click(); return true; }catch(e){} }
+                    return false;
+                }
+            """
+            found_vpa = await page.evaluate(vpa_script)
+            
+            if not found_vpa:
+                selectors = ["input[placeholder*='UPI']", "input[placeholder*='VPA']", "input[id*='upi']", "input[name*='upi']"]
+                for sel in selectors:
+                    try:
+                        if await page.is_visible(sel):
+                            await page.click(sel)
+                            found_vpa = True
+                            break
+                    except Exception: pass
+            
+            if found_vpa:
+                await page.keyboard.press("Control+A")
+                await page.keyboard.press("Backspace")
+                logger.info(f"[KINETIC] Typing UPI ID...")
+                for char in upi_id:
+                    await page.keyboard.type(char, delay=random.randint(30, 90))
+                await asyncio.sleep(1.0)
+                
+                # Check for Verify button and click if exists
+                await self.find_and_click_text("Verify")
+
+            # 2. Find and fill UPI PIN
+            if upi_pin:
+                await asyncio.sleep(0.5)
+                pin_script = """
+                    () => {
+                        const inputs = Array.from(document.querySelectorAll('input'));
+                        let best = null;
+                        for(const el of inputs){
+                            const txt = ((el.placeholder||'') + ' ' + (el.name||'') + ' ' + (el.id||'') + ' ' + (el.getAttribute('aria-label')||'')).toLowerCase();
+                            if ((txt.includes('pin') || txt.includes('pass') || el.type === 'password') && !txt.includes('upi')) { best = el; break; }
+                        }
+                        if(best){ try{ best.scrollIntoView({behavior:'auto',block:'center'}); best.focus(); best.click(); return true; }catch(e){} }
+                        return false;
+                    }
+                """
+                found_pin = await page.evaluate(pin_script)
+                
+                if not found_pin:
+                    selectors = ["input[type='password']", "input[name*='pin']", "input[placeholder*='pin']"]
+                    for sel in selectors:
+                        try:
+                            if await page.is_visible(sel):
+                                await page.click(sel)
+                                found_pin = True
+                                break
+                        except Exception: pass
+                            
+                if found_pin:
+                     logger.info(f"[KINETIC] Typing UPI PIN...")
+                     for char in upi_pin:
+                        await page.keyboard.type(char, delay=random.randint(30, 90))
+        
+            return True
+        except Exception as e:
+            logger.error(f"[KINETIC] UPI fill error: {e}")
+            return False
