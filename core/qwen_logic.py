@@ -3,28 +3,30 @@ import json
 import logging
 import asyncio
 import re
-from openai import AsyncOpenAI
+import httpx
 from typing import Optional, Dict, Any, List, Union
 
-from config import QWEN_API_KEY, QWEN_MODEL_NAME, QWEN_BASE_URL, logger
+from config import QUBRID_API_KEY, QUBRID_MODEL_NAME, QUBRID_BASE_URL, logger
 from core.state_schema import IntentOutput, VisualGrounding
 
 class QwenBrain:
     """
-    Superior Visual-Reasoning Engine for Agent Arvyn (Qwen-VL Edition).
-    UPGRADED: Migrated from Gemini to Qwen-VL with native AsyncOpenAI support.
+    Superior Visual-Reasoning Engine for Agent Arvyn (Qwen3-VL Qubrid Edition).
+    UPGRADED: Migrated to Qubrid Multimodal Endpoint with Qwen3-VL-8B-Instruct support.
     FEATURES: Full-Autonomy Logic (Zero-Authorization) and Precision Grounding preserved.
-    FIXED: Resolves redirect bias; supports universal site navigation (Flipkart/Amazon).
+    FIXED: Resolves 500 errors by aligning with the multimodal chat payload format.
     IMPROVED: High-Precision Snap-to-Center logic for 100% Scaling accuracy.
     """
     
-    def __init__(self, model_name: str = QWEN_MODEL_NAME):
+    def __init__(self, model_name: str = QUBRID_MODEL_NAME):
         self.model_name = model_name
-        self.client = AsyncOpenAI(
-            api_key=QWEN_API_KEY,
-            base_url=QWEN_BASE_URL
-        )
-        logger.info(f"[BRAIN] Qwen Intelligence Engine active: {self.model_name}")
+        self.api_key = QUBRID_API_KEY
+        self.base_url = QUBRID_BASE_URL
+        self.headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        logger.info(f"[BRAIN] Qubrid Multimodal Engine active: {self.model_name}")
 
     def _clean_json_response(self, raw_text: Any) -> str:
         """Robust JSON extraction with type-safety for Qwen output."""
@@ -47,53 +49,76 @@ class QwenBrain:
             return "{}"
 
     async def _call_with_retry(self, prompt: str, image_data: Optional[str] = None, retries: int = 4):
-        """Advanced API caller with Dynamic Backoff for Qwen Endpoint."""
-        for attempt in range(retries):
-            try:
-                messages = []
-                content = [{"type": "text", "text": prompt}]
-                
-                if image_data:
-                    # Qwen-VL expects base64 in the standard data URI format
-                    content.append({
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/png;base64,{image_data}"}
-                    })
-                
-                messages.append({"role": "user", "content": content})
-                
-                response = await self.client.chat.completions.create(
-                    model=self.model_name,
-                    messages=messages,
-                    temperature=0.0,
-                    top_p=0.95,
-                    max_tokens=4096,
-                    response_format={"type": "json_object"} if not image_data else None # Vision often prefers raw text for CoT
-                )
-                
-                result = response.choices[0].message.content
-                if not result:
-                    raise ValueError("Incomplete response from Qwen API.")
-                return result
-                
-            except Exception as e:
-                error_str = str(e).lower()
-                if "429" in error_str or "rate limit" in error_str:
-                    wait_time = (2 ** attempt) * 12 
-                    logger.warning(f"[QUOTA] Qwen Rate limit hit. Cooling down for {wait_time}s...")
-                    await asyncio.sleep(wait_time)
-                elif "404" in error_str:
-                    logger.critical(f"[FATAL] Model {self.model_name} not found on endpoint.")
-                    raise e
-                elif attempt == retries - 1:
-                    logger.error(f"[ERROR] Qwen API failed after {retries} attempts: {e}")
-                    raise e
-                else:
-                    await asyncio.sleep(2)
+        """Advanced API caller with Dynamic Backoff for Qubrid Multimodal Endpoint."""
+        async with httpx.AsyncClient(timeout=150.0) as client:
+            for attempt in range(retries):
+                try:
+                    # Construct the multimodal message structure
+                    content = [{"type": "text", "text": prompt}]
+                    
+                    if image_data:
+                        # Qwen3-VL expects base64 or URL in the multimodal content block
+                        content.append({
+                            "type": "image_url",
+                            "image_url": {"url": f"data:image/png;base64,{image_data}"}
+                        })
+                    
+                    messages = [{"role": "user", "content": content}]
+                    
+                    # Aligned with Qubrid Multimodal Payload
+                    payload = {
+                        "model": self.model_name,
+                        "messages": messages,
+                        "temperature": 0.2 if image_data else 0.7,
+                        "max_tokens": 4096 if image_data else 1024,
+                        "stream": False
+                    }
+                    
+                    response = await client.post(
+                        self.base_url, 
+                        headers=self.headers, 
+                        json=payload
+                    )
+                    
+                    # Handle Rate Limiting
+                    if response.status_code == 429:
+                        wait_time = (2 ** attempt) * 12 
+                        logger.warning(f"[QUOTA] Qubrid Rate limit hit. Cooling down for {wait_time}s...")
+                        await asyncio.sleep(wait_time)
+                        continue
+                        
+                    response.raise_for_status()
+                    data = response.json()
+                    
+                    # Extraction from multimodal response structure
+                    if 'choices' in data and len(data['choices']) > 0:
+                        result = data['choices'][0]['message']['content']
+                        if not result:
+                            raise ValueError("Incomplete content in Qubrid response.")
+                        return result
+                    else:
+                        raise ValueError(f"Unexpected Qubrid response format: {data}")
+                    
+                except Exception as e:
+                    error_str = str(e).lower()
+                    if "404" in error_str:
+                        logger.critical(f"[FATAL] Model {self.model_name} or endpoint not found.")
+                        raise e
+                    elif "500" in error_str:
+                        logger.error(f"[SERVER ERROR] Qubrid 500: {e.response.text if hasattr(e, 'response') else str(e)}")
+                        # Back off on server errors
+                        await asyncio.sleep(5)
+                    
+                    if attempt == retries - 1:
+                        logger.error(f"[ERROR] Qubrid Multimodal API failed after {retries} attempts: {e}")
+                        raise e
+                    else:
+                        logger.warning(f"[RETRY] Attempt {attempt+1} failed: {e}. Retrying...")
+                        await asyncio.sleep(3)
 
     async def parse_intent(self, user_input: str) -> IntentOutput:
         """
-        Improved Intent Extraction (Qwen Optimized).
+        Improved Intent Extraction (Qwen3 Optimized).
         FIXED: No longer biases every command toward Rio Finance Bank.
         """
         prompt = f"""
@@ -132,7 +157,7 @@ class QwenBrain:
         user_context: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
-        Advanced Qwen-VL Visual Execution Planner for Full Autonomy.
+        Advanced Qwen3-VL Visual Execution Planner for Full Autonomy.
         IMPROVED: No-permission-needed logic for credentials and PINs.
         FIXED: Snap-to-Center logic for 100% DPI Scaling accuracy.
         """

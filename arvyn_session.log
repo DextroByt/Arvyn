@@ -5402,3 +5402,359 @@ KeyboardInterrupt
 2025-12-21 13:33:33 | INFO | [ArvynConfig] | 📊 [13:33:33] [BRAIN] Qwen Engine: Analyzing page for QUERY...
 2025-12-21 13:33:33 | WARNING | [ArvynConfig] | [SYSTEM] AI analysis returned non-dict format. Attempting recovery.
 2025-12-21 13:33:33 | INFO | [ArvynConfig] | 📊 [13:33:33] [SAFETY] Stuck detected. Ending session to prevent infinite loop.
+2025-12-21 13:50:10 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-21 13:50:10 | CRITICAL | [ArvynConfig] | [CRITICAL] QWEN_API_KEY is missing. Check your .env file.
+2025-12-21 13:50:11 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-21 13:50:11 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-21 13:50:11 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 13:50:11 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 13:50:11 | INFO | [ArvynConfig] | 🛡️ Arvyn App v4.5: AUTONOMOUS Controller (qwen-vl-max-latest) active.
+2025-12-21 13:50:12 | CRITICAL | [ArvynConfig] | FATAL UI EXCEPTION:
+Traceback (most recent call last):
+  File "C:\Users\AKASH\Desktop\FinAgent IITB\Arvyn\gui\threads.py", line 128, in run
+    self.orchestrator = ArvynOrchestrator()
+  File "C:\Users\AKASH\Desktop\FinAgent IITB\Arvyn\core\agent_orchestrator.py", line 32, in __init__
+    self.brain = QwenBrain(model_name=model_name)
+  File "C:\Users\AKASH\Desktop\FinAgent IITB\Arvyn\core\qwen_logic.py", line 23, in __init__
+    self.client = AsyncOpenAI(
+  File "C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\openai\_client.py", line 488, in __init__
+    raise OpenAIError(
+openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+
+2025-12-21 13:52:03 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-21 13:52:03 | CRITICAL | [ArvynConfig] | [CRITICAL] QWEN_API_KEY is missing. Check your .env file.
+2025-12-21 13:52:04 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-21 13:52:04 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-21 13:52:04 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 13:52:04 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 13:52:04 | INFO | [ArvynConfig] | 🛡️ Arvyn App v4.5: AUTONOMOUS Controller (qwen-vl-max-latest) active.
+2025-12-21 13:52:05 | INFO | [ArvynConfig] | [BRAIN] Qwen Intelligence Engine active: qwen-vl-max-latest
+2025-12-21 13:52:05 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 13:52:05 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 13:52:05 | INFO | [ArvynConfig] | 🚀 Arvyn Core v4.5: Autonomous Orchestrator (Qwen-Engine) active.
+2025-12-21 13:52:05 | INFO | [ArvynConfig] | ✅ Arvyn Autonomous Core: Logic layers compiled for Zero-Authorization flow.
+2025-12-21 13:52:22 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-21 13:52:29 | INFO | [ArvynConfig] | 🗣️ Transcribed: pay my electricity bill
+2025-12-21 13:52:29 | INFO | [ArvynConfig] | 📊 [13:52:29] [INTENT_PARSER] Processing natural language command...
+2025-12-21 13:52:30 | INFO | [httpx] | HTTP Request: POST https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+2025-12-21 13:52:33 | INFO | [httpx] | HTTP Request: POST https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+2025-12-21 13:52:35 | INFO | [httpx] | HTTP Request: POST https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+2025-12-21 13:52:37 | INFO | [httpx] | HTTP Request: POST https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+2025-12-21 13:52:37 | ERROR | [ArvynConfig] | [ERROR] Qwen API failed after 4 attempts: Error code: 401 - {'error': {'message': 'Incorrect API key provided. For details, see: https://help.aliyun.com/zh/model-studio/error-code#apikey-error', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}, 'request_id': '62ef0991-8aff-4763-8b47-2f0f57edf08a'}
+2025-12-21 13:52:37 | ERROR | [ArvynConfig] | [ERROR] Intent Parser Fault: Error code: 401 - {'error': {'message': 'Incorrect API key provided. For details, see: https://help.aliyun.com/zh/model-studio/error-code#apikey-error', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}, 'request_id': '62ef0991-8aff-4763-8b47-2f0f57edf08a'}
+2025-12-21 13:52:37 | INFO | [ArvynConfig] | 📊 [13:52:37] [INTENT_PARSER] Target Locked: Search
+2025-12-21 13:52:38 | INFO | [ArvynConfig] | [BROWSER] Scale-Invariant Engine active at 1920x1080.
+2025-12-21 13:52:38 | INFO | [ArvynConfig] | 📊 [13:52:38] [DISCOVERY] Connecting to secure portal: https://www.google.com/search?q=Search+official+site
+2025-12-21 13:52:38 | INFO | [ArvynConfig] | [NETWORK] Connecting to: https://www.google.com/search?q=Search+official+site
+2025-12-21 13:52:43 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-21 13:52:43 | INFO | [ArvynConfig] | 📊 [13:52:43] [SYSTEM] Deactivating kinetic layer...
+2025-12-21 13:52:43 | INFO | [ArvynConfig] | [BROWSER] Stealth engine deactivated.
+2025-12-21 14:05:03 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-21 14:05:03 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Engine: Qwen/Qwen3-Coder-30B-A3B-Instruct
+2025-12-21 14:05:03 | INFO | [ArvynConfig] | [SUCCESS] Autonomous Mode: ENABLED (Zero-Auth active).
+2025-12-21 14:05:04 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-21 14:05:04 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-21 14:05:04 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 14:05:04 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 14:05:04 | INFO | [ArvynConfig] | 🛡️ Arvyn App v4.5: AUTONOMOUS Controller (Qwen/Qwen3-Coder-30B-A3B-Instruct) active.
+2025-12-21 14:05:04 | INFO | [ArvynConfig] | [BRAIN] Qubrid Intelligence Engine active: Qwen/Qwen3-Coder-30B-A3B-Instruct
+2025-12-21 14:05:04 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 14:05:04 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 14:05:04 | INFO | [ArvynConfig] | 🚀 Arvyn Core v4.5: Autonomous Orchestrator (Qubrid Engine) active.
+2025-12-21 14:05:04 | INFO | [ArvynConfig] | ✅ Arvyn Autonomous Core: Logic layers compiled for Zero-Authorization flow.
+2025-12-21 14:05:07 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-21 14:05:11 | INFO | [ArvynConfig] | 🗣️ Transcribed: pay my electricity bill
+2025-12-21 14:05:11 | INFO | [ArvynConfig] | 📊 [14:05:11] [INTENT_PARSER] Processing natural language command...
+2025-12-21 14:05:14 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 200 OK"
+2025-12-21 14:05:14 | INFO | [ArvynConfig] | 📊 [14:05:14] [INTENT_PARSER] Target Locked: Rio Finance Bank
+2025-12-21 14:05:15 | INFO | [ArvynConfig] | [BROWSER] Scale-Invariant Engine active at 1920x1080.
+2025-12-21 14:05:15 | INFO | [ArvynConfig] | 📊 [14:05:15] [DISCOVERY] Connecting to secure portal: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-21 14:05:15 | INFO | [ArvynConfig] | [NETWORK] Connecting to: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-21 14:05:23 | INFO | [ArvynConfig] | 📊 [14:05:23] [SECURITY] STATUS: Verifying Login/Session state...
+2025-12-21 14:05:23 | INFO | [ArvynConfig] | 📊 [14:05:23] [EXECUTOR] Observing UI state...
+2025-12-21 14:05:25 | INFO | [ArvynConfig] | 📊 [14:05:25] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:05:26 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:05:26 | WARNING | [ArvynConfig] | [RETRY] Attempt 1 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:05:29 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:05:29 | WARNING | [ArvynConfig] | [RETRY] Attempt 2 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:05:31 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:05:31 | WARNING | [ArvynConfig] | [RETRY] Attempt 3 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:05:34 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:05:34 | ERROR | [ArvynConfig] | [ERROR] Qubrid API failed after 4 attempts: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+2025-12-21 14:05:34 | ERROR | [ArvynConfig] | Response Body: {
+  "error": "unsupported operand type(s) for +: 'NoneType' and 'int'"
+}
+
+2025-12-21 14:05:34 | ERROR | [ArvynConfig] | [ERROR] Visual Logic Fault: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+2025-12-21 14:05:36 | INFO | [ArvynConfig] | 📊 [14:05:36] [EXECUTOR] Observing UI state...
+2025-12-21 14:05:37 | INFO | [ArvynConfig] | 📊 [14:05:37] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:05:39 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:05:39 | WARNING | [ArvynConfig] | [RETRY] Attempt 1 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:05:42 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:05:42 | WARNING | [ArvynConfig] | [RETRY] Attempt 2 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:05:45 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:05:45 | WARNING | [ArvynConfig] | [RETRY] Attempt 3 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:05:48 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:05:48 | ERROR | [ArvynConfig] | [ERROR] Qubrid API failed after 4 attempts: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+2025-12-21 14:05:48 | ERROR | [ArvynConfig] | Response Body: {
+  "error": "unsupported operand type(s) for +: 'NoneType' and 'int'"
+}
+
+2025-12-21 14:05:48 | ERROR | [ArvynConfig] | [ERROR] Visual Logic Fault: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+2025-12-21 14:05:50 | INFO | [ArvynConfig] | 📊 [14:05:50] [EXECUTOR] Observing UI state...
+2025-12-21 14:05:52 | INFO | [ArvynConfig] | 📊 [14:05:52] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:05:53 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:05:53 | WARNING | [ArvynConfig] | [RETRY] Attempt 1 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:05:56 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:05:56 | WARNING | [ArvynConfig] | [RETRY] Attempt 2 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:05:59 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:05:59 | WARNING | [ArvynConfig] | [RETRY] Attempt 3 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:06:02 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:06:02 | ERROR | [ArvynConfig] | [ERROR] Qubrid API failed after 4 attempts: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+2025-12-21 14:06:02 | ERROR | [ArvynConfig] | Response Body: {
+  "error": "unsupported operand type(s) for +: 'NoneType' and 'int'"
+}
+
+2025-12-21 14:06:02 | ERROR | [ArvynConfig] | [ERROR] Visual Logic Fault: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+2025-12-21 14:06:03 | INFO | [ArvynConfig] | 📊 [14:06:03] [EXECUTOR] Observing UI state...
+2025-12-21 14:06:05 | INFO | [ArvynConfig] | 📊 [14:06:05] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:06:07 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:06:07 | WARNING | [ArvynConfig] | [RETRY] Attempt 1 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:06:10 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:06:10 | WARNING | [ArvynConfig] | [RETRY] Attempt 2 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:06:13 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:06:13 | WARNING | [ArvynConfig] | [RETRY] Attempt 3 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:06:17 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:06:17 | ERROR | [ArvynConfig] | [ERROR] Qubrid API failed after 4 attempts: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+2025-12-21 14:06:17 | ERROR | [ArvynConfig] | Response Body: {
+  "error": "unsupported operand type(s) for +: 'NoneType' and 'int'"
+}
+
+2025-12-21 14:06:17 | ERROR | [ArvynConfig] | [ERROR] Visual Logic Fault: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+2025-12-21 14:06:18 | INFO | [ArvynConfig] | 📊 [14:06:18] [EXECUTOR] Observing UI state...
+2025-12-21 14:06:20 | INFO | [ArvynConfig] | 📊 [14:06:20] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:06:23 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:06:23 | WARNING | [ArvynConfig] | [RETRY] Attempt 1 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:06:26 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:06:26 | WARNING | [ArvynConfig] | [RETRY] Attempt 2 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:06:28 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:06:28 | WARNING | [ArvynConfig] | [RETRY] Attempt 3 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:06:32 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:06:32 | ERROR | [ArvynConfig] | [ERROR] Qubrid API failed after 4 attempts: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+2025-12-21 14:06:32 | ERROR | [ArvynConfig] | Response Body: {
+  "error": "unsupported operand type(s) for +: 'NoneType' and 'int'"
+}
+
+2025-12-21 14:06:32 | ERROR | [ArvynConfig] | [ERROR] Visual Logic Fault: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+2025-12-21 14:06:34 | INFO | [ArvynConfig] | 📊 [14:06:34] [EXECUTOR] Observing UI state...
+2025-12-21 14:06:35 | INFO | [ArvynConfig] | 📊 [14:06:35] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:06:37 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:06:37 | WARNING | [ArvynConfig] | [RETRY] Attempt 1 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:06:41 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:06:41 | WARNING | [ArvynConfig] | [RETRY] Attempt 2 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:06:46 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:06:46 | WARNING | [ArvynConfig] | [RETRY] Attempt 3 failed: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500. Retrying in 2s...
+2025-12-21 14:06:49 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/chat/completions "HTTP/1.1 500 INTERNAL SERVER ERROR"
+2025-12-21 14:06:49 | ERROR | [ArvynConfig] | [ERROR] Qubrid API failed after 4 attempts: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+2025-12-21 14:06:49 | ERROR | [ArvynConfig] | Response Body: {
+  "error": "unsupported operand type(s) for +: 'NoneType' and 'int'"
+}
+
+2025-12-21 14:06:49 | ERROR | [ArvynConfig] | [ERROR] Visual Logic Fault: Server error '500 INTERNAL SERVER ERROR' for url 'https://platform.qubrid.com/api/v1/qubridai/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+2025-12-21 14:06:51 | INFO | [ArvynConfig] | 📊 [14:06:51] [SAFETY] Stuck detected. Ending session to prevent infinite loop.
+2025-12-21 14:06:51 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-21 14:06:53 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-21 14:06:53 | INFO | [ArvynConfig] | 📊 [14:06:53] [SYSTEM] Deactivating kinetic layer...
+2025-12-21 14:06:53 | INFO | [ArvynConfig] | [BROWSER] Stealth engine deactivated.
+2025-12-21 14:06:53 | INFO | [ArvynConfig] | ✅ AgentWorker: Qubrid Engine session closed safely.
+2025-12-21 14:14:52 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-21 14:14:52 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Engine: Qwen/Qwen3-VL-8B-Instruct
+2025-12-21 14:14:52 | INFO | [ArvynConfig] | [SUCCESS] Autonomous Mode: ENABLED (Zero-Auth active).
+2025-12-21 14:14:53 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-21 14:14:53 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-21 14:14:53 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 14:14:53 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 14:14:53 | INFO | [ArvynConfig] | 🛡️ Arvyn App v4.5: AUTONOMOUS Controller (Qwen/Qwen3-VL-8B-Instruct) active.
+2025-12-21 14:14:54 | INFO | [ArvynConfig] | [BRAIN] Qubrid Multimodal Engine active: Qwen/Qwen3-VL-8B-Instruct
+2025-12-21 14:14:54 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 14:14:54 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 14:14:54 | INFO | [ArvynConfig] | 🚀 Arvyn Core v4.5: Autonomous Orchestrator (Qubrid Engine) active.
+2025-12-21 14:14:54 | INFO | [ArvynConfig] | ✅ Arvyn Autonomous Core: Logic layers compiled for Zero-Authorization flow.
+2025-12-21 14:14:57 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-21 14:15:01 | INFO | [ArvynConfig] | 🗣️ Transcribed: my electricity bill
+2025-12-21 14:15:01 | INFO | [ArvynConfig] | 📊 [14:15:01] [INTENT_PARSER] Processing natural language command...
+2025-12-21 14:15:04 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/multimodal/chat "HTTP/1.1 200 OK"
+2025-12-21 14:15:04 | INFO | [ArvynConfig] | 📊 [14:15:04] [INTENT_PARSER] Target Locked: Rio Finance Bank
+2025-12-21 14:15:05 | INFO | [ArvynConfig] | [BROWSER] Scale-Invariant Engine active at 1920x1080.
+2025-12-21 14:15:05 | INFO | [ArvynConfig] | 📊 [14:15:05] [DISCOVERY] Connecting to secure portal: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-21 14:15:05 | INFO | [ArvynConfig] | [NETWORK] Connecting to: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-21 14:15:10 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-21 14:15:10 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-21 14:15:10 | INFO | [ArvynConfig] | 📊 [14:15:10] [SYSTEM] Deactivating kinetic layer...
+2025-12-21 14:15:10 | INFO | [ArvynConfig] | [BROWSER] Stealth engine deactivated.
+2025-12-21 14:15:11 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-21 14:15:11 | INFO | [ArvynConfig] | 📊 [14:15:11] [SYSTEM] Deactivating kinetic layer...
+2025-12-21 14:15:11 | INFO | [ArvynConfig] | [BROWSER] Stealth engine deactivated.
+2025-12-21 14:15:11 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-21 14:15:11 | INFO | [ArvynConfig] | 📊 [14:15:11] [SYSTEM] Deactivating kinetic layer...
+2025-12-21 14:15:11 | INFO | [ArvynConfig] | [BROWSER] Stealth engine deactivated.
+2025-12-21 14:15:11 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-21 14:15:11 | INFO | [ArvynConfig] | 📊 [14:15:11] [SYSTEM] Deactivating kinetic layer...
+2025-12-21 14:15:11 | INFO | [ArvynConfig] | [BROWSER] Stealth engine deactivated.
+2025-12-21 14:15:11 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-21 14:15:11 | INFO | [ArvynConfig] | 📊 [14:15:11] [SYSTEM] Deactivating kinetic layer...
+2025-12-21 14:15:11 | INFO | [ArvynConfig] | [BROWSER] Stealth engine deactivated.
+2025-12-21 14:15:14 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-21 14:15:14 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Engine: Qwen/Qwen3-VL-8B-Instruct
+2025-12-21 14:15:14 | INFO | [ArvynConfig] | [SUCCESS] Autonomous Mode: ENABLED (Zero-Auth active).
+2025-12-21 14:15:15 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\AKASH\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-21 14:15:15 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\AKASH\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-21 14:15:15 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 14:15:15 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 14:15:15 | INFO | [ArvynConfig] | 🛡️ Arvyn App v4.5: AUTONOMOUS Controller (Qwen/Qwen3-VL-8B-Instruct) active.
+2025-12-21 14:15:15 | INFO | [ArvynConfig] | [BRAIN] Qubrid Multimodal Engine active: Qwen/Qwen3-VL-8B-Instruct
+2025-12-21 14:15:15 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 14:15:15 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 14:15:15 | INFO | [ArvynConfig] | 🚀 Arvyn Core v4.5: Autonomous Orchestrator (Qubrid Engine) active.
+2025-12-21 14:15:15 | INFO | [ArvynConfig] | ✅ Arvyn Autonomous Core: Logic layers compiled for Zero-Authorization flow.
+2025-12-21 14:15:18 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-21 14:15:22 | INFO | [ArvynConfig] | 🗣️ Transcribed: pay my electricity bill
+2025-12-21 14:15:22 | INFO | [ArvynConfig] | 📊 [14:15:22] [INTENT_PARSER] Processing natural language command...
+2025-12-21 14:15:25 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/multimodal/chat "HTTP/1.1 200 OK"
+2025-12-21 14:15:25 | INFO | [ArvynConfig] | 📊 [14:15:25] [INTENT_PARSER] Target Locked: Rio Finance Bank
+2025-12-21 14:15:26 | INFO | [ArvynConfig] | [BROWSER] Scale-Invariant Engine active at 1920x1080.
+2025-12-21 14:15:26 | INFO | [ArvynConfig] | 📊 [14:15:26] [DISCOVERY] Connecting to secure portal: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-21 14:15:26 | INFO | [ArvynConfig] | [NETWORK] Connecting to: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-21 14:15:34 | INFO | [ArvynConfig] | 📊 [14:15:34] [SECURITY] STATUS: Verifying Login/Session state...
+2025-12-21 14:15:34 | INFO | [ArvynConfig] | 📊 [14:15:34] [EXECUTOR] Observing UI state...
+2025-12-21 14:15:36 | INFO | [ArvynConfig] | 📊 [14:15:36] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:15:39 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/multimodal/chat "HTTP/1.1 200 OK"
+2025-12-21 14:15:39 | INFO | [ArvynConfig] | 📊 [14:15:39] [KINETIC] Executing interaction on Login Button...
+2025-12-21 14:15:39 | ERROR | [ArvynConfig] | [KINETIC] Click failure at (71, 858): Page.evaluate() takes from 2 to 3 positional arguments but 4 were given
+2025-12-21 14:15:44 | INFO | [ArvynConfig] | 📊 [14:15:44] [EXECUTOR] Observing UI state...
+2025-12-21 14:15:46 | INFO | [ArvynConfig] | 📊 [14:15:46] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:15:49 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/multimodal/chat "HTTP/1.1 200 OK"
+2025-12-21 14:15:49 | INFO | [ArvynConfig] | 📊 [14:15:49] [KINETIC] RETRY: Applying precision offset of -6px.
+2025-12-21 14:15:49 | INFO | [ArvynConfig] | 📊 [14:15:49] [KINETIC] Executing interaction on Login Button...
+2025-12-21 14:15:49 | ERROR | [ArvynConfig] | [KINETIC] Click failure at (63, 849): Page.evaluate() takes from 2 to 3 positional arguments but 4 were given
+2025-12-21 14:15:54 | INFO | [ArvynConfig] | 📊 [14:15:54] [EXECUTOR] Observing UI state...
+2025-12-21 14:15:55 | INFO | [ArvynConfig] | 📊 [14:15:55] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:16:00 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/multimodal/chat "HTTP/1.1 200 OK"
+2025-12-21 14:16:00 | INFO | [ArvynConfig] | 📊 [14:16:00] [KINETIC] RETRY: Applying precision offset of 12px.
+2025-12-21 14:16:00 | INFO | [ArvynConfig] | 📊 [14:16:00] [KINETIC] Executing interaction on Login Button...
+2025-12-21 14:16:00 | ERROR | [ArvynConfig] | [KINETIC] Click failure at (85, 865): Page.evaluate() takes from 2 to 3 positional arguments but 4 were given
+2025-12-21 14:16:04 | INFO | [ArvynConfig] | 📊 [14:16:04] [EXECUTOR] Observing UI state...
+2025-12-21 14:16:06 | INFO | [ArvynConfig] | 📊 [14:16:06] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:16:10 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/multimodal/chat "HTTP/1.1 200 OK"
+2025-12-21 14:16:10 | INFO | [ArvynConfig] | 📊 [14:16:10] [KINETIC] RETRY: Applying precision offset of -18px.
+2025-12-21 14:16:10 | INFO | [ArvynConfig] | 📊 [14:16:10] [KINETIC] Executing interaction on Login Button...
+2025-12-21 14:16:10 | ERROR | [ArvynConfig] | [KINETIC] Click failure at (51, 837): Page.evaluate() takes from 2 to 3 positional arguments but 4 were given
+2025-12-21 14:16:14 | INFO | [ArvynConfig] | 📊 [14:16:14] [EXECUTOR] Observing UI state...
+2025-12-21 14:16:16 | INFO | [ArvynConfig] | 📊 [14:16:16] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:16:20 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/multimodal/chat "HTTP/1.1 200 OK"
+2025-12-21 14:16:20 | INFO | [ArvynConfig] | 📊 [14:16:20] [KINETIC] RETRY: Applying precision offset of 24px.
+2025-12-21 14:16:20 | INFO | [ArvynConfig] | 📊 [14:16:20] [KINETIC] Executing interaction on Login Button...
+2025-12-21 14:16:20 | ERROR | [ArvynConfig] | [KINETIC] Click failure at (80, 818): Page.evaluate() takes from 2 to 3 positional arguments but 4 were given
+2025-12-21 14:16:25 | INFO | [ArvynConfig] | 📊 [14:16:25] [EXECUTOR] Observing UI state...
+2025-12-21 14:16:26 | INFO | [ArvynConfig] | 📊 [14:16:26] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:16:30 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/multimodal/chat "HTTP/1.1 200 OK"
+2025-12-21 14:16:30 | INFO | [ArvynConfig] | 📊 [14:16:30] [KINETIC] RETRY: Applying precision offset of -30px.
+2025-12-21 14:16:30 | INFO | [ArvynConfig] | 📊 [14:16:30] [KINETIC] Executing interaction on Login Button...
+2025-12-21 14:16:30 | ERROR | [ArvynConfig] | [KINETIC] Click failure at (26, 764): Page.evaluate() takes from 2 to 3 positional arguments but 4 were given
+2025-12-21 14:16:34 | INFO | [ArvynConfig] | 📊 [14:16:34] [EXECUTOR] Observing UI state...
+2025-12-21 14:16:36 | INFO | [ArvynConfig] | 📊 [14:16:36] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:16:40 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/multimodal/chat "HTTP/1.1 200 OK"
+2025-12-21 14:16:40 | INFO | [ArvynConfig] | 📊 [14:16:40] [KINETIC] Executing interaction on Email address input field...
+2025-12-21 14:16:40 | ERROR | [ArvynConfig] | [KINETIC] Click failure at (876, 538): Page.evaluate() takes from 2 to 3 positional arguments but 4 were given
+2025-12-21 14:16:40 | INFO | [ArvynConfig] | 📊 [14:16:40] [KINETIC] Filling sensitive data from profile...
+2025-12-21 14:16:40 | INFO | [ArvynConfig] | [KINETIC] Typing sequence: 15 characters.
+2025-12-21 14:16:47 | INFO | [ArvynConfig] | 📊 [14:16:47] [EXECUTOR] Observing UI state...
+2025-12-21 14:16:49 | INFO | [ArvynConfig] | 📊 [14:16:49] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:16:52 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/multimodal/chat "HTTP/1.1 200 OK"
+2025-12-21 14:16:52 | INFO | [ArvynConfig] | 📊 [14:16:52] [KINETIC] Executing interaction on Password input field...
+2025-12-21 14:16:52 | ERROR | [ArvynConfig] | [KINETIC] Click failure at (947, 545): Page.evaluate() takes from 2 to 3 positional arguments but 4 were given
+2025-12-21 14:16:52 | INFO | [ArvynConfig] | 📊 [14:16:52] [KINETIC] Filling sensitive data from profile...
+2025-12-21 14:16:52 | INFO | [ArvynConfig] | [KINETIC] Typing sequence: 8 characters.
+2025-12-21 14:16:58 | INFO | [ArvynConfig] | 📊 [14:16:58] [EXECUTOR] Observing UI state...
+2025-12-21 14:16:59 | INFO | [ArvynConfig] | 📊 [14:16:59] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:17:03 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/multimodal/chat "HTTP/1.1 200 OK"
+2025-12-21 14:17:03 | INFO | [ArvynConfig] | 📊 [14:17:03] [KINETIC] Executing interaction on Sign in Button...
+2025-12-21 14:17:03 | ERROR | [ArvynConfig] | [KINETIC] Click failure at (1103, 576): Page.evaluate() takes from 2 to 3 positional arguments but 4 were given
+2025-12-21 14:17:07 | INFO | [ArvynConfig] | 📊 [14:17:07] [EXECUTOR] Observing UI state...
+2025-12-21 14:17:09 | INFO | [ArvynConfig] | 📊 [14:17:09] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:17:12 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/multimodal/chat "HTTP/1.1 200 OK"
+2025-12-21 14:17:12 | INFO | [ArvynConfig] | 📊 [14:17:12] [KINETIC] RETRY: Applying precision offset of -6px.
+2025-12-21 14:17:12 | INFO | [ArvynConfig] | 📊 [14:17:12] [KINETIC] Executing interaction on Sign in Button...
+2025-12-21 14:17:12 | ERROR | [ArvynConfig] | [KINETIC] Click failure at (1095, 571): Page.evaluate() takes from 2 to 3 positional arguments but 4 were given
+2025-12-21 14:17:17 | INFO | [ArvynConfig] | 📊 [14:17:17] [EXECUTOR] Observing UI state...
+2025-12-21 14:17:18 | INFO | [ArvynConfig] | 📊 [14:17:18] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:17:22 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/multimodal/chat "HTTP/1.1 200 OK"
+2025-12-21 14:17:22 | INFO | [ArvynConfig] | 📊 [14:17:22] [KINETIC] Executing interaction on Email address input field...
+2025-12-21 14:17:22 | ERROR | [ArvynConfig] | [KINETIC] Click failure at (874, 542): Page.evaluate() takes from 2 to 3 positional arguments but 4 were given
+2025-12-21 14:17:22 | INFO | [ArvynConfig] | 📊 [14:17:22] [KINETIC] Filling sensitive data from profile...
+2025-12-21 14:17:22 | INFO | [ArvynConfig] | [KINETIC] Typing sequence: 15 characters.
+2025-12-21 14:17:29 | INFO | [ArvynConfig] | 📊 [14:17:29] [EXECUTOR] Observing UI state...
+2025-12-21 14:17:31 | INFO | [ArvynConfig] | 📊 [14:17:31] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:17:35 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/multimodal/chat "HTTP/1.1 200 OK"
+2025-12-21 14:17:35 | INFO | [ArvynConfig] | 📊 [14:17:35] [KINETIC] Executing interaction on Password input field...
+2025-12-21 14:17:35 | ERROR | [ArvynConfig] | [KINETIC] Click failure at (938, 539): Page.evaluate() takes from 2 to 3 positional arguments but 4 were given
+2025-12-21 14:17:35 | INFO | [ArvynConfig] | 📊 [14:17:35] [KINETIC] Filling sensitive data from profile...
+2025-12-21 14:17:35 | INFO | [ArvynConfig] | [KINETIC] Typing sequence: 8 characters.
+2025-12-21 14:17:41 | INFO | [ArvynConfig] | 📊 [14:17:41] [EXECUTOR] Observing UI state...
+2025-12-21 14:17:42 | INFO | [ArvynConfig] | 📊 [14:17:42] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:17:46 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/multimodal/chat "HTTP/1.1 200 OK"
+2025-12-21 14:17:46 | INFO | [ArvynConfig] | 📊 [14:17:46] [KINETIC] Executing interaction on Email address input field...
+2025-12-21 14:17:46 | ERROR | [ArvynConfig] | [KINETIC] Click failure at (859, 543): Page.evaluate() takes from 2 to 3 positional arguments but 4 were given
+2025-12-21 14:17:46 | INFO | [ArvynConfig] | 📊 [14:17:46] [KINETIC] Filling sensitive data from profile...
+2025-12-21 14:17:46 | INFO | [ArvynConfig] | [KINETIC] Typing sequence: 15 characters.
+2025-12-21 14:17:53 | INFO | [ArvynConfig] | 📊 [14:17:53] [EXECUTOR] Observing UI state...
+2025-12-21 14:17:55 | INFO | [ArvynConfig] | 📊 [14:17:55] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:17:58 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/multimodal/chat "HTTP/1.1 200 OK"
+2025-12-21 14:17:58 | INFO | [ArvynConfig] | 📊 [14:17:58] [KINETIC] RETRY: Applying precision offset of -6px.
+2025-12-21 14:17:58 | INFO | [ArvynConfig] | 📊 [14:17:58] [KINETIC] Executing interaction on Email address input field...
+2025-12-21 14:17:58 | ERROR | [ArvynConfig] | [KINETIC] Click failure at (854, 532): Page.evaluate() takes from 2 to 3 positional arguments but 4 were given
+2025-12-21 14:17:58 | INFO | [ArvynConfig] | 📊 [14:17:58] [KINETIC] Filling sensitive data from profile...
+2025-12-21 14:17:58 | INFO | [ArvynConfig] | [KINETIC] Typing sequence: 15 characters.
+2025-12-21 14:18:05 | INFO | [ArvynConfig] | 📊 [14:18:05] [EXECUTOR] Observing UI state...
+2025-12-21 14:18:07 | INFO | [ArvynConfig] | 📊 [14:18:07] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:18:11 | INFO | [httpx] | HTTP Request: POST https://platform.qubrid.com/api/v1/qubridai/multimodal/chat "HTTP/1.1 200 OK"
+2025-12-21 14:18:11 | INFO | [ArvynConfig] | 📊 [14:18:11] [KINETIC] RETRY: Applying precision offset of 12px.
+2025-12-21 14:18:11 | INFO | [ArvynConfig] | 📊 [14:18:11] [KINETIC] Executing interaction on Email address input field...
+2025-12-21 14:18:11 | ERROR | [ArvynConfig] | [KINETIC] Click failure at (870, 551): Page.evaluate() takes from 2 to 3 positional arguments but 4 were given
+2025-12-21 14:18:11 | INFO | [ArvynConfig] | 📊 [14:18:11] [KINETIC] Filling sensitive data from profile...
+2025-12-21 14:18:11 | INFO | [ArvynConfig] | [KINETIC] Typing sequence: 15 characters.
+2025-12-21 14:18:17 | INFO | [ArvynConfig] | 📊 [14:18:17] [EXECUTOR] Observing UI state...
+2025-12-21 14:18:19 | INFO | [ArvynConfig] | 📊 [14:18:19] [BRAIN] Qubrid Engine: Analyzing page for PAY_BILL...
+2025-12-21 14:18:22 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-21 14:18:22 | INFO | [ArvynConfig] | 📊 [14:18:22] [SYSTEM] Deactivating kinetic layer...
+2025-12-21 14:18:22 | INFO | [ArvynConfig] | [BROWSER] Stealth engine deactivated.

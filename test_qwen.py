@@ -3,60 +3,63 @@ import requests
 import json
 from dotenv import load_dotenv
 
-# 1. Load the .env file
+# Load environment variables
 load_dotenv()
 
-def test_qwen_connection():
-    api_key = os.getenv("QWEN_API_KEY")
-    base_url = os.getenv("QWEN_BASE_URL")
-    model_name = os.getenv("QWEN_MODEL_NAME")
+def test_qubrid_multimodal():
+    # Fetch from .env
+    url = os.getenv("QUBRID_BASE_URL")
+    api_key = os.getenv("QUBRID_API_KEY")
+    model = os.getenv("QUBRID_MODEL_NAME")
 
-    print("--- Arvyn Logic Engine Diagnostic ---")
-    print(f"[*] Targeting Model: {model_name}")
-    print(f"[*] Base URL: {base_url}")
-    
-    # Check if key exists
-    if not api_key:
-        print("[!] ERROR: QWEN_API_KEY not found in .env file.")
-        return
+    print(f"--- Qubrid Multimodal Diagnostic ---")
+    print(f"[*] Endpoint: {url}")
+    print(f"[*] Model: {model}")
 
-    # Prepare the payload (Simulating an Intent Parsing request)
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
 
-    payload = {
-        "model": model_name,
+    # Test payload with a public image to verify vision logic
+    data = {
+        "model": model,
         "messages": [
             {
-                "role": "user",
-                "content": "Identify the intent of this command: 'Pay my electricity bill'"
+                "role": "user", 
+                "content": [
+                    {
+                        "type": "text", 
+                        "text": "Describe this image in one sentence."
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": "https://cdn.britannica.com/61/93061-050-99147DCE/Statue-of-Liberty-Island-New-York-Bay.jpg"
+                        }
+                    }
+                ]
             }
-        ]
+        ],
+        "temperature": 0.7,
+        "max_tokens": 100,
+        "stream": False
     }
 
-    print("[*] Sending request to DashScope...")
-
     try:
-        # We use /chat/completions as per your log's "compatible-mode"
-        endpoint = f"{base_url}/chat/completions"
-        response = requests.post(endpoint, headers=headers, json=payload)
+        print("[*] Contacting Qubrid Multimodal Engine...")
+        response = requests.post(url, headers=headers, json=data)
         
         if response.status_code == 200:
-            print("\n[SUCCESS] API is working!")
-            data = response.json()
-            print(f"[RESPONSE]: {data['choices'][0]['message']['content']}")
-        elif response.status_code == 401:
-            print("\n[FAILED] Error 401: Unauthorized.")
-            print("REASON: Your API Key is likely invalid or has expired.")
-            print(f"DEBUG INFO: {response.text}")
+            result = response.json()
+            answer = result['choices'][0]['message']['content']
+            print(f"\n[SUCCESS] API Vision Response: {answer}")
         else:
-            print(f"\n[FAILED] Error {response.status_code}")
-            print(f"RESPONSE: {response.text}")
-
+            print(f"\n[FAILED] Status Code: {response.status_code}")
+            print(f"Response Body: {response.text}")
+            
     except Exception as e:
-        print(f"\n[CRITICAL] Connection Error: {str(e)}")
+        print(f"\n[CRITICAL] Script Error: {str(e)}")
 
 if __name__ == "__main__":
-    test_qwen_connection()
+    test_qubrid_multimodal()

@@ -8,7 +8,7 @@ from langgraph.graph import StateGraph, END
 # Use high-fidelity exports from upgraded config
 from config import (
     logger, 
-    QWEN_MODEL_NAME, 
+    QUBRID_MODEL_NAME, # Updated constant
     VIEWPORT_WIDTH, 
     VIEWPORT_HEIGHT,
     DASHBOARD_SIZE
@@ -22,13 +22,13 @@ from tools.voice import ArvynVoice
 class ArvynOrchestrator:
     """
     Superior Autonomous Orchestrator for Agent Arvyn.
-    UPGRADED: Features Qwen-VL Vision-Reasoning Integration.
+    UPGRADED: Features Qubrid Serverless Vision-Reasoning Integration (Qwen-3).
     FIXED: Resolved AttributeError in tests by adding dict-type safety for brain analysis.
     FIXED: Resolved GraphRecursionError with state-aware loop guards.
     IMPROVED: Integrated Kinetic Drift Correction interface for browser layer.
     """
 
-    def __init__(self, model_name: str = QWEN_MODEL_NAME):
+    def __init__(self, model_name: str = QUBRID_MODEL_NAME):
         self.brain = QwenBrain(model_name=model_name)
         self.browser = ArvynBrowser(headless=False)
         self.profile = ProfileManager()
@@ -42,7 +42,7 @@ class ArvynOrchestrator:
         # Safety guard for ASK_USER loops
         self.consecutive_ask_count = 0
         
-        logger.info(f"🚀 Arvyn Core v4.5: Autonomous Orchestrator (Qwen-Engine) active.")
+        logger.info(f"🚀 Arvyn Core v4.5: Autonomous Orchestrator (Qubrid Engine) active.")
 
     async def init_app(self, checkpointer):
         """Compiles the LangGraph for Full Autonomy (No Interrupts)."""
@@ -151,7 +151,7 @@ class ArvynOrchestrator:
 
     async def _node_autonomous_executor(self, state: AgentState) -> Dict[str, Any]:
         """
-        Main autonomous loop using Qwen-VL.
+        Main autonomous loop using Qubrid/Qwen-VL.
         IMPROVED: Added type-safety for analysis response to prevent test-mock errors.
         """
         self._add_to_session_log("executor", "Observing UI state...")
@@ -174,7 +174,7 @@ class ArvynOrchestrator:
         user_context = self.profile.get_provider_details(provider_name)
         user_context.update(self.profile.get_data().get("personal_info", {}))
 
-        self._add_to_session_log("brain", f"Qwen Engine: Analyzing page for {intent.get('action')}...")
+        self._add_to_session_log("brain", f"Qubrid Engine: Analyzing page for {intent.get('action')}...")
         analysis = await self.brain.analyze_page_for_action(screenshot, goal, history, user_context)
 
         # TYPE-SAFETY: Ensure analysis is a dictionary (fixes test mock issues)
