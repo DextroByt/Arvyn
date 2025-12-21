@@ -6,7 +6,7 @@ import traceback
 from PyQt6.QtWidgets import QApplication, QStackedWidget
 from PyQt6.QtCore import Qt, QPropertyAnimation, QRect, QEasingCurve, QTimer
 
-# Import upgraded config (renamed QWEN to QUBRID)
+# Import upgraded config (v5.0 - QUBRID/QWEN3 integration)
 from config import (
     Config, 
     logger, 
@@ -14,7 +14,7 @@ from config import (
     DASHBOARD_SIZE, 
     STRICT_AUTONOMY_MODE, 
     AUTO_APPROVAL,
-    QUBRID_MODEL_NAME  # Updated import
+    QUBRID_MODEL_NAME
 )
 
 from gui.widget_orb import ArvynOrb
@@ -32,17 +32,16 @@ sys.excepthook = exception_hook
 
 class ArvynApp(ArvynOrb):
     """
-    Superior Application Controller for Agent Arvyn.
-    v4.6 UPGRADE: Features Precision Kinetic Dashboard Feedback.
-    FIXED: Forced Priority Routing for Rio Finance Bank tasks to bypass search.
-    IMPROVED: Enhanced Real-time Status reporting for Autonomous Kinetic steps.
-    PRESERVED: Full Qubrid/Qwen-3 Logic and VoiceWorker integration.
+    Superior Application Controller for Agent Arvyn (v5.0).
+    v5.0 UPGRADE: Integrated Semantic Kinetic Engine for pixel-perfect anchoring.
+    FIXED: Eliminates VLM coordinate drift via hidden DOM-Sync layer.
+    IMPROVED: Enhanced status reporting for multi-layer kinetic interactions.
+    PRESERVED: Full Qubrid/Qwen-3 Logic, VoiceWorker, and HITL approval flows.
     """
     def __init__(self):
         super().__init__()
         
-        # --- IMPROVEMENT: EXPANDED PROJECT SPECIFIC PRIORITY MAP ---
-        # This prevents the AI from searching Google for project-specific bank tasks.
+        # --- PROJECT SPECIFIC PRIORITY MAP ---
         self.PROJECT_URL = "https://roshan-chaudhary13.github.io/rio_finance_bank/"
         self.PRIORITY_KEYWORDS = [
             "bill", "electricity", "gold", "profile", "login", 
@@ -50,7 +49,7 @@ class ArvynApp(ArvynOrb):
             "balance", "statement", "credit", "debit"
         ]
 
-        logger.info("[SYSTEM] Initializing Arvyn Integrity Check...")
+        logger.info("[SYSTEM] Initializing Arvyn Integrity Check (v5.0)...")
         self.voice = ArvynVoice()
         self._is_expanded = False
         self.container = QStackedWidget()
@@ -83,13 +82,13 @@ class ArvynApp(ArvynOrb):
         self.move_to_default_position()
         self.start_pulse()
         
-        # Initialization Reporting
+        # v5.0 Initialization Reporting
         mode_label = "AUTONOMOUS" if STRICT_AUTONOMY_MODE else "HITL-STANDARD"
-        logger.info(f"🛡️ Arvyn App v4.6: {mode_label} Controller ({QUBRID_MODEL_NAME}) active.")
+        logger.info(f"🛡️ Arvyn App v5.0: {mode_label} Controller ({QUBRID_MODEL_NAME}) active.")
         
         self.dashboard.append_log(f"SYSTEM: Environment Verified. Engine: {QUBRID_MODEL_NAME}", category="system")
-        self.dashboard.append_log(f"SYSTEM: Autonomous Mode: ENABLED (Zero-Auth active).", category="system")
-        self.dashboard.append_log(f"KINETIC: Precision Drill Correction v2.0 Active.", category="kinetic")
+        self.dashboard.append_log(f"SYSTEM: Semantic Kinetic Engine: v5.0 Focus-Lock Active.", category="system")
+        self.dashboard.append_log(f"KINETIC: Hidden DOM manipulation & Visual Sync ENABLED.", category="kinetic")
 
     def _connect_worker_signals(self):
         """Maps backend worker signals to Dashboard UI updates."""
@@ -103,7 +102,6 @@ class ArvynApp(ArvynOrb):
     def _handle_auto_mic_logic(self, should_start: bool):
         """Triggers the microphone automatically after TTS sequences."""
         if should_start and not self.dashboard.is_listening:
-            # Enhanced delay to ensure TTS engine releases audio lock
             QTimer.singleShot(2200, self.dashboard._toggle_mic)
 
     def move_to_default_position(self):
@@ -158,22 +156,19 @@ class ArvynApp(ArvynOrb):
         self.dashboard.input_field.setFocus()
 
     def process_command(self, command_text: str):
-        """Validates and applies priority routing for project-specific tasks."""
+        """Validates and applies priority routing for v5.0 tasks."""
         clean_text = command_text.strip().lower()
         if clean_text:
             self.dashboard.append_log(f"USER: {clean_text.upper()}", category="system")
             self.dashboard.input_field.clear()
 
-            # Priority Check for Bank tasks
             is_priority_task = any(key in clean_text for key in self.PRIORITY_KEYWORDS)
 
             if is_priority_task:
                 self.dashboard.append_log(f"🎯 TARGET LOCKED: Rio Finance Bank", category="kinetic")
-                self.dashboard.append_log(f"NETWORK: Routing to secure portal directly.", category="system")
-                # Bypasses LLM search uncertainty by providing the exact URL
+                self.dashboard.append_log(f"NETWORK: Semantic Sync active for portal interaction.", category="system")
                 self.worker.submit_command(f"Open {self.PROJECT_URL} and {clean_text}")
             else:
-                # Normal AI autonomous orchestration
                 self.worker.submit_command(clean_text)
 
     def trigger_voice_input(self, should_start: bool):
@@ -202,7 +197,7 @@ class ArvynApp(ArvynOrb):
         if self.worker and self.worker.isRunning():
             self.worker.stop_persistent_session()
             self._update_ui_status("STOPPED")
-            self.dashboard.append_log("System: Deactivating kinetic layer...", category="error")
+            self.dashboard.append_log("System: Deactivating Semantic Layer...", category="error")
             self.dashboard.append_log("System: Resources released.", category="error")
         QTimer.singleShot(1000, QApplication.instance().quit)
 
@@ -221,7 +216,7 @@ class ArvynApp(ArvynOrb):
         self.dashboard.interaction_stack.setCurrentIndex(1 if show else 0)
         if show:
             self.activateWindow()
-            self.dashboard.append_log("NOTIFICATION: Kinetic layer requires authorization.", category="kinetic")
+            self.dashboard.append_log("NOTIFICATION: Semantic Sync requires manual verification.", category="kinetic")
 
     def handle_hitl_approval(self, approved: bool):
         """Signals the worker to resume or abort based on user input."""
@@ -229,7 +224,6 @@ class ArvynApp(ArvynOrb):
             self.worker.resume_with_approval(approved)
 
 if __name__ == "__main__":
-    # Standardize UI scaling across different screen resolutions
     os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
     app = QApplication(sys.argv)
     try:

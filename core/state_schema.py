@@ -4,9 +4,9 @@ from pydantic import BaseModel, Field
 
 class AgentState(TypedDict):
     """
-    The internal state of Agent Arvyn (Production Grade).
-    UPGRADED: Optimized for Full Autonomy (Zero-Authorization) and High-Precision Kinetic execution.
-    Features: Recursive task history, multi-modal context, and secure credential handling.
+    The internal state of Agent Arvyn (v5.0 - Semantic Sync).
+    UPGRADED: Optimized for VLM-Guided Kinetic execution with Hidden DOM Sync.
+    FEATURES: Recursive task history, multi-modal context, and secure credential handling.
     """
     # --- CONVERSATION & CONTEXT ---
     messages: Annotated[List[Any], add_messages]
@@ -44,7 +44,7 @@ class AgentState(TypedDict):
 
 class IntentOutput(BaseModel):
     """
-    Structured reasoning for Arvyn's Intent Parser.
+    Structured reasoning for Arvyn's Intent Parser (v5.0).
     FIXED: Neutral defaults to prevent bias toward Rio Finance Bank.
     IMPROVED: Universal action mapping for E-Commerce, Utilities, and Banking.
     """
@@ -79,23 +79,27 @@ class IntentOutput(BaseModel):
 
 class VisualGrounding(BaseModel):
     """
-    Structured output for VLM coordinate mapping.
-    UPGRADED: Optimized for 100% Scaling precision and Drift Correction.
+    Structured output for VLM coordinate mapping (v5.0 - Semantic Anchoring).
+    UPGRADED: Features 'Semantic Anchor' support for Hidden DOM Correction.
     """
     # Requires the AI to explain its geometric choice before execution
     thought: str = Field(description="Visual analysis and geometric center calculation logic.")
     
-    element_name: str = Field(default="Target UI Element")
+    # CRITICAL: This text is used as the 'hook' for the browser's hidden DOM search
+    element_name: str = Field(
+        default="Target UI Element",
+        description="EXACT visible text on the element (Semantic Anchor)."
+    )
     
     # Coordinates in 0-1000 normalized space: [ymin, xmin, ymax, xmax]
     coordinates: Optional[List[float]] = Field(
         default=None, 
-        description="High-precision bounding box for the target element."
+        description="VLM-estimated bounding box for the target element."
     )
     
     action_type: str = Field(
         default="CLICK", 
-        description="Kinetic action: CLICK | TYPE | SCROLL | HOVER"
+        description="Kinetic action: CLICK | TYPE | SCROLL | HOVER | FINISHED | ASK_USER"
     )
     
     input_text: Optional[str] = Field(
@@ -111,7 +115,7 @@ class VisualGrounding(BaseModel):
 
 class TransactionSummary(BaseModel):
     """
-    Autonomous task verification and summary.
+    Autonomous task verification and summary for v5.0 auditing.
     """
     status: str = Field(description="SUCCESS | FAILED | PENDING")
     transaction_id: Optional[str] = Field(default=None)

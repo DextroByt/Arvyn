@@ -29,6 +29,7 @@ formatter = logging.Formatter(log_format, datefmt=date_format)
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
 
+# Enhanced logging for session auditing
 file_handler = logging.FileHandler("arvyn_session.log", encoding='utf-8')
 file_handler.setFormatter(formatter)
 root_logger.addHandler(file_handler)
@@ -42,9 +43,9 @@ logger = logging.getLogger("ArvynConfig")
 class Config:
     """
     Central configuration for Agent Arvyn.
-    UPGRADED: Migrated to Qwen3-VL-8B-Instruct (Multimodal Reasoning).
-    FEATURES: Full-Autonomy (Zero-Authorization) global flags preserved.
-    IMPROVED: Integration with Qubrid Multimodal Chat endpoint.
+    UPGRADED: v5.0 - Semantic Kinetic Engine (Hidden DOM Sync).
+    FEATURES: Full-Autonomy (Zero-Authorization) and Hyper-Precision Sync.
+    IMPROVED: Integration with Qubrid Multimodal Chat endpoint (Qwen3-VL).
     """
     
     # --- AI MODEL SETTINGS (QUBRID MULTIMODAL) ---
@@ -87,8 +88,8 @@ class Config:
     
     @classmethod
     def validate(cls):
-        """Validates system integrity and prepares workspace."""
-        logger.info("[SYSTEM] Initializing Arvyn Integrity Check...")
+        """Validates system integrity and prepares v5.0 workspace."""
+        logger.info("[SYSTEM] Initializing Arvyn Integrity Check (v5.0)...")
         
         if not cls.QUBRID_API_KEY:
             logger.critical("[CRITICAL] QUBRID_API_KEY is missing. Check your .env file.")
@@ -100,6 +101,7 @@ class Config:
             
             autonomy_status = "ENABLED" if cls.STRICT_AUTONOMY_MODE else "DISABLED"
             logger.info(f"[SUCCESS] Environment Verified. Engine: {cls.QUBRID_MODEL_NAME}")
+            logger.info(f"[SUCCESS] Semantic Kinetic Engine: v5.0 Focus-Lock Active.")
             logger.info(f"[SUCCESS] Autonomous Mode: {autonomy_status} (Zero-Auth active).")
             return True
         except Exception as e:

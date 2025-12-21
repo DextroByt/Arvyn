@@ -21,11 +21,10 @@ from tools.voice import ArvynVoice
 
 class ArvynOrchestrator:
     """
-    Superior Autonomous Orchestrator for Agent Arvyn.
-    v4.6 UPGRADE: Features Precision Kinetic Routing and Visual Marker Deployment.
-    FIXED: Position-argument evaluation errors via updated tool interface.
-    IMPROVED: Coordinate normalization logic for high-accuracy hit registration.
-    PRESERVED: All Qubrid Vision-Reasoning and LangGraph state-aware guards.
+    Superior Autonomous Orchestrator for Agent Arvyn (v5.1 - Hardened Semantic Sync).
+    v5.1 UPGRADE: Supports Hardened Direct-Injection Clicking to bypass UI overlays.
+    FIXED: Resolves 'No Click' loops by passing precise Semantic Anchors to the Browser.
+    PRESERVED: All Qubrid Vision-Reasoning, Dynamic Drift Correction, and Session Auditing.
     """
 
     def __init__(self, model_name: str = QUBRID_MODEL_NAME):
@@ -42,20 +41,20 @@ class ArvynOrchestrator:
         # Safety guard for ASK_USER loops
         self.consecutive_ask_count = 0
         
-        logger.info(f"🚀 Arvyn Core v4.6: Autonomous Orchestrator (Precision Kinetic Engine) active.")
+        logger.info(f"🚀 Arvyn Core v5.1: Autonomous Orchestrator (Hardened Sync) active.")
 
     async def init_app(self, checkpointer):
-        """Compiles the LangGraph for Full Autonomy (No Interrupts)."""
+        """Compiles the LangGraph for Full Autonomy (Zero-Authorization)."""
         if self.app is None:
             self.app = self.workflow.compile(
                 checkpointer=checkpointer
             )
-            logger.info("✅ Arvyn Autonomous Core: Logic layers compiled for Zero-Authorization flow.")
+            logger.info("✅ Arvyn Autonomous Core: Logic layers compiled for Zero-Auth flow.")
 
     async def cleanup(self):
         """Graceful release of browser and kinetic resources."""
         if self.browser:
-            self._add_to_session_log("system", "Deactivating kinetic layer...")
+            self._add_to_session_log("system", "Deactivating hardened kinetic layer...")
             try:
                 await self.browser.close()
             except Exception as e:
@@ -123,7 +122,7 @@ class ArvynOrchestrator:
             return url
         
         RIO_URL = "https://roshan-chaudhary13.github.io/rio_finance_bank/"
-        rio_keywords = ["rio finance", "rio bank", "dummy bank", "rio gold"]
+        rio_keywords = ["rio finance", "rio bank", "dummy bank"]
         if any(key in provider_name.lower() for key in rio_keywords):
             return RIO_URL
             
@@ -152,7 +151,8 @@ class ArvynOrchestrator:
     async def _node_autonomous_executor(self, state: AgentState) -> Dict[str, Any]:
         """
         Main autonomous loop using Qubrid/Qwen-VL.
-        ENHANCED: Coordinate normalization and deployment of visual click markers.
+        ENHANCED: v5.1 Hardened Interaction utilizes direct DOM injection success signals.
+        FIXED: Coordinates are 'anchored' to elements via Browser-level Semantic Sync.
         """
         self._add_to_session_log("executor", "Observing UI state...")
         
@@ -162,29 +162,186 @@ class ArvynOrchestrator:
         if not intent:
             return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": "I've lost the objective."}
 
+        # STABILIZE: Ensure page elements are static before visual reasoning
+        await asyncio.sleep(1.0)
         screenshot = await self.browser.get_screenshot_b64()
         provider_name = intent.get("provider", "Rio Finance Bank")
+
+        # Enforce section targeting for critical actions (e.g., PAY_BILL)
+        target_action = intent.get('action', '').upper() if intent else ''
+        async def _ensure_on_bill_page(retries: int = 2) -> bool:
+            """Ensure the current page is the billing/payment page; try to find and click relevant links if not."""
+            bill_keywords = ['bill', 'pay bill', 'bill payment', 'electricity bill', 'pay my bill']
+            # quick check
+            for kw in bill_keywords:
+                try:
+                    if await self.browser.find_text(kw):
+                        return True
+                except Exception:
+                    continue
+
+            # try to find links/buttons that lead to bills
+            candidates = ['pay bill', 'bill payment', 'bills', 'pay my bill', 'electricity', 'payments']
+            for c in candidates:
+                try:
+                    clicked = await self.browser.find_and_click_text(c)
+                    if clicked:
+                        await asyncio.sleep(2.5)
+                        # verify again
+                        for kw in bill_keywords:
+                            if await self.browser.find_text(kw):
+                                return True
+                except Exception:
+                    continue
+
+            return False
         
         goal = (
             f"GOAL: Execute {intent.get('action')} on {provider_name}. "
-            f"Aim for the GEOMETRIC CENTER of interactive elements. Accuracy is paramount. "
+            f"Identify target 'element_name' (label/text) for Semantic Sync. "
             f"Use ONLY data in 'USER DATA'. DO NOT ask for permission."
         )
         
         user_context = self.profile.get_provider_details(provider_name)
         user_context.update(self.profile.get_data().get("personal_info", {}))
 
+        # --- Bill payment flow helpers (class-level orchestration) ---
+        async def _ensure_on_bill_page_local(retries: int = 2) -> bool:
+            bill_keywords = ['bill', 'pay bill', 'bill payment', 'electricity', 'electricity bill']
+            for attempt in range(retries + 1):
+                try:
+                    for kw in bill_keywords:
+                        if await self.browser.find_text(kw):
+                            return True
+                except Exception:
+                    pass
+
+                # Try clicking common navigation labels that likely lead to bills
+                candidates = ['bills', 'pay bill', 'bill payment', 'payments', 'electricity']
+                for c in candidates:
+                    try:
+                        if await self.browser.find_and_click_text(c):
+                            await asyncio.sleep(2.0)
+                            break
+                    except Exception:
+                        continue
+
+                # If profile has a verified payment URL, navigate there
+                try:
+                    verified = self.profile.get_verified_url(provider_name.upper().replace(' ', '_'))
+                    if verified:
+                        await self.browser.navigate(verified)
+                        await asyncio.sleep(2.0)
+                except Exception:
+                    pass
+
+            # Final check
+            try:
+                for kw in bill_keywords:
+                    if await self.browser.find_text(kw):
+                        return True
+            except Exception:
+                pass
+            return False
+
+        async def _execute_bill_payment_local() -> Dict[str, Any]:
+            """Sequence: ensure bill page -> find provider/bill entry -> click pay -> choose method -> confirm."""
+            # 1) Ensure on bill page
+            if not await _ensure_on_bill_page_local(retries=2):
+                return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": "I can't reach the bill payment section."}
+
+            # 2) Try to find the specific electricity bill/provider entry
+            target_names = [provider_name, 'electricity', 'electricity bill', 'pay electricity', 'pay bill']
+            found_entry = False
+            for name in target_names:
+                try:
+                    if await self.browser.find_and_click_text(name):
+                        found_entry = True
+                        await asyncio.sleep(2.0)
+                        break
+                except Exception:
+                    continue
+
+            if not found_entry:
+                # attempt to click a generic 'pay' button
+                try:
+                    if await self.browser.find_and_click_text('pay'):
+                        found_entry = True
+                        await asyncio.sleep(2.0)
+                except Exception:
+                    pass
+
+            if not found_entry:
+                return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": "Couldn't locate the bill entry to pay. Shall I try manual steps?"}
+
+            # 3) On the payment page, select a payment method if available
+            payment_methods = ['Net Banking', 'Credit Card', 'Debit Card', 'UPI', 'Wallet']
+            selected_method = None
+            for m in payment_methods:
+                try:
+                    if await self.browser.select_option_by_text('', m):
+                        selected_method = m
+                        await asyncio.sleep(1.0)
+                        break
+                except Exception:
+                    continue
+
+            # 4) Attempt to click confirm/pay buttons
+            confirm_labels = ['confirm', 'pay now', 'pay', 'proceed to pay']
+            paid = False
+            for lab in confirm_labels:
+                try:
+                    if await self.browser.find_and_click_text(lab):
+                        paid = True
+                        await asyncio.sleep(2.5)
+                        break
+                except Exception:
+                    continue
+
+            if not paid:
+                return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": "Reached payment step but couldn't finish payment automatically. Provide payment confirmation?"}
+
+            # 5) Success
+            return {"browser_context": {"action_type": "FINISHED"}, "current_step": "Payment completed (automated steps)."}
+
+
         self._add_to_session_log("brain", f"Qubrid Engine: Analyzing page for {intent.get('action')}...")
         analysis = await self.brain.analyze_page_for_action(screenshot, goal, history, user_context)
 
         if not isinstance(analysis, dict):
-            logger.warning("[SYSTEM] AI analysis returned non-dict format. Recovery mode active.")
             analysis = {"action_type": "ASK_USER", "thought": "Invalid analysis format."}
 
         action_type = str(analysis.get("action_type", "ASK_USER"))
         current_history = history.copy()
-        element_name = str(analysis.get("element_name", "")).lower()
+        element_name = str(analysis.get("element_name", ""))
         input_text = str(analysis.get("input_text", ""))
+
+        # Enforce target section when user intent is to pay a bill
+        if target_action == 'PAY_BILL':
+            # Track active goal in profile for stateful behavior
+            try:
+                self.profile.track_task(f"PAY_BILL::{provider_name}")
+            except Exception:
+                pass
+
+            on_bill = await _ensure_on_bill_page()
+            if not on_bill:
+                self._add_to_session_log('navigation', 'Could not find billing page; attempting recovery...')
+                # If failed to reach bill page after recovery attempts, ask user
+                if not await _ensure_on_bill_page(retries=1):
+                    return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": "I couldn't reach the bill payment page. Do you want me to keep trying?"}
+
+            # If we are on the bill page, run the strict bill payment flow
+            exec_result = await _execute_bill_payment_local()
+            # If the flow finished or requested user input, return early
+            if exec_result.get('browser_context', {}).get('action_type') in ('FINISHED', 'ASK_USER'):
+                if exec_result.get('browser_context', {}).get('action_type') == 'FINISHED':
+                    self._add_to_session_log('executor', '✅ Automated bill payment completed.')
+                    try:
+                        self.profile.clear_task()
+                    except Exception:
+                        pass
+                return exec_result
 
         if action_type in ["CLICK", "TYPE"]:
             self.consecutive_ask_count = 0
@@ -195,38 +352,92 @@ class ArvynOrchestrator:
                 cx = round(((xmin + xmax) / 2) * (VIEWPORT_WIDTH / 1000))
                 cy = round(((ymin + ymax) / 2) * (VIEWPORT_HEIGHT / 1000))
                 
-                interaction_key = f"{action_type}_{element_name}"
+                interaction_key = f"{action_type}_{element_name.lower()}"
                 count = self.interaction_attempts.get(interaction_key, 0)
                 
-                # Apply Dynamic Drift Correction Offsets
+                # Dynamic Drift Correction (Maintained as secondary safety layer)
                 if count > 0:
-                    offset = (count * 8) if count % 2 == 0 else -(count * 8)
-                    self._add_to_session_log("kinetic", f"RETRY: Precision offset applied: {offset}px.")
-                    cx += offset
-                    cy += offset
+                    offset_x = (count * 10) if count % 2 == 0 else -(count * 10)
+                    offset_y = (count * 20) if count % 3 == 0 else 0 
+                    cx += offset_x
+                    cy += offset_y
+                    self._add_to_session_log("kinetic", f"Applying drift offset {count} to improve DOM search...")
                 
                 self.interaction_attempts[interaction_key] = count + 1
-                self._add_to_session_log("kinetic", f"Interacting with {analysis.get('element_name')} [Marker Deployed]")
+                self._add_to_session_log("kinetic", f"Executing Hardened Interaction on '{element_name}'...")
                 
-                success = await self.browser.click_at_coordinates(cx, cy)
-                
+                # v5.1 HARDENED CALL: Browser now performs direct DOM click if possible
+                # Special-case: if element looks like login/email field, attempt robust autofill first
+                if 'email' in element_name.lower() or 'user' in element_name.lower():
+                    creds = self.profile.get_provider_credentials(provider_name)
+                    if creds:
+                        filled = await self.browser.fill_login_fields(creds)
+                        # If autofill succeeded for email and password, mark success and continue
+                        if filled.get('email'):
+                            self._add_to_session_log('kinetic', 'Autofilled login fields from profile.')
+                            success = True
+                        else:
+                            # fallback to clicking at coords
+                            success = await self.browser.click_at_coordinates(cx, cy, element_hint=element_name)
+                    else:
+                        success = await self.browser.click_at_coordinates(cx, cy, element_hint=element_name)
+                else:
+                    success = await self.browser.click_at_coordinates(cx, cy, element_hint=element_name)
                 if success:
                     if action_type == "TYPE":
-                        self._add_to_session_log("kinetic", f"Typing secured data sequence...")
-                        await self.browser.type_text(input_text)
+                        self._add_to_session_log("kinetic", "Inputting secured sequence...")
+                        # Prefer profile credentials for login-related fields to avoid LLM hallucinated values
+                        ename = element_name.lower()
+                        creds = self.profile.get_provider_credentials(provider_name)
+                        # sanitize analysis input_text
+                        if isinstance(input_text, str) and len(input_text) > 256:
+                            input_text = input_text[:256]
+
+                        if any(k in ename for k in ("email", "e-mail", "user", "username", "login")):
+                            preferred = creds.get('email') or creds.get('username') or self.profile.get_data().get('personal_info', {}).get('email')
+                            if preferred:
+                                await self.browser.type_text(preferred)
+                            else:
+                                await self.browser.type_text(input_text)
+                        elif any(k in ename for k in ("pass", "password", "pwd")):
+                            preferred = creds.get('password')
+                            if preferred:
+                                await self.browser.type_text(preferred)
+                            else:
+                                await self.browser.type_text(input_text)
+                        else:
+                            await self.browser.type_text(input_text)
+
+                    # If this looks like a dropdown/select interaction, attempt to set the option by visible text
+                    try:
+                        if element_name and input_text:
+                            selected = await self.browser.select_option_by_text(element_name, input_text)
+                            if selected:
+                                self._add_to_session_log('kinetic', f"Selected dropdown option '{input_text}' on '{element_name}'.")
+                    except Exception:
+                        pass
                     
+                    # POST-ACTION DELAY: Allow DOM to update
                     await asyncio.sleep(2.5)
                     current_history.append({
                         "action": action_type, 
-                        "element": analysis.get("element_name"),
+                        "element": element_name,
                         "thought": analysis.get("thought")
                     })
                     
-                    # Reset context for new elements to prevent offset carryover
-                    if len(history) > 0 and history[-1].get("element") != analysis.get("element_name"):
+                    # Interaction successful; reset attempts for this specific chain
+                    if len(history) > 0 and history[-1].get("element") != element_name:
                         self.interaction_attempts = {interaction_key: 1}
                 else:
-                    self._add_to_session_log("kinetic", "ERROR: Kinetic registration failed. Recalibrating...")
+                    self._add_to_session_log("kinetic", "ERROR: Kinetic registration failed. Recalibrating logic...")
+
+                # Post-click navigation enforcement: if intent was PAY_BILL but page contains 'gold', recover
+                try:
+                    if target_action == 'PAY_BILL' and await self.browser.find_text('gold'):
+                        self._add_to_session_log('navigation', 'Detected wrong section (gold). Redirecting to bills...')
+                        await _ensure_on_bill_page()
+                except Exception:
+                    pass
 
         elif action_type == "FINISHED":
             self.consecutive_ask_count = 0
@@ -254,15 +465,14 @@ class ArvynOrchestrator:
         
         if action_type == "FINISHED": return "finish_task"
         
-        # RECURSION GUARD: Stop if we are stuck in ASK_USER mode without progress
         if action_type == "ASK_USER":
             if self.consecutive_ask_count > 5:
-                self._add_to_session_log("safety", "Stuck detected. Session terminated to ensure safety.")
+                self._add_to_session_log("safety", "Stuck detected. Session terminated to prevent resource drain.")
                 return "finish_task"
             return "ask_user"
         
         if len(state.get("task_history", [])) > 60:
-            self._add_to_session_log("safety", "Task history limit reached (60 steps).")
+            self._add_to_session_log("safety", "Maximum task depth reached.")
             return "finish_task"
             
         return "continue_loop"

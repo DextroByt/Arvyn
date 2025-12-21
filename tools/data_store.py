@@ -142,6 +142,12 @@ class ProfileManager:
                 
         return {}
 
+    def get_provider_credentials(self, provider_name: str) -> Dict[str, Any]:
+        """Return stored login credentials for a provider, or empty dict."""
+        details = self.get_provider_details(provider_name)
+        creds = details.get('login_credentials', {}) if isinstance(details, dict) else {}
+        return creds if isinstance(creds, dict) else {}
+
     def get_verified_url(self, entity_name: str) -> Optional[str]:
         """
         Checks the verified site registry.

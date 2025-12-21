@@ -16,10 +16,10 @@ from config import (
 
 class ArvynDashboard(QFrame):
     """
-    Superior Command Center for Agent Arvyn.
-    UPGRADED: Features Autonomous Action Highlighting (Zero-Auth mode).
-    FIXED: Real-time semantic logging for sensitive credential entry.
-    RESIZED: Optimized for 350px width to prevent background UI occlusion.
+    Superior Command Center for Agent Arvyn (v4.8 - Precision Suite).
+    UPGRADED: Multi-Layer Semantic Logging (Kinetic Sync monitoring).
+    FIXED: Resolves feed latency by synchronizing status updates with v4.8 Browser logic.
+    PRESERVED: All Glass-Morphism styles and Zero-Auth flow controls.
     """
     command_submitted = pyqtSignal(str)
     mic_clicked = pyqtSignal(bool)
@@ -39,81 +39,81 @@ class ArvynDashboard(QFrame):
         self._init_ui()
 
     def _init_styles(self):
-        """Advanced Glass Morphism Stylesheet with semantic highlighting."""
+        """Advanced Glass Morphism Stylesheet with semantic v4.8 highlighting."""
         self.setStyleSheet(f"""
             #Dashboard {{
-                background-color: rgba(15, 15, 20, 250);
-                border: 1px solid rgba(0, 210, 255, 40);
+                background-color: rgba(15, 15, 20, 252);
+                border: 1px solid rgba(0, 210, 255, 45);
                 border-radius: 24px;
             }}
             QLabel {{ color: #ffffff; font-family: 'Segoe UI', sans-serif; }}
             
             QTextEdit {{
-                background: rgba(0, 0, 0, 160);
+                background: rgba(0, 0, 0, 180);
                 color: #d1d1d1;
-                border: 1px solid rgba(255, 255, 255, 10);
+                border: 1px solid rgba(255, 255, 255, 12);
                 border-radius: 12px;
                 font-family: 'Consolas', 'Courier New';
                 font-size: 10px;
-                line-height: 1.4;
-                padding: 8px;
+                line-height: 1.5;
+                padding: 10px;
             }}
             
             QLineEdit {{
-                background: rgba(255, 255, 255, 8);
+                background: rgba(255, 255, 255, 10);
                 color: #ffffff;
-                border: 1px solid rgba(0, 210, 255, 30);
+                border: 1px solid rgba(0, 210, 255, 35);
                 border-radius: 18px;
                 padding: 10px 14px;
                 font-size: 13px;
             }}
-            QLineEdit:focus {{ border-color: {ACCENT_COLOR}; background: rgba(0, 210, 255, 12); }}
+            QLineEdit:focus {{ border-color: {ACCENT_COLOR}; background: rgba(0, 210, 255, 15); }}
 
             QPushButton {{
-                background: rgba(0, 210, 255, 20);
+                background: rgba(0, 210, 255, 25);
                 color: {ACCENT_COLOR};
-                border: 1px solid rgba(0, 210, 255, 40);
+                border: 1px solid rgba(0, 210, 255, 45);
                 border-radius: 10px;
                 font-weight: bold;
                 font-size: 10px;
                 text-transform: uppercase;
             }}
-            QPushButton:hover {{ background: rgba(0, 210, 255, 45); color: white; }}
+            QPushButton:hover {{ background: rgba(0, 210, 255, 50); color: white; }}
             
-            #BtnControl {{ background: transparent; border: none; font-size: 18px; color: #888; }}
+            #BtnControl {{ background: transparent; border: none; font-size: 18px; color: #999; }}
             #BtnControl:hover {{ color: {ACCENT_COLOR}; }}
             #BtnStop:hover {{ color: {ERROR_COLOR}; }}
             
-            #BtnApprove {{ background: rgba(46, 204, 113, 20); border-color: #2ecc71; color: #2ecc71; }}
-            #BtnReject {{ background: rgba(231, 76, 60, 20); border-color: {ERROR_COLOR}; color: {ERROR_COLOR}; }}
+            #BtnApprove {{ background: rgba(46, 204, 113, 25); border-color: #2ecc71; color: #2ecc71; }}
+            #BtnReject {{ background: rgba(231, 76, 60, 25); border-color: {ERROR_COLOR}; color: {ERROR_COLOR}; }}
             
             #VisualMonitor {{
                 background: #000;
-                border: 1px solid rgba(255, 255, 255, 20);
-                border-radius: 10px;
+                border: 1px solid rgba(255, 255, 255, 25);
+                border-radius: 12px;
             }}
         """)
 
     def _init_ui(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 15, 20, 20)
-        layout.setSpacing(12)
+        layout.setContentsMargins(20, 18, 20, 22)
+        layout.setSpacing(14)
 
         # --- 1. Header Area ---
         header_layout = QHBoxLayout()
-        mode_suffix = "AUTO" if STRICT_AUTONOMY_MODE else "COMMAND"
+        mode_suffix = "AUTO-V4.8" if STRICT_AUTONOMY_MODE else "COMMAND-V4.8"
         self.header = QLabel(f"ARVYN // {mode_suffix}")
-        self.header.setStyleSheet(f"font-weight: 900; letter-spacing: 1.5px; font-size: 10px; color: {ACCENT_COLOR};")
+        self.header.setStyleSheet(f"font-weight: 900; letter-spacing: 2px; font-size: 11px; color: {ACCENT_COLOR};")
         
         btn_min = QPushButton("−")
         btn_min.setObjectName("BtnControl")
-        btn_min.setFixedSize(28, 28)
+        btn_min.setFixedSize(30, 30)
         btn_min.clicked.connect(self.minimize_requested.emit)
 
         btn_stop = QPushButton("×")
         btn_stop.setObjectName("BtnControl")
         btn_stop.setObjectName("BtnStop")
-        btn_stop.setFixedSize(28, 28)
+        btn_stop.setFixedSize(30, 30)
         btn_stop.clicked.connect(self.stop_requested.emit)
         
         header_layout.addWidget(self.header)
@@ -127,18 +127,18 @@ class ArvynDashboard(QFrame):
         self.visual_monitor.setObjectName("VisualMonitor")
         self.visual_monitor.setFixedSize(310, 195)
         self.visual_monitor.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.visual_monitor.setText("AWAITING FEED...")
-        self.visual_monitor.setStyleSheet("color: #444; font-size: 9px; font-weight: bold;")
+        self.visual_monitor.setText("AWAITING PRECISION FEED...")
+        self.visual_monitor.setStyleSheet("color: #555; font-size: 10px; font-weight: bold; letter-spacing: 1px;")
         layout.addWidget(self.visual_monitor)
 
         # --- 3. Interaction Status ---
         self.interaction_stack = QStackedWidget()
-        self.interaction_stack.setFixedHeight(50)
+        self.interaction_stack.setFixedHeight(55)
 
         self.status_container = QWidget()
         status_lay = QVBoxLayout(self.status_container)
         status_lay.setContentsMargins(0, 0, 0, 0)
-        initial_status = "AUTONOMOUS ENGINE ACTIVE" if STRICT_AUTONOMY_MODE else "SYSTEM STANDBY"
+        initial_status = "PRECISION KINETIC ENGINE ACTIVE" if STRICT_AUTONOMY_MODE else "SYSTEM IDLE // STANDBY"
         self.status_msg = QLabel(initial_status)
         self.status_msg.setStyleSheet(f"color: {ACCENT_COLOR}; font-weight: 800; font-size: 11px; letter-spacing: 1px;")
         self.status_msg.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -147,17 +147,17 @@ class ArvynDashboard(QFrame):
         self.approval_container = QWidget()
         appr_lay = QHBoxLayout(self.approval_container)
         appr_lay.setContentsMargins(0, 0, 0, 0)
-        appr_lay.setSpacing(10)
+        appr_lay.setSpacing(12)
         
-        # NOTE: These buttons are rarely shown in Zero-Auth mode but kept for visual-stuck fallback
+        # NOTE: Authorized buttons preserved for fallback scenarios
         btn_appr = QPushButton("AUTHORIZE")
         btn_appr.setObjectName("BtnApprove")
-        btn_appr.setFixedHeight(34)
+        btn_appr.setFixedHeight(36)
         btn_appr.clicked.connect(lambda: self.approval_given.emit(True))
         
         btn_rej = QPushButton("REJECT")
         btn_rej.setObjectName("BtnReject")
-        btn_rej.setFixedHeight(34)
+        btn_rej.setFixedHeight(36)
         btn_rej.clicked.connect(lambda: self.approval_given.emit(False))
         
         appr_lay.addWidget(btn_appr)
@@ -170,20 +170,20 @@ class ArvynDashboard(QFrame):
         # --- 4. Semantic Log Area ---
         self.log_area = QTextEdit()
         self.log_area.setReadOnly(True)
-        self.log_area.setPlaceholderText("Streaming autonomous logic...")
+        self.log_area.setPlaceholderText("Streaming precision autonomous logic...")
         layout.addWidget(self.log_area)
 
         # --- 5. Unified Command Input ---
         cmd_layout = QHBoxLayout()
-        cmd_layout.setSpacing(8)
+        cmd_layout.setSpacing(10)
         
         self.input_field = QLineEdit()
         self.input_field.setPlaceholderText("Direct command input...")
         self.input_field.returnPressed.connect(self._handle_submit)
         
         self.btn_mic = QPushButton("🎤")
-        self.btn_mic.setFixedSize(40, 40)
-        self.btn_mic.setStyleSheet("background-color: #ff3b30; border-radius: 20px; border: none; font-size: 18px;")
+        self.btn_mic.setFixedSize(42, 42)
+        self.btn_mic.setStyleSheet("background-color: #ff3b30; border-radius: 21px; border: none; font-size: 20px;")
         self.btn_mic.clicked.connect(self._toggle_mic)
 
         cmd_layout.addWidget(self.input_field)
@@ -193,12 +193,12 @@ class ArvynDashboard(QFrame):
     def _toggle_mic(self):
         if not self.is_listening:
             self.is_listening = True
-            self.btn_mic.setStyleSheet("background-color: #4cd964; border-radius: 20px; border: none; font-size: 18px;")
-            self.append_log("[VOICE] MIC ACTIVE", category="system")
+            self.btn_mic.setStyleSheet("background-color: #4cd964; border-radius: 21px; border: none; font-size: 20px;")
+            self.append_log("[VOICE] MIC ACTIVE - LISTENING", category="system")
         else:
             self.is_listening = False
-            self.btn_mic.setStyleSheet("background-color: #ff3b30; border-radius: 20px; border: none; font-size: 18px;")
-            self.append_log("[VOICE] PROCESSING", category="system")
+            self.btn_mic.setStyleSheet("background-color: #ff3b30; border-radius: 21px; border: none; font-size: 20px;")
+            self.append_log("[VOICE] ANALYZING SEQUENCE", category="system")
         self.mic_clicked.emit(self.is_listening)
 
     def _handle_submit(self):
@@ -209,37 +209,50 @@ class ArvynDashboard(QFrame):
 
     def append_log(self, text: str, category: str = "general"):
         """
-        Semantic Log Streaming.
-        IMPROVED: Added 'autonomous' category for Zero-Auth monitoring.
+        Superior Semantic Log Streaming (v4.8).
+        IMPROVED: Added 'precision' and 'discovery' categories for Multi-Layer tracking.
         """
         colors = {
             "action": ACCENT_COLOR,
-            "system": "#888888",
+            "system": "#999999",
             "error": ERROR_COLOR,
             "success": SUCCESS_COLOR,
             "kinetic": "#f1c40f",
-            "autonomous": "#BB86FC", # NEW: High-vis Purple for autonomous actions
+            "precision": "#00d2ff", # High-vis Blue for coordinate sync
+            "discovery": "#9b59b6", # Amethyst for site resolution
+            "autonomous": "#BB86FC", # Purple for zero-auth actions
             "general": "#e0e0e0"
         }
         text_lower = text.lower()
         
-        # Categorization Logic
+        # Enhanced v4.8 Categorization Logic
         if any(k in text_lower for k in ["secure action", "autofill", "autonomous", "bypass"]): category = "autonomous"
+        elif any(k in text_lower for k in ["precision", "offset", "sync", "stabiliz"]): category = "precision"
+        elif any(k in text_lower for k in ["discovery", "resolving", "portal"]): category = "discovery"
         elif any(k in text_lower for k in ["[action]", "[brain]", "reasoning"]): category = "action"
-        elif any(k in text_lower for k in ["[error]", "failed", "fault"]): category = "error"
+        elif any(k in text_lower for k in ["[error]", "failed", "fault", "missed"]): category = "error"
         elif any(k in text_lower for k in ["completed", "success", "reached", "🏁"]): category = "success"
-        elif any(k in text_lower for k in ["kinetic", "typing", "clicking"]): category = "kinetic"
-        elif any(k in text_lower for k in ["[intent", "[discovery", "resolving"]): category = "system"
+        elif any(k in text_lower for k in ["kinetic", "typing", "clicking", "interaction"]): category = "kinetic"
+        elif any(k in text_lower for k in ["[intent", "system"]): category = "system"
 
         color = colors.get(category, colors["general"])
-        # Format with high-contrast prefix
-        prefix = "⚡" if category == "autonomous" else "&gt;"
-        formatted_text = f"<div style='margin-bottom: 4px;'><span style='color:{color}; font-weight:900;'>{prefix}</span> {text}</div>"
+        # v4.8 prefix system
+        prefixes = {
+            "autonomous": "⚡",
+            "precision": "🎯",
+            "kinetic": "⚙️",
+            "error": "❌",
+            "success": "✅",
+            "discovery": "🌐"
+        }
+        prefix = prefixes.get(category, "&gt;")
+        formatted_text = f"<div style='margin-bottom: 5px;'><span style='color:{color}; font-weight:900;'>{prefix}</span> {text}</div>"
         
         self.log_area.append(formatted_text)
         self.log_area.verticalScrollBar().setValue(self.log_area.verticalScrollBar().maximum())
 
     def update_screenshot(self, b64_data: str):
+        """Refreshes the precision visual monitor and status text."""
         try:
             img_data = base64.b64decode(b64_data)
             image = QImage.fromData(img_data)
@@ -250,10 +263,15 @@ class ArvynDashboard(QFrame):
                 Qt.TransformationMode.SmoothTransformation
             )
             self.visual_monitor.setPixmap(scaled_pixmap)
-            # Update Dashboard feedback
+            
+            # Context-Aware Status Feedback
             if STRICT_AUTONOMY_MODE:
-                self.status_msg.setText("AUTONOMOUS EXECUTION IN PROGRESS")
+                status_txt = "AUTONOMOUS EXECUTION // SYNCED"
+                # Check for stabilization in recent logs
+                if "stabilizing" in self.log_area.toPlainText().lower().split('\n')[-2:]:
+                    status_txt = "STABILIZING UI FOR PRECISION..."
+                self.status_msg.setText(status_txt)
             else:
-                self.status_msg.setText("EYES ON TARGET")
+                self.status_msg.setText("LIVE MONITORING // PRECISION FEED")
         except Exception as e:
-            self.append_log(f"Feed Error: {e}", category="error")
+            self.append_log(f"Feed Synchronization Error: {e}", category="error")

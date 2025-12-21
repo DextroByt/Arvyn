@@ -4,9 +4,8 @@
             "name": "Rio Finance Bank",
             "url": "https://roshan-chaudhary13.github.io/rio_finance_bank/",
             "login_credentials": {
-                "email": "akash@gmail.com",
-                "consumer_id": "8120000000",
-                "password": "admin123"
+                "email": "testuser@example.com",
+                "password": "P@ssw0rd!"
             },
             "security_details": {
                 "upi_pin": "696955",
@@ -43,9 +42,9 @@
         "strict_banking_mode": true
     },
     "task_registry": {
-        "active_goal": null,
+        "active_goal": "PAY_BILL::Rio Finance Bank",
         "step_count": 0,
-        "status": "IDLE"
+        "status": "IN_PROGRESS"
     },
     "automation_preferences": {
         "bill_payments": [
