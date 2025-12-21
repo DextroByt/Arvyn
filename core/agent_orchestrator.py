@@ -22,8 +22,9 @@ from tools.voice import ArvynVoice
 class ArvynOrchestrator:
     """
     Superior Autonomous Orchestrator for Agent Arvyn.
-    UPGRADED: Features Kinetic Anti-Loop logic and Dynamic Offset Scaling.
+    UPGRADED: Features Kinetic Anti-Loop logic, Dynamic Offset Scaling, and Intelligent Provider Routing.
     FIXED: Resolves click-unresponsiveness on Rio Bank and ensures data integrity.
+    IMPROVED: Properly routes to different platforms (Flipkart, Amazon, etc.) based on user intent.
     """
 
     def __init__(self, model_name: str = GEMINI_MODEL_NAME):
@@ -101,40 +102,81 @@ class ArvynOrchestrator:
             intent_obj = await self.brain.parse_intent(content)
             intent_dict = intent_obj.model_dump()
             provider = intent_dict.get('provider', 'Rio Finance Bank')
-            self._add_to_session_log("intent_parser", f"Target Locked: {provider}")
+            action = intent_dict.get('action', 'QUERY')
+            target = intent_dict.get('target', 'BANKING')
+            
+            self._add_to_session_log("intent_parser", f"Intent: {action} | Provider: {provider} | Target: {target}")
             
             return {
                 "intent": intent_dict, 
                 "task_history": [], 
-                "current_step": f"Initiating workflow for {provider}..."
+                "current_step": f"Initiating {action} workflow for {provider}..."
             }
         except Exception as e:
             logger.error(f"Intent Extraction Failure: {e}")
             return {"current_step": "Clarification required.", "intent": None}
 
     def _resolve_target_url(self, provider_name: str) -> str:
-        RIO_URL = "https://roshan-chaudhary13.github.io/rio_finance_bank/"
+        """
+        Enhanced URL Resolution: Maps providers to their actual URLs.
+        IMPROVED: Now properly routes to different platforms based on intent.
+        """
+        # Banking-specific URLs (Rio Finance Bank)
         if any(key in provider_name.lower() for key in ["rio", "finance", "bank", "gold", "bill"]):
-            return RIO_URL
+            return "https://roshan-chaudhary13.github.io/rio_finance_bank/"
+        
+        # Shopping platforms
+        if "flipkart" in provider_name.lower():
+            return "https://www.flipkart.com/"
+        if "amazon" in provider_name.lower():
+            return "https://www.amazon.com/"
+        
+        # Entertainment platforms
+        if "netflix" in provider_name.lower():
+            return "https://www.netflix.com/in/"
+        
+        # Developer/Other platforms
+        if "github" in provider_name.lower():
+            return "https://github.com/"
+        
+        # Jio Financial Services
+        if "jio" in provider_name.lower():
+            return "https://www.jiofinance.com/"
+        
+        # BSNL (telecom)
+        if "bsnl" in provider_name.lower():
+            return "https://www.bsnl.co.in/"
+        
+        # Fallback: Try to get from profile manager
         norm_name = provider_name.upper().replace(" ", "_")
         url = self.profile.get_verified_url(norm_name)
-        return url if url else f"https://www.google.com/search?q={provider_name}+official+site"
+        
+        if url:
+            return url
+        
+        # Final fallback: Search for the provider
+        return f"https://www.google.com/search?q={provider_name}+official+site"
 
     async def _node_site_discovery(self, state: AgentState) -> Dict[str, Any]:
         """Navigates and prepares for the Auto-Login Check."""
         intent = state.get("intent") or {}
         provider = intent.get("provider", "Rio Finance Bank")
+        action = intent.get("action", "QUERY")
         target_url = self._resolve_target_url(provider)
 
         try:
             page = await self.browser.ensure_page()
+            
+            # Only navigate if we're not already at the target URL
             if target_url not in page.url or page.url == "about:blank":
-                self._add_to_session_log("discovery", f"Connecting to secure portal: {target_url}")
+                self._add_to_session_log("discovery", f"Navigating to: {provider} ({target_url})")
                 await self.browser.navigate(target_url)
                 await asyncio.sleep(4.0) # Buffer for heavy React hydration
+            else:
+                self._add_to_session_log("discovery", f"Already at {provider}. Proceeding...")
             
             self._add_to_session_log("security", "STATUS: Verifying Login/Session state...")
-            return {"current_step": f"Connection secured. Checking login status..."}
+            return {"current_step": f"Connection secured to {provider}. Checking login status..."}
             
         except Exception as e:
             self._add_to_session_log("error", f"Portal connection error: {str(e)}")
@@ -144,6 +186,7 @@ class ArvynOrchestrator:
         """
         Main autonomous loop.
         UPGRADED: Uses Interaction Counters and Scaled Offsets for Click Reliability.
+        PRESERVED: All credential handling, security features, and anti-loop logic.
         """
         self._add_to_session_log("executor", "Observing UI state...")
         
@@ -162,11 +205,12 @@ class ArvynOrchestrator:
         else:
             screenshot = await self.browser.get_screenshot_b64()
             provider_name = intent.get("provider", "Rio Finance Bank")
+            action = intent.get("action", "QUERY")
             
-            # IMPROVEMENT: Goal now explicitly forbids hallucination and emphasizes STEP 0
+            # IMPROVEMENT: Goal explicitly forbids hallucination and emphasizes STEP 0
             goal = (
                 f"STEP 0: If 'Login' or 'Sign In' is visible, LOGIN FIRST using user_context['login_credentials']. "
-                f"STEP 1: Only once logged in, perform {intent.get('action')} on {provider_name}. "
+                f"STEP 1: Only once logged in, perform {action} on {provider_name}. "
                 f"CRITICAL: USE EXACT DATA. Do NOT use 'password123' if the data says 'admin123'."
             )
             
