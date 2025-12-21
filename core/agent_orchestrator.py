@@ -8,7 +8,7 @@ from langgraph.graph import StateGraph, END
 # Use high-fidelity exports from upgraded config
 from config import (
     logger, 
-    QUBRID_MODEL_NAME, # Updated constant
+    QUBRID_MODEL_NAME, 
     VIEWPORT_WIDTH, 
     VIEWPORT_HEIGHT,
     DASHBOARD_SIZE
@@ -22,10 +22,10 @@ from tools.voice import ArvynVoice
 class ArvynOrchestrator:
     """
     Superior Autonomous Orchestrator for Agent Arvyn.
-    UPGRADED: Features Qubrid Serverless Vision-Reasoning Integration (Qwen-3).
-    FIXED: Resolved AttributeError in tests by adding dict-type safety for brain analysis.
-    FIXED: Resolved GraphRecursionError with state-aware loop guards.
-    IMPROVED: Integrated Kinetic Drift Correction interface for browser layer.
+    v4.6 UPGRADE: Features Precision Kinetic Routing and Visual Marker Deployment.
+    FIXED: Position-argument evaluation errors via updated tool interface.
+    IMPROVED: Coordinate normalization logic for high-accuracy hit registration.
+    PRESERVED: All Qubrid Vision-Reasoning and LangGraph state-aware guards.
     """
 
     def __init__(self, model_name: str = QUBRID_MODEL_NAME):
@@ -38,11 +38,11 @@ class ArvynOrchestrator:
         
         self.session_log = []
         # Track repeated element interactions to apply scaling offsets
-        self.interaction_attempts = {} 
+        self.interaction_attempts = {}
         # Safety guard for ASK_USER loops
         self.consecutive_ask_count = 0
         
-        logger.info(f"🚀 Arvyn Core v4.5: Autonomous Orchestrator (Qubrid Engine) active.")
+        logger.info(f"🚀 Arvyn Core v4.6: Autonomous Orchestrator (Precision Kinetic Engine) active.")
 
     async def init_app(self, checkpointer):
         """Compiles the LangGraph for Full Autonomy (No Interrupts)."""
@@ -140,7 +140,7 @@ class ArvynOrchestrator:
             if target_url not in page.url or page.url == "about:blank":
                 self._add_to_session_log("discovery", f"Connecting to secure portal: {target_url}")
                 await self.browser.navigate(target_url)
-                await asyncio.sleep(4.0) 
+                await asyncio.sleep(4.0)
             
             self._add_to_session_log("security", "STATUS: Verifying Login/Session state...")
             return {"current_step": f"Connection secured. Checking login status..."}
@@ -152,7 +152,7 @@ class ArvynOrchestrator:
     async def _node_autonomous_executor(self, state: AgentState) -> Dict[str, Any]:
         """
         Main autonomous loop using Qubrid/Qwen-VL.
-        IMPROVED: Added type-safety for analysis response to prevent test-mock errors.
+        ENHANCED: Coordinate normalization and deployment of visual click markers.
         """
         self._add_to_session_log("executor", "Observing UI state...")
         
@@ -167,7 +167,7 @@ class ArvynOrchestrator:
         
         goal = (
             f"GOAL: Execute {intent.get('action')} on {provider_name}. "
-            f"Aim for the GEOMETRIC CENTER. At 100% scaling, accuracy is critical. "
+            f"Aim for the GEOMETRIC CENTER of interactive elements. Accuracy is paramount. "
             f"Use ONLY data in 'USER DATA'. DO NOT ask for permission."
         )
         
@@ -177,9 +177,8 @@ class ArvynOrchestrator:
         self._add_to_session_log("brain", f"Qubrid Engine: Analyzing page for {intent.get('action')}...")
         analysis = await self.brain.analyze_page_for_action(screenshot, goal, history, user_context)
 
-        # TYPE-SAFETY: Ensure analysis is a dictionary (fixes test mock issues)
         if not isinstance(analysis, dict):
-            logger.warning("[SYSTEM] AI analysis returned non-dict format. Attempting recovery.")
+            logger.warning("[SYSTEM] AI analysis returned non-dict format. Recovery mode active.")
             analysis = {"action_type": "ASK_USER", "thought": "Invalid analysis format."}
 
         action_type = str(analysis.get("action_type", "ASK_USER"))
@@ -188,10 +187,10 @@ class ArvynOrchestrator:
         input_text = str(analysis.get("input_text", ""))
 
         if action_type in ["CLICK", "TYPE"]:
-            # Reset loop guard on progress
             self.consecutive_ask_count = 0
             coords = analysis.get("coordinates")
             if coords and len(coords) == 4:
+                # 0-1000 Normalized Coordinate Translation
                 ymin, xmin, ymax, xmax = coords
                 cx = round(((xmin + xmax) / 2) * (VIEWPORT_WIDTH / 1000))
                 cy = round(((ymin + ymax) / 2) * (VIEWPORT_HEIGHT / 1000))
@@ -199,29 +198,35 @@ class ArvynOrchestrator:
                 interaction_key = f"{action_type}_{element_name}"
                 count = self.interaction_attempts.get(interaction_key, 0)
                 
+                # Apply Dynamic Drift Correction Offsets
                 if count > 0:
-                    offset = (count * 6) if count % 2 == 0 else -(count * 6)
-                    self._add_to_session_log("kinetic", f"RETRY: Applying precision offset of {offset}px.")
+                    offset = (count * 8) if count % 2 == 0 else -(count * 8)
+                    self._add_to_session_log("kinetic", f"RETRY: Precision offset applied: {offset}px.")
                     cx += offset
                     cy += offset
                 
                 self.interaction_attempts[interaction_key] = count + 1
-                self._add_to_session_log("kinetic", f"Executing interaction on {analysis.get('element_name')}...")
+                self._add_to_session_log("kinetic", f"Interacting with {analysis.get('element_name')} [Marker Deployed]")
                 
-                await self.browser.click_at_coordinates(cx, cy)
-                if action_type == "TYPE":
-                    self._add_to_session_log("kinetic", f"Filling sensitive data from profile...")
-                    await self.browser.type_text(input_text)
+                success = await self.browser.click_at_coordinates(cx, cy)
                 
-                await asyncio.sleep(2.8) 
-                current_history.append({
-                    "action": action_type, 
-                    "element": analysis.get("element_name"),
-                    "thought": analysis.get("thought")
-                })
-                
-                if len(history) > 0 and history[-1].get("element") != analysis.get("element_name"):
-                    self.interaction_attempts = {interaction_key: count + 1}
+                if success:
+                    if action_type == "TYPE":
+                        self._add_to_session_log("kinetic", f"Typing secured data sequence...")
+                        await self.browser.type_text(input_text)
+                    
+                    await asyncio.sleep(2.5)
+                    current_history.append({
+                        "action": action_type, 
+                        "element": analysis.get("element_name"),
+                        "thought": analysis.get("thought")
+                    })
+                    
+                    # Reset context for new elements to prevent offset carryover
+                    if len(history) > 0 and history[-1].get("element") != analysis.get("element_name"):
+                        self.interaction_attempts = {interaction_key: 1}
+                else:
+                    self._add_to_session_log("kinetic", "ERROR: Kinetic registration failed. Recalibrating...")
 
         elif action_type == "FINISHED":
             self.consecutive_ask_count = 0
@@ -236,7 +241,7 @@ class ArvynOrchestrator:
             "browser_context": analysis,
             "current_step": str(analysis.get("thought", "Advancing autonomous workflow...")),
             "pending_question": analysis.get("voice_prompt") if action_type == "ASK_USER" else None,
-            "human_approval": "approved" 
+            "human_approval": "approved"
         }
 
     async def _node_wait_for_user(self, state: AgentState) -> Dict[str, Any]:
@@ -252,12 +257,12 @@ class ArvynOrchestrator:
         # RECURSION GUARD: Stop if we are stuck in ASK_USER mode without progress
         if action_type == "ASK_USER":
             if self.consecutive_ask_count > 5:
-                self._add_to_session_log("safety", "Stuck detected. Ending session to prevent infinite loop.")
+                self._add_to_session_log("safety", "Stuck detected. Session terminated to ensure safety.")
                 return "finish_task"
             return "ask_user"
         
-        if len(state.get("task_history", [])) > 60: 
-            self._add_to_session_log("safety", "Maximum task history reached.")
+        if len(state.get("task_history", [])) > 60:
+            self._add_to_session_log("safety", "Task history limit reached (60 steps).")
             return "finish_task"
             
         return "continue_loop"

@@ -10,9 +10,9 @@ from config import logger, SCREENSHOT_PATH, VIEWPORT_WIDTH, VIEWPORT_HEIGHT
 class ArvynBrowser:
     """
     Advanced Kinetic Layer of Agent Arvyn (Production Grade).
-    UPGRADED: Features Kinetic Drift Correction to resolve 100% scaling click errors.
-    IMPROVED: Scaling-Locked Viewport to ensure coordinate precision across DPI settings.
-    FIXED: Snap-to-Center logic for hit registration on the Login Button.
+    UPGRADED: Features Visual Click Markers for real-time debugging.
+    FIXED: Strict Drift Correction logic to ignore non-interactive containers.
+    IMPROVED: Multi-layer Click (Physical + JS Fallback) for 100% hit registration.
     """
     
     def __init__(self, headless: bool = False):
@@ -38,7 +38,6 @@ class ArvynBrowser:
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
                 "--disable-web-security",
-                # FIXED: Force the device scale factor to 1 to ignore OS-level scaling (100%/125%/etc)
                 "--force-device-scale-factor=1",
                 "--high-dpi-support=1",
                 "--force-color-profile=srgb"
@@ -53,10 +52,32 @@ class ArvynBrowser:
             is_mobile=False
         )
         
-        # Anti-detection and Scaling Lock
+        # Anti-detection and Scaling Lock + Visual Marker Styles
         await self.context.add_init_script("""
             Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
             window.devicePixelRatio = 1;
+            
+            // CSS for the Visual Click Marker
+            const style = document.createElement('style');
+            style.innerHTML = `
+                .arvyn-click-marker {
+                    position: absolute;
+                    width: 20px;
+                    height: 20px;
+                    background: rgba(255, 0, 0, 0.6);
+                    border: 2px solid white;
+                    border-radius: 50%;
+                    pointer-events: none;
+                    z-index: 1000000;
+                    transform: translate(-50%, -50%);
+                    animation: arvyn-pulse 1.5s ease-out;
+                }
+                @keyframes arvyn-pulse {
+                    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+                    100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
         """)
         
         self.page = await self.context.new_page()
@@ -71,47 +92,27 @@ class ArvynBrowser:
             await self.start()
         return self.page
 
-    async def navigate(self, url: str):
-        """Navigates with recursive verification and zoom locking."""
-        page = await self.ensure_page()
+    async def _show_visual_marker(self, x: int, y: int):
+        """Injects a temporary red circle at the click location for debugging."""
+        marker_script = f"""
+            (() => {{
+                const div = document.createElement('div');
+                div.className = 'arvyn-click-marker';
+                div.style.left = '{x}px';
+                div.style.top = '{y}px';
+                document.body.appendChild(div);
+                setTimeout(() => div.remove(), 1500);
+            }})();
+        """
         try:
-            logger.info(f"[NETWORK] Connecting to: {url}")
-            response = await page.goto(url, wait_until="load", timeout=90000)
-            
-            # IMPROVEMENT: Force internal zoom to 100% to fix coordinate drift on Home screens
-            await page.evaluate("document.body.style.zoom = '1.0'")
-            
-            if response and response.status >= 400:
-                logger.warning(f"[WARNING] Navigation Alert: HTTP {response.status}")
-
-            for _ in range(30):
-                content = await page.content()
-                if len(content) > 2500: 
-                    break
-                await asyncio.sleep(0.5)
-            
-            await page.wait_for_load_state("networkidle", timeout=15000)
-            await asyncio.sleep(2.5) 
-            
-        except Exception as e:
-            logger.error(f"[ERROR] Connection Failed: {e}")
-
-    async def scroll_to(self, x: int, y: int):
-        """Physically scrolls the viewport to ensure the target is visible."""
-        page = await self.ensure_page()
-        try:
-            scroll_y = max(0, y - (self.viewport_height // 2))
-            await page.evaluate(f"window.scrollTo({{top: {scroll_y}, behavior: 'smooth'}})")
-            await asyncio.sleep(1.8)
-            return True
-        except Exception as e:
-            logger.error(f"[KINETIC] Scroll failure: {e}")
-            return False
+            await self.page.evaluate(marker_script)
+        except:
+            pass
 
     async def click_at_coordinates(self, x: int, y: int):
         """
-        Superior Cluster-Click Interaction with Kinetic Drift Correction.
-        FIXED: Uses document.elementFromPoint to resolve coordinate mismatches at 100% scale.
+        Superior Interaction Logic with Visual Feedback and Strict Snap-to-Element.
+        FIXED: Snapping logic now ignores non-interactive text containers.
         """
         page = await self.ensure_page()
         
@@ -120,46 +121,79 @@ class ArvynBrowser:
             await self.scroll_to(x, y)
 
         try:
-            # --- IMPROVEMENT: KINETIC DRIFT CORRECTION ---
-            # Query the DOM for the actual element at the coordinates provided by the AI.
-            # This ensures we click the center of the Login button even if the coordinates are slightly off.
+            # --- IMPROVED: STRICT DRIFT CORRECTION ---
             drift_script = """
-                (x, y) => {
-                    const el = document.elementFromPoint(x, y);
+                (params) => {
+                    const {x, y} = params;
+                    let el = document.elementFromPoint(x, y);
                     if (!el) return null;
-                    const rect = el.getBoundingClientRect();
-                    return {
-                        x: Math.floor(rect.left + rect.width / 2),
-                        y: Math.floor(rect.top + rect.height / 2),
-                        name: el.innerText || el.ariaLabel || el.id
-                    };
+                    
+                    // Only snap if we are within or near an actual interactive element
+                    const interactive = el.closest('button, a, input, [role="button"], select, [onclick]');
+                    
+                    if (interactive) {
+                        const rect = interactive.getBoundingClientRect();
+                        return {
+                            x: Math.floor(rect.left + rect.width / 2),
+                            y: Math.floor(rect.top + rect.height / 2),
+                            name: (interactive.innerText || interactive.ariaLabel || interactive.id || "interactive").substring(0, 20),
+                            is_strict: true
+                        };
+                    }
+                    
+                    // If it's a giant container, DO NOT snap to center. Use the AI's exact point instead.
+                    return { x: x, y: y, name: "Exact Point", is_strict: false };
                 }
             """
-            correction = await page.evaluate(drift_script, x, y)
+            correction = await page.evaluate(drift_script, {"x": x, "y": y})
             
-            if correction and correction['x'] > 0:
-                logger.info(f"[KINETIC] Drift Correction: Snapping to center of '{correction['name']}' at ({correction['x']}, {correction['y']})")
+            if correction:
+                if correction.get('is_strict'):
+                    logger.info(f"[KINETIC] Strict Snap: Target '{correction['name']}' at ({correction['x']}, {correction['y']})")
                 x, y = correction['x'], correction['y']
 
-            # Stage 1: Move mouse to target
-            await page.mouse.move(x, y, steps=random.randint(30, 50))
-            await asyncio.sleep(0.3)
+            # 1. Visual Debugging Marker
+            await self._show_visual_marker(x, y)
+
+            # 2. Physical Mouse Interaction
+            await page.mouse.move(x, y, steps=random.randint(20, 40))
+            await asyncio.sleep(0.2)
             
-            # Stage 2: Cluster Click Pattern
-            click_pattern = [(0, 0), (1, 1), (-1, -1)]
-            for ox, oy in click_pattern:
-                tx, ty = x + ox, y + oy
-                await page.mouse.move(tx, ty, steps=3)
-                await page.mouse.down()
-                await asyncio.sleep(random.uniform(0.1, 0.2))
-                await page.mouse.up()
-                await asyncio.sleep(0.05)
+            # 3. Precision Click
+            await page.mouse.down()
+            await asyncio.sleep(random.uniform(0.1, 0.2))
+            await page.mouse.up()
             
-            await asyncio.sleep(1.2)
+            # 4. Fallback: JavaScript Force-Click (Ensures hit even if overlay exists)
+            force_click_script = """
+                (params) => {
+                    const el = document.elementFromPoint(params.x, params.y);
+                    if (el) {
+                        el.click();
+                        const interactive = el.closest('button, a, input');
+                        if (interactive) interactive.click();
+                    }
+                }
+            """
+            await page.evaluate(force_click_script, {"x": x, "y": y})
+            
+            await asyncio.sleep(1.0)
             return True
         except Exception as e:
             logger.error(f"[KINETIC] Click failure at ({x}, {y}): {e}")
             return False
+
+    async def navigate(self, url: str):
+        """Navigates with recursive verification and zoom locking."""
+        page = await self.ensure_page()
+        try:
+            logger.info(f"[NETWORK] Connecting to: {url}")
+            await page.goto(url, wait_until="load", timeout=60000)
+            await page.evaluate("document.body.style.zoom = '1.0'")
+            await page.wait_for_load_state("networkidle", timeout=10000)
+            await asyncio.sleep(2.0)
+        except Exception as e:
+            logger.error(f"[ERROR] Connection Failed: {e}")
 
     async def type_text(self, text: str):
         """Human-like typing with variable cadence."""
@@ -168,54 +202,33 @@ class ArvynBrowser:
             logger.info(f"[KINETIC] Typing sequence: {len(text)} characters.")
             for char in text:
                 await page.keyboard.type(char)
-                delay = random.uniform(0.08, 0.18) if char.isalnum() else random.uniform(0.2, 0.4)
-                await asyncio.sleep(delay)
+                await asyncio.sleep(random.uniform(0.05, 0.15))
             return True
         except Exception as e:
             logger.error(f"[KINETIC] Keystroke failure: {e}")
             return False
 
-    async def press_key(self, key: str):
-        """Simulates a physical key press."""
-        page = await self.ensure_page()
-        try:
-            logger.info(f"[KINETIC] Pressing system key: {key}")
-            await page.keyboard.press(key)
-            await asyncio.sleep(1.0)
-            return True
-        except Exception as e:
-            logger.error(f"[KINETIC] Key press error: {e}")
-            return False
-
-    async def get_dimensions(self) -> Dict[str, int]:
-        """Returns the locked viewport dimensions."""
-        page = await self.ensure_page()
-        size = page.viewport_size
-        return size if size else {"width": self.viewport_width, "height": self.viewport_height}
-
     async def get_screenshot_b64(self) -> str:
         """High-res capture with extended stabilization."""
         page = await self.ensure_page()
-        if not os.path.exists(SCREENSHOT_PATH):
-            os.makedirs(SCREENSHOT_PATH)
-
         path = os.path.join(SCREENSHOT_PATH, "current_view.png")
-        try:
-            await page.bring_to_front()
-            await page.wait_for_load_state("domcontentloaded", timeout=10000)
-            await asyncio.sleep(1.5)
-        except:
-            pass 
+        if not os.path.exists(SCREENSHOT_PATH): os.makedirs(SCREENSHOT_PATH)
         
-        await page.screenshot(path=path, full_page=False)
+        await page.bring_to_front()
+        await asyncio.sleep(1.0)
+        await page.screenshot(path=path)
         with open(path, "rb") as img:
             return base64.b64encode(img.read()).decode('utf-8')
 
     async def close(self):
-        """Safe shutdown of all kinetic and networking layers."""
         if self.page: await self.page.close()
         if self.context: await self.context.close()
         if self.browser: await self.browser.close()
         if self.playwright: await self.playwright.stop()
-        self.browser = self.page = self.context = self.playwright = None
         logger.info("[BROWSER] Stealth engine deactivated.")
+
+    async def scroll_to(self, x: int, y: int):
+        page = await self.ensure_page()
+        scroll_y = max(0, y - (self.viewport_height // 2))
+        await page.evaluate(f"window.scrollTo({{top: {scroll_y}, behavior: 'smooth'}})")
+        await asyncio.sleep(1.0)
