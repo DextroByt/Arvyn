@@ -48,25 +48,6 @@
         "status": "IN_PROGRESS"
     },
     "automation_preferences": {
-        "bill_payments": [
-            {
-                "category": "ELECTRICITY",
-                "provider_name": "Tata Power",
-                "consumer_number": "1548203948",
-                "auto_select": true
-            },
-            {
-                "category": "INTERNET",
-                "provider_name": "Jio Fiber / Mobile",
-                "consumer_number": "7982103948",
-                "auto_select": true
-            },
-            {
-                "category": "MOBILE",
-                "provider_name": "BSNL",
-                "mobile_number": "9420193847",
-                "auto_select": true
-            }
-        ]
+        "bill_payments": []
     }
 }

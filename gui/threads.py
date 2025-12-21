@@ -115,7 +115,7 @@ class AgentWorker(QThread):
         self.orchestrator = None
         self.loop = None
         self._is_running = True
-        self.session_config = {"configurable": {"thread_id": "arvyn_autonomous_v4_qubrid"}}
+        self.session_config = {"configurable": {"thread_id": "arvyn_autonomous_v4_qubrid"}, "recursion_limit": 100}
 
     def submit_command(self, user_command: str):
         self.command_queue.put(user_command)

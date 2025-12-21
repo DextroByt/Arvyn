@@ -116,6 +116,20 @@ class ArvynOrchestrator:
         try:
             intent_obj = await self.brain.parse_intent(content)
             intent_dict = intent_obj.model_dump()
+            
+            # RULE-BASED OVERRIDE: Ensure specific keywords map to PAY_BILL
+            # This fixes the issue where "pay my mobile" is misclassified as NAVIGATE
+            text_norm = content.lower()
+            if 'pay' in text_norm and any(k in text_norm for k in ['bill', 'mobile', 'internet', 'recharge', 'electricity']):
+                if intent_dict.get('action') != 'PAY_BILL':
+                    self._add_to_session_log("intent_parser", "Rule-based override: Forcing action to PAY_BILL")
+                    intent_dict['action'] = 'PAY_BILL'
+                    intent_dict['target'] = 'UTILITY'
+
+            if intent_dict.get('action') == 'CLARIFY':
+                self._add_to_session_log("intent_parser", "Input ambiguous or meaningless. Requesting clarification.")
+                return {"current_step": "Clarification required.", "intent": None}
+
             provider = intent_dict.get('provider', 'Rio Finance Bank')
             self._add_to_session_log("intent_parser", f"Target Locked: {provider}")
             # Start a short-lived session for task tracking
@@ -202,298 +216,55 @@ class ArvynOrchestrator:
                 bill_type = 'INTERNET'
         except Exception:
             bill_type = None
-        async def _ensure_on_bill_page(retries: int = 2) -> bool:
-            """Ensure the current page is the billing/payment page; try to find and click relevant links if not."""
-            bill_keywords = ['bill', 'pay bill', 'bill payment', 'electricity bill', 'pay my bill']
-            # quick check
-            for kw in bill_keywords:
-                try:
-                    if await self.browser.find_text(kw):
-                        return True
-                except Exception:
-                    continue
+        # [AUTONOMY UPDATE] Hardcoded navigation scripts removed.
+        # The agent now relies 100% on VLM observation and decision-making.
 
-            # try to find links/buttons that lead to bills
-            candidates = ['pay bill', 'bill payment', 'bills', 'pay my bill', 'electricity', 'payments']
-            for c in candidates:
-                try:
-                    clicked = await self.browser.find_and_click_text(c)
-                    if clicked:
-                        await asyncio.sleep(2.5)
-                        # verify again
-                        for kw in bill_keywords:
-                            if await self.browser.find_text(kw):
-                                return True
-                except Exception:
-                    continue
 
-            return False
-        
         goal = (
             f"GOAL: Execute {intent.get('action')} on {provider_name}. "
             f"Identify target 'element_name' (label/text) for Semantic Sync. "
             f"Use ONLY data in 'USER DATA'. DO NOT ask for permission."
         )
         
-        user_context = self.profile.get_provider_details(provider_name)
-        user_context.update(self.profile.get_data().get("personal_info", {}))
+        user_context = self.profile.get_data().get("personal_info", {})
+        user_context.update(self.profile.get_provider_details(provider_name))
 
-        # --- Bill payment flow helpers (class-level orchestration) ---
-        async def _ensure_on_bill_page_local(retries: int = 2) -> bool:
-            bill_keywords = ['bill', 'pay bill', 'bill payment', 'electricity', 'electricity bill']
-            for attempt in range(retries + 1):
-                try:
-                    for kw in bill_keywords:
-                        if await self.browser.find_text(kw):
-                            return True
-                except Exception:
-                    pass
-
-                # Try clicking common navigation labels that likely lead to bills
-                candidates = ['bills', 'pay bill', 'bill payment', 'payments', 'electricity']
-                for c in candidates:
-                    try:
-                        if await self.browser.find_and_click_text(c):
-                            await asyncio.sleep(2.0)
-                            break
-                    except Exception:
-                        continue
-
-                # If profile has a verified payment URL, navigate there
-                try:
-                    verified = self.profile.get_verified_url(provider_name.upper().replace(' ', '_'))
-                    if verified:
-                        await self.browser.navigate(verified)
-                        await asyncio.sleep(2.0)
-                except Exception:
-                    pass
-
-            # Final check
+        if target_action == 'PAY_BILL':
+            # Track active goal in profile for stateful behavior
             try:
-                for kw in bill_keywords:
-                    if await self.browser.find_text(kw):
-                        return True
+                self.profile.track_task(f"PAY_BILL::{provider_name}")
             except Exception:
                 pass
-            return False
-
-        async def _execute_bill_payment_local() -> Dict[str, Any]:
-            """Sequence: ensure bill page -> find provider/bill entry -> click pay -> choose method -> confirm."""
-            # 1) Ensure on bill page
-            if not await _ensure_on_bill_page_local(retries=2):
-                return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": "I can't reach the bill payment section."}
-            # 2) Determine target bill type from user message
-            # Scan last few messages for context, not just the very last one
-            msgs = state.get('messages', [])
-            bill_type = None
             
-            # Iterate backwards through last 3 messages to find intent
-            for m in reversed(msgs[-3:]):
-                content = (m.content if hasattr(m, 'content') else str(m)).lower()
-                if 'electric' in content or 'electricity' in content or 'power' in content:
-                    bill_type = 'ELECTRICITY'
-                    break
-                elif 'mobile' in content or 'phone' in content or 'recharge' in content:
-                    bill_type = 'MOBILE'
-                    break
-                elif 'internet' in content or 'broadband' in content or 'wifi' in content or 'fiber' in content:
-                    bill_type = 'INTERNET'
-                    break
-
-            # fallback to automation preferences ONLY if bill_type is still None
-            # And prevent defaulting to the first one if multiple are set to auto_select—this causes the "Always Electricity" bug.
-            if not bill_type:
-                prefs = self.profile.get_data().get('automation_preferences', {}).get('bill_payments', [])
-                auto_candidates = [p for p in prefs if p.get('auto_select')]
-                
-                if len(auto_candidates) == 1:
-                    # Only one preferred bill type? Safe to auto-select.
-                    bill_type = auto_candidates[0].get('category')
-                elif len(auto_candidates) > 1:
-                    # Ambiguous! Multiple bills marked for auto-pay. Don't guess 'Electricity'.
-                    # We will likely find "Electricity", "Mobile", etc. on screen and click one, or ask user.
-                    pass 
-
-            # 2.1) CLICK CATEGORY (e.g. "Electricity", "Mobile")
-            if bill_type:
-                category_variants = []
-                if bill_type == 'ELECTRICITY':
-                    category_variants = ['Electricity', 'Electricity Bill', 'Power', 'Light Bill']
-                elif bill_type == 'MOBILE':
-                    category_variants = ['Mobile', 'Prepaid', 'Postpaid', 'Recharge', 'Mobile Recharge']
-                elif bill_type == 'INTERNET':
-                    category_variants = ['Broadband', 'Internet', 'Fiber', 'Landline']
-
-                cat_clicked = False
-                for cv in category_variants:
-                    try:
-                        # Use exact match preference to avoid 'Mobile' matching 'Automobile' etc.
-                        if await self.browser.find_and_click_text(cv, exact=True):
-                            self._add_to_session_log('executor', f"Selected Category: {cv}")
-                            cat_clicked = True
-                            await asyncio.sleep(2.0)
-                            break
-                    except Exception:
-                        continue
-                
-                if not cat_clicked:
-                     self._add_to_session_log('executor', f"Could not explicitly click category for {bill_type}, proceeding to provider search...")
-
-            # 2.2) SELECT PROVIDER
-            target_provider_name = provider_name
-            consumer_number = None
-
-            prefs = self.profile.get_data().get('automation_preferences', {}).get('bill_payments', [])
-            matched_pref = None
-            
-            # Logic: Match provider name explicitly OR match by bill_type
-            if prefs:
-                for p in prefs:
-                    pname = p.get('provider_name', '')
-                    # 1. Match by specific provider name if known
-                    if pname and provider_name and pname.lower() in provider_name.lower():
-                        matched_pref = p
+            # --- PURE AUTONOMY REFACTOR ---
+            # No hardcoded navigation scripts.
+            # 1. State Check: Login
+            # If we see a login screen, we intervene with one-shot credential injection, then return to VLM.
+            login_indicators = ['Sign In', 'Log In', 'Login', 'Sign in to Rio Finance']
+            is_login_page = False
+            for li in login_indicators:
+                try:
+                    if await self.browser.find_text(li):
+                        is_login_page = True
                         break
-                    # 2. Match by Category (if we have a focused bill_type)
-                    if bill_type and p.get('category') == bill_type and p.get('auto_select'):
-                        matched_pref = p
-                        break # Found the preference for this category
+                except Exception:
+                    pass
             
-            if matched_pref:
-                target_provider_name = matched_pref.get('provider_name')
-                consumer_number = matched_pref.get('consumer_number') or matched_pref.get('mobile_number')
-            
-            if target_provider_name and target_provider_name.lower() != 'rio finance bank':
-                 self._add_to_session_log('executor', f"Selecting Provider: {target_provider_name}")
-                 try:
-                     if not await self.browser.find_and_click_text(target_provider_name, exact=True):
-                         pass
-                     await asyncio.sleep(2.0) 
-                 except Exception:
+            if is_login_page:
+                 self._add_to_session_log('security', 'Login Required. Injecting credentials once...')
+                 creds = self.profile.get_provider_credentials(provider_name)
+                 if creds:
+                     await self.browser.fill_login_fields(creds)
+                     # DO NOT CLICK SIGN IN HERE BLINDLY.
+                     # Let the VLM see the filled fields and the "Sign In" button in the next turn and decide to click it.
                      pass
 
-            # 2.3) FILL CONSUMER NUMBER
-            if consumer_number:
-                self._add_to_session_log('executor', f"Injecting Consumer ID: {consumer_number}")
-                cnum_script = """
-                (val) => {
-                    const inputs = Array.from(document.querySelectorAll('input'));
-                    let best = null;
-                    for(const el of inputs){
-                        const txt = ((el.placeholder||'') + ' ' + (el.name||'') + ' ' + (el.id||'') + ' ' + (el.getAttribute('aria-label')||'')).toLowerCase();
-                        if(txt.includes('consumer') || txt.includes('customer') || txt.includes('number') || txt.includes('mobile') || txt.includes('id')){
-                             if(!txt.includes('email') && !txt.includes('user')){ best = el; break; }
-                        }
-                    }
-                    if(best){ best.focus(); best.value = val; best.dispatchEvent(new Event('input', { bubbles: true })); best.dispatchEvent(new Event('change', { bubbles: true })); return true; }
-                    return false;
-                }
-                """
-                try:
-                    await self.browser.page.evaluate(cnum_script, str(consumer_number))
-                    await self.browser.type_text(str(consumer_number))
-                    await asyncio.sleep(1.0)
-                except Exception:
-                    pass
-
-            # 2.4) FETCH BILL / PROCEED
-            fetch_labels = ['Fetch Bill', 'Get Bill', 'View Bill', 'Proceed', 'Next', 'Continue']
-            for fl in fetch_labels:
-                try:
-                    if await self.browser.find_and_click_text(fl):
-                        await asyncio.sleep(3.0)
-                        break
-                except Exception:
-                    continue
+            # 2. Goal Refinement for VLM
+            self._add_to_session_log('executor', f"Refining goal for Bill Type: {bill_type}")
+            if bill_type:
+                goal += f" FOCUS: The user wants to pay for {bill_type}. IGNORE irrelevant options like Electricity (unless that is the target). Look for '{bill_type}' or related keywords."
             
-            # NOW try to find the "Pay" button
-            pay_entry_labels = ['Pay', 'Pay Now', 'Pay Bill', 'Make Payment']
-            found_entry = False
-            for pl in pay_entry_labels:
-                 try:
-                     if await self.browser.find_and_click_text(pl):
-                         found_entry = True
-                         await asyncio.sleep(2.0)
-                         break
-                 except Exception:
-                     continue
-
-            if not found_entry and not await self.browser.find_text('UPI'):
-                  return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": "I selected the details but couldn't find the 'Pay' button. Shall I try manual steps?"}
-
-            # 3) On the payment page, select a payment method
-            settings = self.profile.get_data().get('settings', {})
-            personal_info = self.profile.get_data().get('personal_info', {})
-            preferred = settings.get('default_payment_method') or 'UPI'
-            selected_method = None
-            
-            self._add_to_session_log('executor', f"Selecting payment method: {preferred}")
-            
-            # Refined keywords to prevent 'Select All' behavior
-            method_keywords = {
-                'UPI': ['UPI', 'Unified Payment Interface', 'VPA', 'GooglePay', 'PhonePe', 'Paytm'],
-                'CREDIT_CARD': ['Credit Card', 'Debit Card'], # Removed generic 'Card' to avoid ambiguity
-                'NET_BANKING': ['Net Banking', 'Internet Banking']
-            }
-            
-            target_keywords = method_keywords.get(preferred, [preferred])
-            if preferred == 'UPI': 
-                 # Prioritize explicit UPI text
-                 if 'UPI' not in target_keywords: target_keywords.insert(0, 'UPI')
-
-            method_clicked = False
-            for kw in target_keywords:
-                try:
-                    # Attempt click. loop breaks immediately on success.
-                    if await self.browser.find_and_click_text(kw, exact=True):
-                        selected_method = preferred
-                        method_clicked = True
-                        await asyncio.sleep(1.5)
-                        break
-                except Exception: continue
-            
-            if not method_clicked:
-                 self._add_to_session_log('executor', f"Could not explicitly select {preferred}, checking if already visible...")
-
-            # If UPI is selected or default, inject details
-            if selected_method == 'UPI' or (not selected_method and preferred == 'UPI'):
-                # Check for UPI fields and inject
-                upi_id = personal_info.get('upi id') or personal_info.get('upi_id')
-                upi_pin = personal_info.get('upi_pin') or personal_info.get('pin')
-                
-                if upi_id:
-                    self._add_to_session_log('kinetic', f"Injecting UPI ID for {upi_id}...")
-                    await self.browser.fill_upi_details(upi_id, upi_pin if upi_pin else "")
-                else:
-                     self._add_to_session_log('kinetic', "No UPI ID found in profile. Skipping injection.")
-
-            # 4) Attempt to click confirm/pay buttons
-            confirm_labels = ['Pay Now', 'Pay', 'Proceed to Pay', 'Make Payment', 'Confirm']
-            paid = False
-            for lab in confirm_labels:
-                try:
-                    if await self.browser.find_and_click_text(lab):
-                        paid = True
-                        await asyncio.sleep(2.5)
-                        break
-                except Exception:
-                    continue
-
-            if not paid:
-                return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": "Reached payment step but couldn't finish payment automatically. Provide payment confirmation?"}
-            # 5) Success: navigate back to dashboard/safe page and clear task
-            try:
-                await self.browser.navigate('about:blank')
-            except Exception:
-                pass
-            try:
-                self.profile.clear_task()
-            except Exception:
-                pass
-
-            self._add_to_session_log('executor', 'Returning to dashboard and stopping current task.')
-            return {"browser_context": {"action_type": "FINISHED"}, "current_step": "Bill Task Completed. Payment processed via UPI."}
-
+            # Fall through to standard VLM analysis below...
 
         self._add_to_session_log("brain", f"Qubrid Engine: Analyzing page for {intent.get('action')}...")
         analysis = await self.brain.analyze_page_for_action(screenshot, goal, history, user_context)
@@ -513,25 +284,36 @@ class ArvynOrchestrator:
                 self.profile.track_task(f"PAY_BILL::{provider_name}")
             except Exception:
                 pass
+            
+            # --- PURE AUTONOMY REFACTOR ---
+            # No hardcoded navigation scripts.
+            # 1. State Check: Login
+            # If we see a login screen, we intervene with one-shot credential injection, then return to VLM.
+            login_indicators = ['Sign In', 'Log In', 'Login', 'Sign in to Rio Finance']
+            is_login_page = False
+            for li in login_indicators:
+                try:
+                    if await self.browser.find_text(li):
+                        is_login_page = True
+                        break
+                except Exception:
+                    pass
+            
+            if is_login_page:
+                 self._add_to_session_log('security', 'Login Required. Injecting credentials once...')
+                 creds = self.profile.get_provider_credentials(provider_name)
+                 if creds:
+                     await self.browser.fill_login_fields(creds)
+                     # DO NOT CLICK SIGN IN HERE BLINDLY.
+                     # Let the VLM see the filled fields and the "Sign In" button in the next turn and decide to click it.
+                     pass
 
-            on_bill = await _ensure_on_bill_page()
-            if not on_bill:
-                self._add_to_session_log('navigation', 'Could not find billing page; attempting recovery...')
-                # If failed to reach bill page after recovery attempts, ask user
-                if not await _ensure_on_bill_page(retries=1):
-                    return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": "I couldn't reach the bill payment page. Do you want me to keep trying?"}
-
-            # If we are on the bill page, run the strict bill payment flow
-            exec_result = await _execute_bill_payment_local()
-            # If the flow finished or requested user input, return early
-            if exec_result.get('browser_context', {}).get('action_type') in ('FINISHED', 'ASK_USER'):
-                if exec_result.get('browser_context', {}).get('action_type') == 'FINISHED':
-                    self._add_to_session_log('executor', '✅ Automated bill payment completed.')
-                    try:
-                        self.profile.clear_task()
-                    except Exception:
-                        pass
-                return exec_result
+            # 2. Goal Refinement for VLM
+            self._add_to_session_log('executor', f"Refining goal for Bill Type: {bill_type}")
+            if bill_type:
+                goal += f" FOCUS: The user wants to pay for {bill_type}. IGNORE irrelevant options like Electricity (unless that is the target). Look for '{bill_type}' or related keywords."
+            
+            # Fall through to standard VLM analysis below...
 
         if action_type in ["CLICK", "TYPE"]:
             self.consecutive_ask_count = 0
@@ -544,6 +326,52 @@ class ArvynOrchestrator:
                 
                 interaction_key = f"{action_type}_{element_name.lower()}"
                 count = self.interaction_attempts.get(interaction_key, 0)
+                if count >= 3:
+                    self._add_to_session_log("kinetic", f"Standard clicks failing for '{element_name}'. Engaging FORCE CLICK (JS/Text).")
+                    
+                    # FORCE CLICK STRATEGY: 
+                    # 1. Try Text Match Click
+                    # 2. Try JS Click on focused element? No, JS click by text.
+                    force_success = False
+                    try:
+                        if await self.browser.find_and_click_text(element_name):
+                             force_success = True
+                             self._add_to_session_log("kinetic", "FORCE CLICK: Text-based click successful.")
+                    except Exception:
+                        pass
+                    
+                    if not force_success:
+                        # Escalation: JS Force Click on any element matching text
+                        js_code = f"""
+                        (text) => {{
+                            const els = Array.from(document.querySelectorAll('*'));
+                            const target = els.find(e => e.innerText && e.innerText.trim().toLowerCase() === text.toLowerCase() && e.offsetParent !== null);
+                            if (target) {{ target.click(); return true; }}
+                            return false;
+                        }}
+                        """
+                        try:
+                            if await self.browser.page.evaluate(js_code, element_name):
+                                force_success = True
+                                self._add_to_session_log("kinetic", "FORCE CLICK: JS injection successful.")
+                        except Exception:
+                             pass
+
+                    if force_success:
+                        # Reset attempts if force click worked
+                        try:
+                           self.interaction_attempts[interaction_key] = 1
+                        except Exception: pass
+                        await asyncio.sleep(4.0) # Extra stabilization after force click
+                        return {
+                            "screenshot": await self.browser.get_screenshot_b64(),
+                            "task_history": current_history + [{"action": action_type, "element": element_name, "thought": "Force Click Executed."}],
+                            "browser_context": analysis,
+                            "current_step": f"Force-clicked '{element_name}'. Verifying effect...",
+                            "pending_question": None,
+                            "human_approval": "approved"
+                        }
+
                 MAX_INTERACTION_ATTEMPTS = 6
                 if count >= MAX_INTERACTION_ATTEMPTS:
                     self._add_to_session_log("safety", f"Max attempts reached for '{element_name}'. Asking user.")
@@ -725,12 +553,8 @@ class ArvynOrchestrator:
                     self._add_to_session_log("kinetic", "ERROR: Kinetic registration failed. Recalibrating logic...")
 
                 # Post-click navigation enforcement: if intent was PAY_BILL but page contains 'gold', recover
-                try:
-                    if target_action == 'PAY_BILL' and await self.browser.find_text('gold'):
-                        self._add_to_session_log('navigation', 'Detected wrong section (gold). Redirecting to bills...')
-                        await _ensure_on_bill_page()
-                except Exception:
-                    pass
+                # Legacy "Gold" detection removed to allow pure VLM autonomy.
+                pass
 
         elif action_type == "FINISHED":
             self.consecutive_ask_count = 0

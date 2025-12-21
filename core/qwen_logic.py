@@ -103,8 +103,10 @@ class QwenBrain:
         TASK: High-Precision Intent Parsing for Autonomous Banking Systems.
         USER COMMAND: "{user_input}"
         
-        CONTEXT: Primary Target is Rio Finance Bank (Electricity/Gold/Login).
+        CONTEXT: Primary Target is Rio Finance Bank (Electricity/Mobile/Internet/Gold/Login).
         OBJECTIVE: Map action to the strictly defined set [PAY_BILL, BUY_GOLD, LOGIN, NAVIGATE].
+        - Use PAY_BILL for any bill payment or recharge (Mobile, Electricity, Internet).
+        - Use CLARIFY if the command is meaningless, too short (e.g. "a", "h"), or ambiguous.
 
         RETURN JSON:
         {{
@@ -152,6 +154,10 @@ class QwenBrain:
            - Ensure the coordinates are TIGHTLY BOUNDED to the interactive pixels.
         4. NO HALLUCINATIONS: Use ONLY credentials from the USER DATA block.
         5. FULL AUTONOMY: Execute immediately if data is present. Do NOT pause for verification.
+        6. PRE-SUBMISSION VERIFICATION: Before clicking 'Pay'/'Submit', you MUST VISUALLY CONFIRM:
+           - Is the correct radio button (e.g. UPI) selected? If not, CLICK IT.
+           - Are all required fields (e.g. PIN) filled? If not, TYPE into them.
+           - DO NOT click 'Pay Now' if radio is wrong or PIN is empty.
         """
 
         prompt = f"""
