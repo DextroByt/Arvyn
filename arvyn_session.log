@@ -4977,3 +4977,129 @@ Traceback (most recent call last):
     def append_log(self, text: str, category: str = "general"):
 KeyboardInterrupt
 
+2025-12-21 11:42:57 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-21 11:42:57 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Mode: gemini-2.5-flash
+2025-12-21 11:43:05 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\rosha\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-21 11:43:05 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\rosha\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-21 11:43:06 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 11:43:06 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 11:43:06 | INFO | [ArvynConfig] | 🛡️ Arvyn App v3.0: Core Controller active and pulsing.
+2025-12-21 11:43:13 | INFO | [ArvynConfig] | [BRAIN] Intelligence Engine active: gemini-2.5-flash
+2025-12-21 11:43:13 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 11:43:13 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 11:43:13 | INFO | [ArvynConfig] | 🚀 Arvyn Core v3.6: Orchestrator active. Anti-Loop Engine engaged.
+2025-12-21 11:43:13 | INFO | [ArvynConfig] | ✅ Arvyn Autonomous Core: Logic layers compiled.
+2025-12-21 11:43:20 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-21 11:43:24 | INFO | [ArvynConfig] | 🗣️ Transcribed: open Flipkart
+2025-12-21 11:43:24 | INFO | [ArvynConfig] | 📊 [11:43:24] [INTENT_PARSER] Processing natural language command...
+2025-12-21 11:43:37 | INFO | [ArvynConfig] | 📊 [11:43:37] [INTENT_PARSER] Target Locked: Rio Finance Bank
+2025-12-21 11:43:56 | INFO | [ArvynConfig] | [BROWSER] High-Precision Engine active at 1920x1080.
+2025-12-21 11:43:56 | INFO | [ArvynConfig] | 📊 [11:43:56] [DISCOVERY] Connecting to secure portal: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-21 11:43:56 | INFO | [ArvynConfig] | [NETWORK] Connecting to: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-21 11:44:04 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-21 11:44:04 | INFO | [ArvynConfig] | 📊 [11:44:04] [SYSTEM] Deactivating kinetic layer...
+2025-12-21 11:44:04 | INFO | [ArvynConfig] | [BROWSER] Stealth engine deactivated.
+2025-12-21 12:09:00 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-21 12:09:00 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Mode: gemini-2.5-flash
+2025-12-21 12:15:48 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-21 12:15:48 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Mode: gemini-2.5-flash
+2025-12-21 12:15:51 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\rosha\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-21 12:15:51 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\rosha\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-21 12:15:51 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 12:15:51 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 12:15:51 | INFO | [ArvynConfig] | 🛡️ Arvyn App v3.0: Core Controller active and pulsing.
+2025-12-21 12:15:52 | INFO | [ArvynConfig] | [BRAIN] Intelligence Engine active: gemini-2.5-flash
+2025-12-21 12:15:52 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 12:15:52 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 12:15:52 | INFO | [ArvynConfig] | 🚀 Arvyn Core v3.6: Orchestrator active. Anti-Loop Engine engaged.
+2025-12-21 12:15:52 | INFO | [ArvynConfig] | ✅ Arvyn Autonomous Core: Logic layers compiled.
+2025-12-21 12:15:56 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-21 12:16:04 | INFO | [ArvynConfig] | 🗣️ Transcribed: open Flipkart
+2025-12-21 12:16:04 | INFO | [ArvynConfig] | 📊 [12:16:04] [INTENT_PARSER] Processing natural language command...
+2025-12-21 12:16:04 | WARNING | [ArvynConfig] | [QUOTA] Rate limit hit. Cooling down for 12s...
+2025-12-21 12:16:17 | WARNING | [ArvynConfig] | [QUOTA] Rate limit hit. Cooling down for 24s...
+2025-12-21 12:16:41 | WARNING | [ArvynConfig] | [QUOTA] Rate limit hit. Cooling down for 48s...
+2025-12-21 12:16:55 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-21 12:16:55 | INFO | [ArvynConfig] | 📊 [12:16:55] [SYSTEM] Deactivating kinetic layer...
+2025-12-21 12:16:55 | INFO | [ArvynConfig] | [BROWSER] Stealth engine deactivated.
+2025-12-21 12:17:25 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-21 12:17:25 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Mode: gemini-2.5-flash
+2025-12-21 12:17:28 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\rosha\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-21 12:17:28 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\rosha\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-21 12:17:28 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 12:17:28 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 12:17:28 | INFO | [ArvynConfig] | 🛡️ Arvyn App v3.0: Core Controller active and pulsing.
+2025-12-21 12:17:29 | INFO | [ArvynConfig] | [BRAIN] Intelligence Engine active: gemini-2.5-flash
+2025-12-21 12:17:29 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 12:17:29 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 12:17:29 | INFO | [ArvynConfig] | 🚀 Arvyn Core v3.6: Orchestrator active. Anti-Loop Engine engaged.
+2025-12-21 12:17:29 | INFO | [ArvynConfig] | ✅ Arvyn Autonomous Core: Logic layers compiled.
+2025-12-21 12:17:32 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-21 12:17:37 | INFO | [ArvynConfig] | 🗣️ Transcribed: open Flipkart
+2025-12-21 12:17:37 | INFO | [ArvynConfig] | 📊 [12:17:37] [INTENT_PARSER] Processing natural language command...
+2025-12-21 12:17:40 | INFO | [ArvynConfig] | 📊 [12:17:40] [INTENT_PARSER] Intent: NAVIGATE | Provider: Flipkart | Target: SHOPPING
+2025-12-21 12:17:41 | INFO | [ArvynConfig] | [BROWSER] High-Precision Engine active at 1920x1080.
+2025-12-21 12:17:41 | INFO | [ArvynConfig] | 📊 [12:17:41] [DISCOVERY] Navigating to: Flipkart (https://www.flipkart.com/)
+2025-12-21 12:17:41 | INFO | [ArvynConfig] | [NETWORK] Connecting to: https://www.flipkart.com/
+2025-12-21 12:17:52 | INFO | [ArvynConfig] | 📊 [12:17:52] [SECURITY] STATUS: Verifying Login/Session state...
+2025-12-21 12:17:52 | INFO | [ArvynConfig] | 📊 [12:17:52] [EXECUTOR] Observing UI state...
+2025-12-21 12:17:54 | INFO | [ArvynConfig] | 📊 [12:17:54] [BRAIN] Analyzing page for kinetic action...
+2025-12-21 12:17:55 | WARNING | [ArvynConfig] | [QUOTA] Rate limit hit. Cooling down for 12s...
+2025-12-21 12:18:08 | WARNING | [ArvynConfig] | [QUOTA] Rate limit hit. Cooling down for 24s...
+2025-12-21 12:18:08 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-21 12:18:08 | INFO | [ArvynConfig] | 📊 [12:18:08] [SYSTEM] Deactivating kinetic layer...
+2025-12-21 12:18:08 | INFO | [ArvynConfig] | [BROWSER] Stealth engine deactivated.
+2025-12-21 12:18:39 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-21 12:18:39 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Mode: gemini-2.5-flash
+2025-12-21 12:18:42 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\rosha\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-21 12:18:42 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\rosha\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-21 12:18:42 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 12:18:42 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 12:18:42 | INFO | [ArvynConfig] | 🛡️ Arvyn App v3.0: Core Controller active and pulsing.
+2025-12-21 12:18:43 | INFO | [ArvynConfig] | [BRAIN] Intelligence Engine active: gemini-2.5-flash
+2025-12-21 12:18:43 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 12:18:43 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 12:18:43 | INFO | [ArvynConfig] | 🚀 Arvyn Core v3.6: Orchestrator active. Anti-Loop Engine engaged.
+2025-12-21 12:18:43 | INFO | [ArvynConfig] | ✅ Arvyn Autonomous Core: Logic layers compiled.
+2025-12-21 12:18:47 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-21 12:18:51 | INFO | [ArvynConfig] | 🗣️ Transcribed: electricity bill
+2025-12-21 12:18:51 | INFO | [ArvynConfig] | 📊 [12:18:51] [INTENT_PARSER] Processing natural language command...
+2025-12-21 12:18:52 | WARNING | [ArvynConfig] | [QUOTA] Rate limit hit. Cooling down for 12s...
+2025-12-21 12:19:04 | WARNING | [ArvynConfig] | [QUOTA] Rate limit hit. Cooling down for 24s...
+2025-12-21 12:19:28 | WARNING | [ArvynConfig] | [QUOTA] Rate limit hit. Cooling down for 48s...
+2025-12-21 12:20:07 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-21 12:20:07 | INFO | [ArvynConfig] | 📊 [12:20:07] [SYSTEM] Deactivating kinetic layer...
+2025-12-21 12:20:07 | INFO | [ArvynConfig] | [BROWSER] Stealth engine deactivated.
+2025-12-21 12:20:34 | INFO | [ArvynConfig] | [SYSTEM] Initializing Arvyn Integrity Check...
+2025-12-21 12:20:34 | INFO | [ArvynConfig] | [SUCCESS] Environment Verified. Mode: gemini-2.5-flash
+2025-12-21 12:20:37 | INFO | [comtypes.client._code_cache] | Imported existing <module 'comtypes.gen' from 'C:\\Users\\rosha\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-12-21 12:20:37 | INFO | [comtypes.client._code_cache] | Using writeable comtypes cache directory: 'C:\Users\rosha\AppData\Local\Programs\Python\Python310\lib\site-packages\comtypes\gen'
+2025-12-21 12:20:37 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 12:20:37 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 12:20:37 | INFO | [ArvynConfig] | 🛡️ Arvyn App v3.0: Core Controller active and pulsing.
+2025-12-21 12:20:38 | INFO | [ArvynConfig] | [BRAIN] Intelligence Engine active: gemini-2.5-flash
+2025-12-21 12:20:38 | INFO | [ArvynConfig] | TTS engine ready.
+2025-12-21 12:20:38 | INFO | [ArvynConfig] | Voice Utility initialized.
+2025-12-21 12:20:38 | INFO | [ArvynConfig] | 🚀 Arvyn Core v3.6: Orchestrator active. Anti-Loop Engine engaged.
+2025-12-21 12:20:38 | INFO | [ArvynConfig] | ✅ Arvyn Autonomous Core: Logic layers compiled.
+2025-12-21 12:20:42 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-21 12:20:55 | INFO | [ArvynConfig] | 🗣️ Transcribed: pay my electricity bill
+2025-12-21 12:20:55 | INFO | [ArvynConfig] | 📊 [12:20:55] [INTENT_PARSER] Processing natural language command...
+2025-12-21 12:20:59 | INFO | [ArvynConfig] | 📊 [12:20:59] [INTENT_PARSER] Intent: PAY_BILL | Provider: Rio Finance Bank | Target: BANKING
+2025-12-21 12:21:01 | INFO | [ArvynConfig] | [BROWSER] High-Precision Engine active at 1920x1080.
+2025-12-21 12:21:01 | INFO | [ArvynConfig] | 📊 [12:21:01] [DISCOVERY] Navigating to: Rio Finance Bank (https://roshan-chaudhary13.github.io/rio_finance_bank/)
+2025-12-21 12:21:01 | INFO | [ArvynConfig] | [NETWORK] Connecting to: https://roshan-chaudhary13.github.io/rio_finance_bank/
+2025-12-21 12:21:13 | INFO | [ArvynConfig] | 📊 [12:21:13] [SECURITY] STATUS: Verifying Login/Session state...
+2025-12-21 12:21:13 | INFO | [ArvynConfig] | 📊 [12:21:13] [EXECUTOR] Observing UI state...
+2025-12-21 12:21:14 | INFO | [ArvynConfig] | 📊 [12:21:14] [BRAIN] Analyzing page for kinetic action...
+2025-12-21 12:21:18 | INFO | [ArvynConfig] | 📊 [12:21:18] [KINETIC] Executing interaction on Login button...
+2025-12-21 12:21:19 | INFO | [ArvynConfig] | [KINETIC] Executing Cluster-Click sequence at central point (1756, 59)
+2025-12-21 12:21:25 | INFO | [ArvynConfig] | 📊 [12:21:25] [EXECUTOR] Observing UI state...
+2025-12-21 12:21:26 | INFO | [ArvynConfig] | 📊 [12:21:26] [BRAIN] Analyzing page for kinetic action...
+2025-12-21 12:21:31 | ERROR | [ArvynConfig] | [ERROR] Visual Logic Fault: 'NoneType' object has no attribute 'lower'
+2025-12-21 12:21:34 | INFO | [ArvynConfig] | 🎙️ VoiceWorker: Microphone active.
+2025-12-21 12:22:12 | ERROR | [ArvynConfig] | AgentWorker Execution Error: object dict can't be used in 'await' expression
+2025-12-21 12:23:25 | WARNING | [ArvynConfig] | 🛑 Arvyn Main: Emergency shutdown initiated.
+2025-12-21 12:23:25 | INFO | [ArvynConfig] | 📊 [12:23:25] [SYSTEM] Deactivating kinetic layer...
+2025-12-21 12:23:25 | INFO | [ArvynConfig] | [BROWSER] Stealth engine deactivated.
+2025-12-21 12:23:25 | INFO | [ArvynConfig] | ✅ AgentWorker: Async loop closed safely.
