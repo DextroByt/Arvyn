@@ -247,7 +247,7 @@ class ArvynOrchestrator:
                 f"STEPS: "
                 f"1. Navigate to Profile/Account Settings page. "
                 f"2. Locate the input fields for {', '.join(fields.keys())}. "
-                f"3. Type the NEW values into each field. "
+                f"3. Type the NEW values into each field. The system will automatically clear the old name before typing. "
                 f"4. Click 'Save' or 'Update' once all fields are filled. "
                 f"ONLY update the mentioned fields. DO NOT touch other fields. "
                 f"Execute all steps autonomously without asking for confirmation."

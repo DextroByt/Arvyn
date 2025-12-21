@@ -288,9 +288,16 @@ class ArvynBrowser:
             logger.error(f"[KINETIC] Interaction failed: {e}")
             return False
 
-    async def type_text(self, text: str):
+    async def type_text(self, text: str, clear: bool = True):
+        """Types text into the currently focused element, optionally clearing it first."""
         page = await self.ensure_page()
         try:
+            if clear:
+                # Clear existing content using keyboard shortcuts
+                await page.keyboard.press("Control+A")
+                await page.keyboard.press("Backspace")
+                await asyncio.sleep(0.1)
+
             logger.info(f"[KINETIC] Typing sequence: {len(text)} characters.")
             for char in text:
                 await page.keyboard.type(char, delay=random.randint(30, 80))
