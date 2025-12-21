@@ -412,88 +412,121 @@ class ArvynBrowser:
         return False
 
     async def fill_login_fields(self, credentials: dict) -> dict:
-        """Attempt to reliably fill login fields (email/username + password).
+        """Attempt to reliably fill login fields (email/username + password) using simulated typing.
         Returns dict with booleans {'email':bool,'password':bool} indicating success.
         """
         page = await self.ensure_page()
         email = credentials.get('email') or credentials.get('username') or ''
         password = credentials.get('password') or credentials.get('pass') or ''
-        # Sanitize / validate credentials: avoid injecting long or malformed strings
+        
+        # Sanitize inputs
         if isinstance(email, str):
-            email = email.strip()
-            if len(email) > 254: email = email[:254]
-            # simple sanity check for email format
-            if '@' not in email or '.' not in email.split('@')[-1]:
-                email = ''
+            email = email.strip()[:254]
         else:
             email = ''
 
         if isinstance(password, str):
-            password = password.strip()
-            if len(password) > 256: password = password[:256]
+            password = password.strip()[:256]
         else:
             password = ''
-        script = """
-            (params) => {
-                const { email, password } = params;
+
+        # Helper script to find and focus a field
+        # type_hint: 'email' or 'password'
+        find_and_focus_script = """
+            (type_hint) => {
                 const inputs = Array.from(document.querySelectorAll('input'));
                 function scoreInput(el){
                     const attrs = ((el.name||'') + ' ' + (el.id||'') + ' ' + (el.placeholder||'') + ' ' + (el.getAttribute('aria-label')||'')).toLowerCase();
                     return attrs;
                 }
-                let emailEl=null, passEl=null;
-                for(const el of inputs){
-                    const a = scoreInput(el);
-                    if(!emailEl && (a.includes('email') || a.includes('e-mail')|| a.includes('user') || a.includes('login'))) emailEl = el;
-                    if(!passEl && (a.includes('pass') || el.type==='password')) passEl = el;
+                
+                let best = null;
+                
+                if (type_hint === 'email') {
+                    for(const el of inputs){
+                        const a = scoreInput(el);
+                        if(a.includes('email') || a.includes('e-mail') || a.includes('user') || a.includes('login')) { best = el; break; }
+                    }
+                    if(!best){ for(const el of inputs){ if(el.type==='email'){ best = el; break; } } }
+                    // Fallback: look for text inputs if earlier checks failed
+                    if(!best){ for(const el of inputs){ if(el.type==='text' && scoreInput(el).length > 0){ best = el; break; } } }
+                } 
+                else if (type_hint === 'password') {
+                    for(const el of inputs){
+                        const a = scoreInput(el);
+                        if(a.includes('pass') || el.type==='password') { best = el; break; }
+                    }
                 }
-                // Fallback heuristics
-                if(!emailEl){ for(const el of inputs){ if(el.type==='email'){ emailEl = el; break; } } }
-                if(!passEl){ for(const el of inputs){ if(el.type==='password'){ passEl = el; break; } } }
 
-                if(emailEl && email){ try{ emailEl.focus(); emailEl.value = email; emailEl.dispatchEvent(new Event('input',{bubbles:true})); }catch(e){} }
-                if(passEl && password){ try{ passEl.focus(); passEl.value = password; passEl.dispatchEvent(new Event('input',{bubbles:true})); }catch(e){} }
-                return { email: !!emailEl, password: !!passEl };
+                if (best) {
+                    try {
+                        best.scrollIntoView({behavior: 'auto', block: 'center', inline: 'center'});
+                        best.focus();
+                        best.click(); // Ensure focus logic triggers
+                        return true;
+                    } catch(e) { return false; }
+                }
+                return false;
             }
         """
-        try:
-            res = await page.evaluate(script, {"email": email, "password": password})
-        except Exception as e:
-            logger.debug(f"[KINETIC] fill_login_fields script error: {e}")
-            res = {"email": False, "password": False}
 
-        # As a fallback, try to type directly using likely selectors
-        try:
-            if not res.get('email') and email:
-                # Try common selectors
-                selectors = ["input[name*=email]","input[id*=email]","input[placeholder*=email]","input[name*=user]","input[placeholder*=user]"]
-                for sel in selectors:
-                    try:
-                        el = await page.query_selector(sel)
-                        if el:
-                            await el.click()
-                            await page.keyboard.type(email, delay=50)
-                            res['email'] = True
-                            break
-                    except Exception:
-                        continue
-        except Exception:
-            pass
+        results = {'email': False, 'password': False}
 
-        try:
-            if not res.get('password') and password:
-                selectors = ["input[type=password]","input[name*=pass]","input[id*=pass]","input[placeholder*=pass]"]
-                for sel in selectors:
-                    try:
-                        el = await page.query_selector(sel)
-                        if el:
-                            await el.click()
-                            await page.keyboard.type(password, delay=50)
-                            res['password'] = True
-                            break
-                    except Exception:
-                        continue
-        except Exception:
-            pass
+        # 1. Fill Email
+        if email:
+            try:
+                found_email = await page.evaluate(find_and_focus_script, "email")
+                if found_email:
+                    # Clear existing content just in case, then type
+                    await page.keyboard.press("Control+A")
+                    await page.keyboard.press("Backspace")
+                    logger.info(f"[KINETIC] Typing email ({len(email)} chars)...")
+                    for char in email:
+                        await page.keyboard.type(char, delay=random.randint(30, 90))
+                    results['email'] = True
+                else:
+                    # Fallback selectors
+                    selectors = ["input[name*=email]","input[id*=email]","input[placeholder*=email]","input[name*=user]","input[placeholder*=user]"]
+                    for sel in selectors:
+                        try:
+                            if await page.is_visible(sel):
+                                await page.click(sel)
+                                await page.keyboard.type(email, delay=random.randint(30, 90))
+                                results['email'] = True
+                                break
+                        except Exception:
+                            continue
+            except Exception as e:
+                logger.error(f"[KINETIC] Email fill error: {e}")
 
-        return res
+        # Short pause between fields
+        if results['email']:
+            await asyncio.sleep(0.5)
+
+        # 2. Fill Password
+        if password:
+            try:
+                found_pass = await page.evaluate(find_and_focus_script, "password")
+                if found_pass:
+                    await page.keyboard.press("Control+A")
+                    await page.keyboard.press("Backspace")
+                    logger.info(f"[KINETIC] Typing password...")
+                    for char in password:
+                        await page.keyboard.type(char, delay=random.randint(30, 90))
+                    results['password'] = True
+                else:
+                    # Fallback selectors
+                    selectors = ["input[type=password]","input[name*=pass]","input[id*=pass]","input[placeholder*=pass]"]
+                    for sel in selectors:
+                        try:
+                            if await page.is_visible(sel):
+                                await page.click(sel)
+                                await page.keyboard.type(password, delay=random.randint(30, 90))
+                                results['password'] = True
+                                break
+                        except Exception:
+                            continue
+            except Exception as e:
+                logger.error(f"[KINETIC] Password fill error: {e}")
+
+        return results

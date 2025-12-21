@@ -4,11 +4,11 @@
             "name": "Rio Finance Bank",
             "url": "https://roshan-chaudhary13.github.io/rio_finance_bank/",
             "login_credentials": {
-                "email": "testuser@example.com",
-                "password": "P@ssw0rd!"
+                "email": "akash@gmail.com",
+                "password": "admin123"
             },
             "security_details": {
-                "upi_pin": "696955",
+                "upi_pin": "875436",
                 "card_pin": "696955",
                 "otp_preference": "SMS"
             },
