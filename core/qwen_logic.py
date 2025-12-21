@@ -114,7 +114,10 @@ class QwenBrain:
         EXTRACTION RULES:
         - If the user says "Change my name to Akash", action="UPDATE_PROFILE", fields_to_update={{"full_name": "Akash"}}.
         - If the user says "Update my phone to 987654321", action="UPDATE_PROFILE", fields_to_update={{"phone": "987654321"}}.
+        - If the user says "Update address to Mumbai", action="UPDATE_PROFILE", fields_to_update={{"address": "Mumbai"}}.
+        - If the user says "Update email to akash@gmail.com", action="UPDATE_PROFILE", fields_to_update={{"email": "akash@gmail.com"}}.
         - Handle multiple fields: "Update my name to John and number to 123" -> action="UPDATE_PROFILE", fields_to_update={{"full_name": "John", "phone": "123"}}.
+        - CRITICAL: Extract ALL details mentioned for update into 'fields_to_update'. Use keys like 'full_name', 'phone', 'email', 'address'.
 
         RETURN JSON:
         {{

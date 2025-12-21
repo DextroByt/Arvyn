@@ -137,7 +137,35 @@ class ArvynOrchestrator:
                 return {"current_step": "Clarification required.", "intent": None}
 
             if intent_dict.get('action') == 'UPDATE_PROFILE':
-                self._add_to_session_log("intent_parser", "Profile Update detected.")
+                self._add_to_session_log("intent_parser", "Profile Update detected. Creating temporary memory...")
+                
+                # Rule-based field extraction fallback if LLM missed it
+                fields = intent_dict.get('fields_to_update', {}) or {}
+                if not fields:
+                    import re
+                    # Simple regex for "name to X"
+                    name_match = re.search(r'(?:name|full name)\s+(?:to|is)\s+([^,.\n]+)', content, re.I)
+                    if name_match: 
+                        fields['full_name'] = name_match.group(1).strip()
+                    # Simple regex for "phone to X" or "number to X"
+                    phone_match = re.search(r'(?:phone|number)\s+(?:to|is)\s+(\d+)', content, re.I)
+                    if phone_match:
+                        fields['phone'] = phone_match.group(1).strip()
+                
+                # Create Temporary Memory File in user_profile format
+                temp_mem_structure = {
+                    "personal_info": fields
+                }
+                
+                try:
+                    with open('profile_update_memory.json', 'w') as f:
+                        json.dump(temp_mem_structure, f, indent=4)
+                    self._add_to_session_log("intent_parser", f"Temporary Profile Memory synced with mentioned fields: {list(fields.keys())}")
+                except Exception as e:
+                    logger.error(f"Failed to create temporary memory file: {e}")
+
+                # Sync back to the intent dictionary to ensure consistent tracking
+                intent_dict['fields_to_update'] = fields
 
             provider = intent_dict.get('provider', 'Rio Finance Bank')
             self._add_to_session_log("intent_parser", f"Target Locked: {provider}")
@@ -253,8 +281,21 @@ class ArvynOrchestrator:
                 f"Execute all steps autonomously without asking for confirmation."
             )
         
-        user_context = self.profile.get_data().get("personal_info", {})
-        user_context.update(self.profile.get_provider_details(provider_name))
+        if target_action == 'UPDATE_PROFILE':
+            # RESTRICTIVE CONTEXT: Only use the temporary memory for profile updates
+            try:
+                if os.path.exists('profile_update_memory.json'):
+                    with open('profile_update_memory.json', 'r') as f:
+                        user_context = json.load(f)
+                else:
+                    user_context = intent.get('fields_to_update', {}) or {}
+            except Exception:
+                user_context = intent.get('fields_to_update', {}) or {}
+            
+            self._add_to_session_log('executor', f"Profile Update: Using restricted temporary memory context.")
+        else:
+            user_context = self.profile.get_data().get("personal_info", {})
+            user_context.update(self.profile.get_provider_details(provider_name))
 
         if target_action == 'PAY_BILL':
             # Track active goal in profile for stateful behavior
@@ -485,15 +526,27 @@ class ArvynOrchestrator:
                         # Check if this is a targeted field for profile update
                         is_profile_update_field = False
                         if target_action == 'UPDATE_PROFILE':
+                            def normalize(s: str) -> str:
+                                return s.lower().replace("_", "").replace(" ", "")
+                            
                             target_fields = intent.get('fields_to_update', {}) or {}
+                            norm_ename = normalize(element_name)
                             for field_name in target_fields:
-                                if field_name.lower() in ename or ename in field_name.lower():
+                                if normalize(field_name) in norm_ename or norm_ename in normalize(field_name):
                                     is_profile_update_field = True
+                                    # Override with value from restrictive context to ensure precision
+                                    ctx_val = user_context.get("personal_info", {}).get(field_name)
+                                    if ctx_val:
+                                        input_text = str(ctx_val)
                                     break
 
                         if is_profile_update_field:
-                            # Trust VLM for specific profile field updates
+                            # Trust VLM for the target, but use curated value for the text
+                            self._add_to_session_log('executor', f"Updating mentioned field '{element_name}' with value from temporary memory.")
                             await self.browser.type_text(input_text)
+                        elif target_action == 'UPDATE_PROFILE':
+                            # DO NOT AUTO-FILL fields that were not mentioned by the user
+                            self._add_to_session_log('executor', f"Skipping auto-fill for '{element_name}' (Not in update command).")
                         elif any(k in ename for k in ("email", "e-mail", "user", "username", "login")):
                             preferred = creds.get('email') or creds.get('username') or self.profile.get_data().get('personal_info', {}).get('email')
                             if preferred:
