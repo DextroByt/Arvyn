@@ -103,10 +103,18 @@ class QwenBrain:
         TASK: High-Precision Intent Parsing for Autonomous Banking Systems.
         USER COMMAND: "{user_input}"
         
-        CONTEXT: Primary Target is Rio Finance Bank (Electricity/Mobile/Internet/Gold/Login).
-        OBJECTIVE: Map action to the strictly defined set [PAY_BILL, BUY_GOLD, LOGIN, NAVIGATE].
+        CONTEXT: Primary Target is Rio Finance Bank (Electricity/Mobile/Internet/Gold/Login/Profile).
+        OBJECTIVE: Map action to the strictly defined set [PAY_BILL, BUY_GOLD, UPDATE_PROFILE, LOGIN, NAVIGATE].
         - Use PAY_BILL for any bill payment or recharge (Mobile, Electricity, Internet).
+        - Use BUY_GOLD for purchasing digital gold.
+        - Use UPDATE_PROFILE for changing user details like name, phone number, email, address, etc.
+          Extract ALL mentioned fields and their new values into 'fields_to_update'.
         - Use CLARIFY if the command is meaningless, too short (e.g. "a", "h"), or ambiguous.
+
+        EXTRACTION RULES:
+        - If the user says "Change my name to Akash", action="UPDATE_PROFILE", fields_to_update={{"full_name": "Akash"}}.
+        - If the user says "Update my phone to 987654321", action="UPDATE_PROFILE", fields_to_update={{"phone": "987654321"}}.
+        - Handle multiple fields: "Update my name to John and number to 123" -> action="UPDATE_PROFILE", fields_to_update={{"full_name": "John", "phone": "123"}}.
 
         RETURN JSON:
         {{
@@ -114,6 +122,7 @@ class QwenBrain:
             "target": "BANKING",
             "provider": "Rio Finance Bank",
             "amount": float or null,
+            "fields_to_update": {{"field_name": "new_value"}} or null,
             "search_query": "Optimized search string for discovery",
             "urgency": "HIGH",
             "reasoning": "Step-by-step logic for this intent."
@@ -154,10 +163,11 @@ class QwenBrain:
            - Ensure the coordinates are TIGHTLY BOUNDED to the interactive pixels.
         4. NO HALLUCINATIONS: Use ONLY credentials from the USER DATA block.
         5. FULL AUTONOMY: Execute immediately if data is present. Do NOT pause for verification.
-        6. PRE-SUBMISSION VERIFICATION: Before clicking 'Pay'/'Submit', you MUST VISUALLY CONFIRM:
+        6. PRE-SUBMISSION VERIFICATION: Before clicking 'Pay'/'Submit'/'Save', you MUST VISUALLY CONFIRM:
            - Is the correct radio button (e.g. UPI) selected? If not, CLICK IT.
-           - Are all required fields (e.g. PIN) filled? If not, TYPE into them.
-           - DO NOT click 'Pay Now' if radio is wrong or PIN is empty.
+           - Are all required fields filled? If not, TYPE into them.
+           - For PROFILE UPDATES: Ensure you have filled ALL mentioned target fields before clicking 'Save'.
+           - DO NOT click 'Save' if you haven't typed the new values into the specific fields yet.
         """
 
         prompt = f"""

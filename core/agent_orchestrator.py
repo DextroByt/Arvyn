@@ -125,10 +125,19 @@ class ArvynOrchestrator:
                     self._add_to_session_log("intent_parser", "Rule-based override: Forcing action to PAY_BILL")
                     intent_dict['action'] = 'PAY_BILL'
                     intent_dict['target'] = 'UTILITY'
+            
+            # PROFILE UPDATE OVERRIDE
+            if any(k in text_norm for k in ['profile', 'name', 'phone', 'number', 'email']) and 'update' in text_norm:
+                if intent_dict.get('action') != 'UPDATE_PROFILE':
+                    self._add_to_session_log("intent_parser", "Rule-based override: Forcing action to UPDATE_PROFILE")
+                    intent_dict['action'] = 'UPDATE_PROFILE'
 
             if intent_dict.get('action') == 'CLARIFY':
                 self._add_to_session_log("intent_parser", "Input ambiguous or meaningless. Requesting clarification.")
                 return {"current_step": "Clarification required.", "intent": None}
+
+            if intent_dict.get('action') == 'UPDATE_PROFILE':
+                self._add_to_session_log("intent_parser", "Profile Update detected.")
 
             provider = intent_dict.get('provider', 'Rio Finance Bank')
             self._add_to_session_log("intent_parser", f"Target Locked: {provider}")
@@ -145,7 +154,12 @@ class ArvynOrchestrator:
             }
         except Exception as e:
             logger.error(f"Intent Extraction Failure: {e}")
-            return {"current_step": "Clarification required.", "intent": None}
+            # Fallback intent to prevent None and subsequent tight loop
+            return {
+                "intent": {"action": "NAVIGATE", "target": "GENERAL", "provider": "Search"},
+                "current_step": "System error occurred. Navigating to safety.",
+                "task_history": []
+            }
 
     def _resolve_target_url(self, provider_name: str) -> str:
         """Improved resolution logic to prevent unwanted redirection."""
@@ -216,16 +230,28 @@ class ArvynOrchestrator:
                 bill_type = 'INTERNET'
         except Exception:
             bill_type = None
-        # [AUTONOMY UPDATE] Hardcoded navigation scripts removed.
-        # The agent now relies 100% on VLM observation and decision-making.
-
 
         goal = (
-            f"GOAL: Execute {intent.get('action')} on {provider_name}. "
+            f"GOAL: Execute {target_action} on {provider_name}. "
             f"Target Amount: {intent.get('amount', 'Not Specified')}. "
             f"Identify target 'element_name' (label/text) for Semantic Sync. "
             f"Use ONLY data in 'USER DATA'. DO NOT ask for permission."
         )
+
+        if target_action == 'UPDATE_PROFILE':
+            fields = intent.get('fields_to_update', {}) or {}
+            fields_desc = ", ".join([f"'{k}' to '{v}'" for k, v in fields.items()])
+            goal = (
+                f"GOAL: Update User Profile on {provider_name}. "
+                f"SPECIFIC CHANGES: Update {fields_desc}. "
+                f"STEPS: "
+                f"1. Navigate to Profile/Account Settings page. "
+                f"2. Locate the input fields for {', '.join(fields.keys())}. "
+                f"3. Type the NEW values into each field. "
+                f"4. Click 'Save' or 'Update' once all fields are filled. "
+                f"ONLY update the mentioned fields. DO NOT touch other fields. "
+                f"Execute all steps autonomously without asking for confirmation."
+            )
         
         user_context = self.profile.get_data().get("personal_info", {})
         user_context.update(self.profile.get_provider_details(provider_name))
@@ -238,9 +264,7 @@ class ArvynOrchestrator:
                 pass
             
             # --- PURE AUTONOMY REFACTOR ---
-            # No hardcoded navigation scripts.
             # 1. State Check: Login
-            # If we see a login screen, we intervene with one-shot credential injection, then return to VLM.
             login_indicators = ['Sign In', 'Log In', 'Login', 'Sign in to Rio Finance']
             is_login_page = False
             for li in login_indicators:
@@ -256,18 +280,18 @@ class ArvynOrchestrator:
                  creds = self.profile.get_provider_credentials(provider_name)
                  if creds:
                      await self.browser.fill_login_fields(creds)
-                     # DO NOT CLICK SIGN IN HERE BLINDLY.
-                     # Let the VLM see the filled fields and the "Sign In" button in the next turn and decide to click it.
-                     pass
-
-            # 2. Goal Refinement for VLM
-            self._add_to_session_log('executor', f"Refining goal for Bill Type: {bill_type}")
+            
             if bill_type:
                 goal += f" FOCUS: The user wants to pay for {bill_type}. IGNORE irrelevant options like Electricity (unless that is the target). Look for '{bill_type}' or related keywords."
             
-            # Fall through to standard VLM analysis below...
+        elif target_action == 'UPDATE_PROFILE':
+            # Check for Profile link if not on profile page
+            current_url = self.browser.page.url
+            if 'profile' not in current_url.lower():
+                self._add_to_session_log('executor', 'User is likely not on profile page. Scanning for Profile/Account links...')
+                goal += " Current page is likely NOT the profile page. Look for 'Profile', 'Account', or 'User Settings' links first."
 
-        self._add_to_session_log("brain", f"Qubrid Engine: Analyzing page for {intent.get('action')}...")
+        self._add_to_session_log("brain", f"Qubrid Engine: Analyzing page for {target_action}...")
         analysis = await self.brain.analyze_page_for_action(screenshot, goal, history, user_context)
 
         if not isinstance(analysis, dict):
@@ -278,43 +302,6 @@ class ArvynOrchestrator:
         element_name = str(analysis.get("element_name", ""))
         input_text = str(analysis.get("input_text", ""))
 
-        # Enforce target section when user intent is to pay a bill
-        if target_action == 'PAY_BILL':
-            # Track active goal in profile for stateful behavior
-            try:
-                self.profile.track_task(f"PAY_BILL::{provider_name}")
-            except Exception:
-                pass
-            
-            # --- PURE AUTONOMY REFACTOR ---
-            # No hardcoded navigation scripts.
-            # 1. State Check: Login
-            # If we see a login screen, we intervene with one-shot credential injection, then return to VLM.
-            login_indicators = ['Sign In', 'Log In', 'Login', 'Sign in to Rio Finance']
-            is_login_page = False
-            for li in login_indicators:
-                try:
-                    if await self.browser.find_text(li):
-                        is_login_page = True
-                        break
-                except Exception:
-                    pass
-            
-            if is_login_page:
-                 self._add_to_session_log('security', 'Login Required. Injecting credentials once...')
-                 creds = self.profile.get_provider_credentials(provider_name)
-                 if creds:
-                     await self.browser.fill_login_fields(creds)
-                     # DO NOT CLICK SIGN IN HERE BLINDLY.
-                     # Let the VLM see the filled fields and the "Sign In" button in the next turn and decide to click it.
-                     pass
-
-            # 2. Goal Refinement for VLM
-            self._add_to_session_log('executor', f"Refining goal for Bill Type: {bill_type}")
-            if bill_type:
-                goal += f" FOCUS: The user wants to pay for {bill_type}. IGNORE irrelevant options like Electricity (unless that is the target). Look for '{bill_type}' or related keywords."
-            
-            # Fall through to standard VLM analysis below...
 
         if action_type in ["CLICK", "TYPE"]:
             self.consecutive_ask_count = 0
@@ -495,7 +482,19 @@ class ArvynOrchestrator:
                         if isinstance(input_text, str) and len(input_text) > 256:
                             input_text = input_text[:256]
 
-                        if any(k in ename for k in ("email", "e-mail", "user", "username", "login")):
+                        # Check if this is a targeted field for profile update
+                        is_profile_update_field = False
+                        if target_action == 'UPDATE_PROFILE':
+                            target_fields = intent.get('fields_to_update', {}) or {}
+                            for field_name in target_fields:
+                                if field_name.lower() in ename or ename in field_name.lower():
+                                    is_profile_update_field = True
+                                    break
+
+                        if is_profile_update_field:
+                            # Trust VLM for specific profile field updates
+                            await self.browser.type_text(input_text)
+                        elif any(k in ename for k in ("email", "e-mail", "user", "username", "login")):
                             preferred = creds.get('email') or creds.get('username') or self.profile.get_data().get('personal_info', {}).get('email')
                             if preferred:
                                 await self.browser.type_text(preferred)

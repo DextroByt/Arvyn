@@ -71,6 +71,12 @@ class IntentOutput(BaseModel):
     amount: Optional[float] = Field(default=None, description="Monetary value for purchases or bills")
     search_query: Optional[str] = Field(default=None, description="Query string for site-specific search bars")
     
+    # Fields for profile update
+    fields_to_update: Optional[Dict[str, str]] = Field(
+        default=None, 
+        description="Key-value pairs for profile updates (e.g., {'full_name': 'John', 'phone': '1234567890'})"
+    )
+
     # Urgency level for execution prioritization
     urgency: Optional[str] = Field(
         default="MEDIUM", 
