@@ -202,6 +202,14 @@ class ArvynOrchestrator:
                 bill_type = 'INTERNET'
         except Exception:
             bill_type = None
+
+        # --- VALIDATION: Check Amount for BUY_GOLD ---
+        if target_action == 'BUY_GOLD':
+            amount = intent.get('amount')
+            if not amount:
+                # If amount missing in intent, extraction failed or wasn't provided.
+                return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": "Please specify the amount for the gold purchase."}
+
         async def _ensure_on_bill_page(retries: int = 2) -> bool:
             """Ensure the current page is the billing/payment page; try to find and click relevant links if not."""
             bill_keywords = ['bill', 'pay bill', 'bill payment', 'electricity bill', 'pay my bill']
@@ -234,6 +242,11 @@ class ArvynOrchestrator:
             f"Identify target 'element_name' (label/text) for Semantic Sync. "
             f"Use ONLY data in 'USER DATA'. DO NOT ask for permission."
         )
+        
+        # Inject Amount into Goal for Visual Reasoner
+        if target_action == 'BUY_GOLD' and intent.get('amount'):
+            goal += f" REQUIRED AMOUNT: {intent.get('amount')}."
+
         
         user_context = self.profile.get_provider_details(provider_name)
         user_context.update(self.profile.get_data().get("personal_info", {}))
@@ -686,6 +699,12 @@ class ArvynOrchestrator:
                                 await self.browser.type_text(str(consumer_number))
                             else:
                                 await self.browser.type_text(input_text)
+                        elif any(k in ename for k in ("amount", "worth", "value", "rupee", "inr")):
+                             # Explicitly handle Amount fields for BUY_GOLD
+                             if target_action == 'BUY_GOLD' and intent.get('amount'):
+                                 await self.browser.type_text(str(intent.get('amount')))
+                             else:
+                                 await self.browser.type_text(input_text)
                         else:
                             await self.browser.type_text(input_text)
 
