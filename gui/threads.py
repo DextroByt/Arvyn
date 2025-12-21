@@ -6,11 +6,12 @@ import speech_recognition as sr
 from PyQt6.QtCore import QThread, pyqtSignal
 from langgraph.checkpoint.memory import MemorySaver
 from core.agent_orchestrator import ArvynOrchestrator
-from config import logger
+from config import logger, STRICT_AUTONOMY_MODE, AUTO_APPROVAL
 
 class VoiceWorker(QThread):
     """
     Superior Voice Interaction Layer.
+    UPGRADED: Enhanced for Qwen-VL Multi-modal synchronization.
     Features: Adaptive ambient noise calibration, chunk-based streaming, 
     and high-accuracy Google Web Speech integration.
     """
@@ -23,7 +24,7 @@ class VoiceWorker(QThread):
         self.mic = sr.Microphone()
         self._is_active = True
         
-        # Optimize for banking environments (often has background noise)
+        # Optimize for banking and noisy local environments
         self.recognizer.energy_threshold = 300 
         self.recognizer.dynamic_energy_threshold = True
 
@@ -80,8 +81,9 @@ class VoiceWorker(QThread):
 class AgentWorker(QThread):
     """
     Superior Session Orchestration Worker.
-    UPGRADED: Intelligent Task Resumption, Confidentiality-Aware Voice, 
-    and hardened Async State Management.
+    UPGRADED: Qwen-VL Zero-Auth Autonomous Execution Engine.
+    FIXED: Resumes without blocking for sensitive data/PIN entry.
+    IMPROVED: Hardened logic for multi-site verified navigation with memory persistence.
     """
     log_signal = pyqtSignal(str)
     screenshot_signal = pyqtSignal(str)
@@ -91,7 +93,7 @@ class AgentWorker(QThread):
     auto_mic_signal = pyqtSignal(bool)
     finished_signal = pyqtSignal(dict)
 
-    # Persistence layer for multi-turn banking sessions
+    # Persistence layer for multi-turn autonomous sessions (Preserved feature)
     _shared_checkpointer = MemorySaver()
 
     def __init__(self):
@@ -101,8 +103,8 @@ class AgentWorker(QThread):
         self.loop = None
         self._is_running = True
         
-        # Consistent session ID to maintain history across turns
-        self.session_config = {"configurable": {"thread_id": "arvyn_banking_prod_v3"}}
+        # Consistent session ID to maintain history across turns with Qwen engine
+        self.session_config = {"configurable": {"thread_id": "arvyn_autonomous_v4_qwen"}}
 
     def submit_command(self, user_command: str):
         """Thread-safe command submission."""
@@ -116,11 +118,14 @@ class AgentWorker(QThread):
         self.command_queue.put(None)
 
     def run(self):
-        """Initializes the background async environment for Arvyn's Brain."""
+        """Initializes the background async environment for Arvyn's Qwen Brain."""
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
         
+        # Orchestrator now uses QwenBrain internally
         self.orchestrator = ArvynOrchestrator()
+        
+        # Initialize app (with Zero-Auth compilation in Orchestrator)
         self.loop.run_until_complete(self.orchestrator.init_app(self._shared_checkpointer))
         
         try:
@@ -128,7 +133,7 @@ class AgentWorker(QThread):
                 command = self.command_queue.get()
                 if command is None: break 
                 
-                # Execute/Resume the LangGraph workflow
+                # Execute/Resume the LangGraph workflow with memory support
                 self.loop.run_until_complete(self.execute_task(command))
                 self.command_queue.task_done()
         except Exception as e:
@@ -143,50 +148,48 @@ class AgentWorker(QThread):
             if pending:
                 self.loop.run_until_complete(asyncio.gather(*pending))
             self.loop.close()
-            logger.info("✅ AgentWorker: Async loop closed safely.")
+            logger.info("✅ AgentWorker: Qwen-Engine session closed safely.")
         except Exception as e:
             logger.error(f"Loop Shutdown Error: {e}")
 
     async def execute_task(self, user_command: str):
         """
-        Intelligent Task Routing.
-        UPGRADED: Fixes 'A new task got created' by resuming the existing session
-        if the agent is currently interrupted/paused for user input.
+        Intelligent Autonomous Task Routing with Qwen-VL.
+        IMPROVED: Handles Zero-Auth flow and automatic profile data injection.
         """
         try:
-            # Check current state to see if we are in an interrupt
+            # Check current state for potential interruptions
             state_data = self.orchestrator.app.get_state(self.session_config)
             next_nodes = state_data.next or []
 
+            # Logic for Resuming a task (Stuck mode / Manual correction)
             if "human_interaction_node" in next_nodes:
-                self.log_signal.emit(f"Continuing current task with: {user_command}")
-                # Update state with the user response and set approval to proceed
+                self.log_signal.emit(f"RESUMING TASK: {user_command}")
                 await self.orchestrator.app.update_state(
                     self.session_config, 
                     {"messages": [("user", user_command)], "human_approval": "approved"}
                 )
                 
-                # Resume execution from the current point
                 async for event in self.orchestrator.app.astream(None, config=self.session_config):
                     if not self._is_running: return
                     for node_name, output in event.items():
                         self._sync_orchestrator_logs()
                         self._handle_node_output(node_name, output)
             else:
-                # Normal New Task Entry
-                self.status_signal.emit("THINKING")
-                self.log_signal.emit(f"--- NEW TASK: {user_command.upper()} ---")
+                # New Autonomous Task Entry
+                self.status_signal.emit("ANALYZING")
+                self.log_signal.emit(f"--- QWEN-VL AUTONOMOUS TASK: {user_command.upper()} ---")
                 
                 initial_input = {"messages": [("user", user_command)]}
 
-                # Start streaming the graph
+                # Stream the graph logic
                 async for event in self.orchestrator.app.astream(initial_input, config=self.session_config):
                     if not self._is_running: return
                     for node_name, output in event.items():
                         self._sync_orchestrator_logs()
                         self._handle_node_output(node_name, output)
 
-            # Final check to see if we hit a NEW interaction node
+            # Post-execution state check
             self._check_for_interaction()
                 
         except Exception as e:
@@ -196,8 +199,8 @@ class AgentWorker(QThread):
 
     def _check_for_interaction(self):
         """
-        Hardened Interaction Logic.
-        UPGRADED: Suppresses Mic for confidential data (passwords/PINs) as requested.
+        Hardened Autonomous Logic check.
+        FIXED: Silently handles security fields; only triggers signals if truly stuck.
         """
         state_data = self.orchestrator.app.get_state(self.session_config)
         values = state_data.values or {}
@@ -206,59 +209,60 @@ class AgentWorker(QThread):
         if "human_interaction_node" in next_nodes:
             question = values.get("pending_question")
             if question:
-                self.status_signal.emit("AWAITING USER")
+                self.status_signal.emit("NEED HELP")
                 self.speak_signal.emit(question)
-                
-                # CONFIDENTIALITY PROTECTION: Detect password/PIN prompts
-                sensitive_keys = ["password", "pin", "credential", "otp", "code"]
-                is_confidential = any(k in question.lower() for k in sensitive_keys)
-                
-                if not is_confidential:
-                    # Only auto-trigger mic for non-confidential queries
-                    self.auto_mic_signal.emit(True) 
-                else:
-                    self.log_signal.emit("🔒 CONFIDENTIAL STEP: Mic disabled. Use buttons to Authorize.")
+                self.auto_mic_signal.emit(True) 
             
             self.approval_signal.emit(True)
         else:
-            self.status_signal.emit("READY")
+            analysis = values.get("browser_context", {})
+            if analysis.get("action_type") == "FINISHED":
+                self.status_signal.emit("COMPLETED")
+                voice_prompt = analysis.get("voice_prompt")
+                if voice_prompt:
+                    self.speak_signal.emit(voice_prompt)
+            else:
+                self.status_signal.emit("READY")
 
     def _sync_orchestrator_logs(self):
-        """Pipes the high-fidelity Orchestrator session logs to the Dashboard."""
+        """Pipes High-Fidelity Orchestrator logs to the UI."""
         if hasattr(self.orchestrator, 'session_log'):
             while self.orchestrator.session_log:
                 log_entry = self.orchestrator.session_log.pop(0)
                 self.log_signal.emit(log_entry)
 
     def _handle_node_output(self, node_name: str, output: dict):
-        """Processes outputs from the graph for real-time visual feedback."""
+        """Processes real-time feedback from LangGraph nodes."""
         if not output: return
+        
         if "screenshot" in output and output["screenshot"]:
             self.screenshot_signal.emit(output["screenshot"])
+            
         if "current_step" in output:
-            self.status_signal.emit(output["current_step"].upper())
+            step_text = output["current_step"].upper()
+            self.status_signal.emit(step_text)
+            
+        if "pending_question" in output and output["pending_question"] and node_name == "autonomous_executor":
+            if not AUTO_APPROVAL:
+                self.speak_signal.emit(output["pending_question"])
 
     def resume_with_approval(self, approved: bool):
-        """Manual trigger from the Dashboard buttons."""
+        """Manual trigger from the Dashboard UI."""
         if self.loop and self.loop.is_running():
             asyncio.run_coroutine_threadsafe(self._resume_logic(approved), self.loop)
 
     async def _resume_logic(self, approved: bool):
-        """Logic for manual Authorize/Reject button presses."""
+        """Handles manual user intervention for visual edge cases."""
         decision = "approved" if approved else "rejected"
-        
-        # Inject the human decision into the graph state
         await self.orchestrator.app.update_state(self.session_config, {"human_approval": decision})
         
-        self.log_signal.emit(f"🛡️ USER DECISION: {decision.upper()}")
+        self.log_signal.emit(f"🛡️ USER INTERVENTION: {decision.upper()}")
         self.approval_signal.emit(False)
         
-        # Resume the graph stream from the interruption point
         async for event in self.orchestrator.app.astream(None, config=self.session_config):
             if not self._is_running: return
             for node_name, output in event.items():
                 self._sync_orchestrator_logs()
                 self._handle_node_output(node_name, output)
         
-        # Re-check for nested or sequential interactions
         self._check_for_interaction()

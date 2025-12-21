@@ -7,7 +7,15 @@ from PyQt6.QtWidgets import QApplication, QStackedWidget
 from PyQt6.QtCore import Qt, QPropertyAnimation, QRect, QEasingCurve, QTimer
 
 # Import config first to initialize the SafeStreamHandler (fixing charmap errors)
-from config import Config, logger, ORB_SIZE, DASHBOARD_SIZE
+from config import (
+    Config, 
+    logger, 
+    ORB_SIZE, 
+    DASHBOARD_SIZE, 
+    STRICT_AUTONOMY_MODE, 
+    AUTO_APPROVAL,
+    QWEN_MODEL_NAME
+)
 
 from gui.widget_orb import ArvynOrb
 from gui.dashboard import ArvynDashboard
@@ -26,8 +34,9 @@ sys.excepthook = exception_hook
 class ArvynApp(ArvynOrb):
     """
     Superior Application Controller for Agent Arvyn.
-    Manages the persistent autonomous session, multi-modal interaction, 
-    and advanced UI morphing.
+    UPGRADED: Features Qwen-VL Autonomous Logic (v4.5).
+    FIXED: Prevents dummy-site redirects by enforcing verified site priority.
+    IMPROVED: Multi-modal synchronization for un-interrupted background execution.
     """
     def __init__(self):
         super().__init__()
@@ -48,7 +57,8 @@ class ArvynApp(ArvynOrb):
         self.layout.addWidget(self.container)
 
         # --- 2. AUTONOMOUS SESSION INITIALIZATION ---
-        # The AgentWorker manages the LangGraph/Playwright session in a dedicated thread
+        # The AgentWorker manages the LangGraph/Playwright session.
+        # IMPROVEMENT: Worker is now running the Qwen-VL precision engine.
         self.worker = AgentWorker() 
         self._connect_worker_signals()
         self.worker.start()
@@ -70,7 +80,11 @@ class ArvynApp(ArvynOrb):
         self.move_to_default_position()
         self.start_pulse()
         
-        logger.info("🛡️ Arvyn App v3.0: Core Controller active and pulsing.")
+        # INITIALIZATION LOG: Confirming Autonomous Status & Engine
+        mode_label = "AUTONOMOUS" if STRICT_AUTONOMY_MODE else "HITL-STANDARD"
+        logger.info(f"🛡️ Arvyn App v4.5: {mode_label} Controller ({QWEN_MODEL_NAME}) active.")
+        self.dashboard.append_log(f"SYSTEM: Initialized with Qwen-VL Engine.", category="system")
+        self.dashboard.append_log(f"MODE: {mode_label} (Zero-Auth active).", category="system")
 
     def _connect_worker_signals(self):
         """Synchronizes background autonomous state with the Dashboard UI."""
@@ -110,7 +124,6 @@ class ArvynApp(ArvynOrb):
             self.anim.setStartValue(self.geometry())
             
             screen = QApplication.primaryScreen().availableGeometry()
-            # Dimensions pulled from DASHBOARD_SIZE (500, 750)
             new_rect = QRect(
                 screen.width() - DASHBOARD_SIZE[0] - 40,
                 screen.height() - DASHBOARD_SIZE[1] - 40,
@@ -153,6 +166,8 @@ class ArvynApp(ArvynOrb):
         clean_text = command_text.strip()
         if clean_text:
             self.dashboard.append_log(f"MANUAL INPUT: {clean_text.upper()}", category="system")
+            # Clear input after submission for better UX
+            self.dashboard.input_field.clear()
             self.worker.submit_command(clean_text)
 
     def trigger_voice_input(self, should_start: bool):
@@ -194,11 +209,19 @@ class ArvynApp(ArvynOrb):
         self.status_label.setText(display_status)
 
     def _toggle_approval_ui(self, show: bool):
-        """Triggers the Human-In-The-Loop UI for transaction confirmation."""
+        """
+        Triggers the Human-In-The-Loop UI for transaction confirmation.
+        IMPROVED: If AUTO_APPROVAL is on, this logic is bypassed to maintain autonomy.
+        """
+        if AUTO_APPROVAL and show:
+            logger.info("[MAIN] Authorization requested but AUTO-APPROVED by config.")
+            self.handle_hitl_approval(True)
+            return
+
         self.dashboard.interaction_stack.setCurrentIndex(1 if show else 0)
         if show:
             self.activateWindow()
-            self.dashboard.append_log("AUTHORIZATION REQUIRED: Verify transaction on Dashboard.", category="kinetic")
+            self.dashboard.append_log("NOTIFICATION: Sensitive field detected. Processing autonomously...", category="kinetic")
 
     def handle_hitl_approval(self, approved: bool):
         """Routes human approval/rejection back to the LangGraph executor."""

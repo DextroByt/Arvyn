@@ -5,113 +5,114 @@ from pydantic import BaseModel, Field
 class AgentState(TypedDict):
     """
     The internal state of Agent Arvyn (Production Grade).
-    Optimized for multi-turn autonomous execution and recursive reasoning.
+    UPGRADED: Optimized for Full Autonomy (Zero-Authorization) and High-Precision Kinetic execution.
+    Features: Recursive task history, multi-modal context, and secure credential handling.
     """
     # --- CONVERSATION & CONTEXT ---
     messages: Annotated[List[Any], add_messages]
     
-    # Intent: Parsed objective with CoT reasoning
+    # Intent: Parsed objective with high-fidelity CoT reasoning
     intent: Optional[Dict[str, Any]]
     
-    # User Context: Secure storage for PII (Personal Identifiable Information)
+    # User Context: Secure metadata pulled from user_profile.json
     user_data: Optional[Dict[str, Any]]
 
     # --- PERSISTENT TASK MEMORY ---
-    # High-fidelity history of every click, type, and thought
+    # High-fidelity history of every action taken in the current session
     task_history: List[Dict[str, Any]]
     
-    # The current 'mental' status shown on the Dashboard
+    # Real-time status update for the Command Center Dashboard
     current_step: str
     
-    # --- BANKING & KINETIC STATE ---
-    # Tracks the visual state of the browser and grounding coordinates
+    # --- KINETIC & VISUAL STATE ---
+    # Analysis from the VLM regarding the current viewport state
     browser_context: Dict[str, Any]
-    screenshot: Optional[str] # Base64 viewport capture
+    screenshot: Optional[str] # Base64 capture for visual reasoning
     
-    # Interaction Flow: Tracks questions asked to the user
+    # Tracks questions for the user (Minimized in Full Autonomy mode)
     pending_question: Optional[str]
     
-    # --- HITL & SECURITY (Human-In-The-Loop) ---
-    # Details of a pending transaction requiring manual confirmation
+    # --- AUTONOMY & SECURITY ---
+    # Details for transactions; used for logging even in autonomous mode
     transaction_details: Dict[str, Any]
     
-    # Stores the user's decision: "approved" | "rejected" | None
+    # Decision state: Forced to "approved" in Zero-Auth mode unless a failure occurs
     human_approval: Optional[str]
     
-    # Internal error counter to prevent infinite loops on specific nodes
+    # Prevents infinite recursion on complex UI roadblocks
     error_count: int
 
 class IntentOutput(BaseModel):
     """
     Structured reasoning for Arvyn's Intent Parser.
-    Forces domain-specific logic for banking tasks.
+    FIXED: Neutral defaults to prevent bias toward Rio Finance Bank.
+    IMPROVED: Universal action mapping for E-Commerce, Utilities, and Banking.
     """
     action: str = Field(
         default="QUERY", 
-        description="Core action: PAY_BILL | BUY_GOLD | UPDATE_PROFILE | LOGIN | NAVIGATE | SEARCH | QUERY"
+        description="Core action: PAY_BILL | BUY_GOLD | PURCHASE | LOGIN | NAVIGATE | SEARCH | QUERY"
     )
     target: str = Field(
-        default="BANKING", 
-        description="Domain category: BANKING | UTILITY | SHOPPING | BROWSER"
+        default="GENERAL", 
+        description="Domain category: E-COMMERCE | BANKING | UTILITY | ENTERTAINMENT | GENERAL"
     )
     provider: str = Field(
-        default="Rio Finance Bank", 
-        description="The specific site or entity being targeted."
+        default="Search", 
+        description="The specific target entity (e.g., Flipkart, Amazon, Rio Finance Bank)."
     )
     
     # Chain-of-Thought (CoT) Reasoning
     reasoning: Optional[str] = Field(
         default=None, 
-        description="The logic behind why this specific action/provider was chosen."
+        description="Logical justification for the identified action and provider."
     )
     
-    # Metadata for financial/search tasks
-    amount: Optional[float] = Field(default=None, description="Monetary value for transactions")
-    search_query: Optional[str] = Field(default=None, description="Optimized string for discovery")
+    # Metadata for specialized tasks
+    amount: Optional[float] = Field(default=None, description="Monetary value for purchases or bills")
+    search_query: Optional[str] = Field(default=None, description="Query string for site-specific search bars")
     
-    # FIXED: Changed from 'str' to 'Optional[str]' to prevent Pydantic validation crashes 
-    # when the LLM returns a null value for urgency.
+    # Urgency level for execution prioritization
     urgency: Optional[str] = Field(
-        default="LOW", 
-        description="Priority level for task execution: HIGH | MEDIUM | LOW"
+        default="MEDIUM", 
+        description="Priority: HIGH | MEDIUM | LOW"
     )
 
 class VisualGrounding(BaseModel):
     """
-    Structured output for VLM (Vision Language Model) coordinate mapping.
-    Maps pixel-space elements to normalized coordinates for kinetic execution.
+    Structured output for VLM coordinate mapping.
+    UPGRADED: Optimized for 100% Scaling precision and Drift Correction.
     """
-    # Expanded to ensure the agent always logs its reasoning before performing a click
-    thought: str = Field(description="Visual analysis of the current element and its role.")
+    # Requires the AI to explain its geometric choice before execution
+    thought: str = Field(description="Visual analysis and geometric center calculation logic.")
     
     element_name: str = Field(default="Target UI Element")
     
     # Coordinates in 0-1000 normalized space: [ymin, xmin, ymax, xmax]
     coordinates: Optional[List[float]] = Field(
         default=None, 
-        description="Normalized bounding box for the target element."
+        description="High-precision bounding box for the target element."
     )
     
     action_type: str = Field(
         default="CLICK", 
-        description="The physical action to perform: CLICK | TYPE | SCROLL | HOVER"
+        description="Kinetic action: CLICK | TYPE | SCROLL | HOVER"
     )
     
     input_text: Optional[str] = Field(
         default=None, 
-        description="Text to be entered if the action_type is TYPE."
+        description="Target string for TYPE actions (e.g., credentials from user context)."
     )
     
     confidence: float = Field(
         default=0.0, 
         ge=0.0, le=1.0, 
-        description="Model confidence in visual detection."
+        description="Visual grounding confidence threshold."
     )
 
 class TransactionSummary(BaseModel):
     """
-    Final output for banking task verification.
+    Autonomous task verification and summary.
     """
     status: str = Field(description="SUCCESS | FAILED | PENDING")
     transaction_id: Optional[str] = Field(default=None)
-    summary: str = Field(description="Narrative summary of the completed task.")
+    summary: str = Field(description="Narrative verification of the completed task.")

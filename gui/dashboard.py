@@ -6,12 +6,19 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import pyqtSignal, Qt, QSize
 from PyQt6.QtGui import QIcon, QPixmap, QImage, QColor
 
-from config import DASHBOARD_SIZE, ACCENT_COLOR, ERROR_COLOR, SUCCESS_COLOR
+from config import (
+    DASHBOARD_SIZE, 
+    ACCENT_COLOR, 
+    ERROR_COLOR, 
+    SUCCESS_COLOR,
+    STRICT_AUTONOMY_MODE
+)
 
 class ArvynDashboard(QFrame):
     """
     Superior Command Center for Agent Arvyn.
-    UPGRADED: Compact High-Resolution Monitor and Semantic Log Streaming.
+    UPGRADED: Features Autonomous Action Highlighting (Zero-Auth mode).
+    FIXED: Real-time semantic logging for sensitive credential entry.
     RESIZED: Optimized for 350px width to prevent background UI occlusion.
     """
     command_submitted = pyqtSignal(str)
@@ -23,7 +30,7 @@ class ArvynDashboard(QFrame):
     def __init__(self):
         super().__init__()
         self.setObjectName("Dashboard")
-        # Uses the new compact size (350, 620) from config.py
+        # Uses the optimized compact size (350, 620) from config.py
         self.setFixedSize(DASHBOARD_SIZE[0], DASHBOARD_SIZE[1]) 
         self.setFrameShape(QFrame.Shape.NoFrame)
         self.is_listening = False
@@ -89,13 +96,13 @@ class ArvynDashboard(QFrame):
 
     def _init_ui(self):
         layout = QVBoxLayout(self)
-        # Tightened margins to fit the smaller width
         layout.setContentsMargins(20, 15, 20, 20)
         layout.setSpacing(12)
 
         # --- 1. Header Area ---
         header_layout = QHBoxLayout()
-        self.header = QLabel("ARVYN // COMMAND")
+        mode_suffix = "AUTO" if STRICT_AUTONOMY_MODE else "COMMAND"
+        self.header = QLabel(f"ARVYN // {mode_suffix}")
         self.header.setStyleSheet(f"font-weight: 900; letter-spacing: 1.5px; font-size: 10px; color: {ACCENT_COLOR};")
         
         btn_min = QPushButton("−")
@@ -116,7 +123,6 @@ class ArvynDashboard(QFrame):
         layout.addLayout(header_layout)
 
         # --- 2. Live Visual Monitor ---
-        # Resized from 450 to 310 to fit inside the 350px Dashboard width
         self.visual_monitor = QLabel()
         self.visual_monitor.setObjectName("VisualMonitor")
         self.visual_monitor.setFixedSize(310, 195)
@@ -132,7 +138,8 @@ class ArvynDashboard(QFrame):
         self.status_container = QWidget()
         status_lay = QVBoxLayout(self.status_container)
         status_lay.setContentsMargins(0, 0, 0, 0)
-        self.status_msg = QLabel("SYSTEM STANDBY")
+        initial_status = "AUTONOMOUS ENGINE ACTIVE" if STRICT_AUTONOMY_MODE else "SYSTEM STANDBY"
+        self.status_msg = QLabel(initial_status)
         self.status_msg.setStyleSheet(f"color: {ACCENT_COLOR}; font-weight: 800; font-size: 11px; letter-spacing: 1px;")
         self.status_msg.setAlignment(Qt.AlignmentFlag.AlignCenter)
         status_lay.addWidget(self.status_msg)
@@ -142,6 +149,7 @@ class ArvynDashboard(QFrame):
         appr_lay.setContentsMargins(0, 0, 0, 0)
         appr_lay.setSpacing(10)
         
+        # NOTE: These buttons are rarely shown in Zero-Auth mode but kept for visual-stuck fallback
         btn_appr = QPushButton("AUTHORIZE")
         btn_appr.setObjectName("BtnApprove")
         btn_appr.setFixedHeight(34)
@@ -162,7 +170,7 @@ class ArvynDashboard(QFrame):
         # --- 4. Semantic Log Area ---
         self.log_area = QTextEdit()
         self.log_area.setReadOnly(True)
-        self.log_area.setPlaceholderText("Streaming logic...")
+        self.log_area.setPlaceholderText("Streaming autonomous logic...")
         layout.addWidget(self.log_area)
 
         # --- 5. Unified Command Input ---
@@ -170,7 +178,7 @@ class ArvynDashboard(QFrame):
         cmd_layout.setSpacing(8)
         
         self.input_field = QLineEdit()
-        self.input_field.setPlaceholderText("Enter command...")
+        self.input_field.setPlaceholderText("Direct command input...")
         self.input_field.returnPressed.connect(self._handle_submit)
         
         self.btn_mic = QPushButton("🎤")
@@ -200,23 +208,33 @@ class ArvynDashboard(QFrame):
             self.input_field.clear()
 
     def append_log(self, text: str, category: str = "general"):
+        """
+        Semantic Log Streaming.
+        IMPROVED: Added 'autonomous' category for Zero-Auth monitoring.
+        """
         colors = {
             "action": ACCENT_COLOR,
             "system": "#888888",
             "error": ERROR_COLOR,
             "success": SUCCESS_COLOR,
             "kinetic": "#f1c40f",
+            "autonomous": "#BB86FC", # NEW: High-vis Purple for autonomous actions
             "general": "#e0e0e0"
         }
         text_lower = text.lower()
-        if any(k in text_lower for k in ["[action]", "[brain]", "reasoning"]): category = "action"
+        
+        # Categorization Logic
+        if any(k in text_lower for k in ["secure action", "autofill", "autonomous", "bypass"]): category = "autonomous"
+        elif any(k in text_lower for k in ["[action]", "[brain]", "reasoning"]): category = "action"
         elif any(k in text_lower for k in ["[error]", "failed", "fault"]): category = "error"
         elif any(k in text_lower for k in ["completed", "success", "reached", "🏁"]): category = "success"
         elif any(k in text_lower for k in ["kinetic", "typing", "clicking"]): category = "kinetic"
         elif any(k in text_lower for k in ["[intent", "[discovery", "resolving"]): category = "system"
 
         color = colors.get(category, colors["general"])
-        formatted_text = f"<div style='margin-bottom: 4px;'><span style='color:{color}; font-weight:900;'>&gt;</span> {text}</div>"
+        # Format with high-contrast prefix
+        prefix = "⚡" if category == "autonomous" else "&gt;"
+        formatted_text = f"<div style='margin-bottom: 4px;'><span style='color:{color}; font-weight:900;'>{prefix}</span> {text}</div>"
         
         self.log_area.append(formatted_text)
         self.log_area.verticalScrollBar().setValue(self.log_area.verticalScrollBar().maximum())
@@ -232,6 +250,10 @@ class ArvynDashboard(QFrame):
                 Qt.TransformationMode.SmoothTransformation
             )
             self.visual_monitor.setPixmap(scaled_pixmap)
-            self.status_msg.setText("EYES ON TARGET")
+            # Update Dashboard feedback
+            if STRICT_AUTONOMY_MODE:
+                self.status_msg.setText("AUTONOMOUS EXECUTION IN PROGRESS")
+            else:
+                self.status_msg.setText("EYES ON TARGET")
         except Exception as e:
             self.append_log(f"Feed Error: {e}", category="error")

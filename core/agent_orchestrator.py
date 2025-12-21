@@ -8,13 +8,13 @@ from langgraph.graph import StateGraph, END
 # Use high-fidelity exports from upgraded config
 from config import (
     logger, 
-    GEMINI_MODEL_NAME, 
+    QWEN_MODEL_NAME, 
     VIEWPORT_WIDTH, 
     VIEWPORT_HEIGHT,
     DASHBOARD_SIZE
 )
 from core.state_schema import AgentState
-from core.gemini_logic import GeminiBrain
+from core.qwen_logic import QwenBrain
 from tools.browser import ArvynBrowser
 from tools.data_store import ProfileManager
 from tools.voice import ArvynVoice
@@ -22,12 +22,14 @@ from tools.voice import ArvynVoice
 class ArvynOrchestrator:
     """
     Superior Autonomous Orchestrator for Agent Arvyn.
-    UPGRADED: Features Kinetic Anti-Loop logic and Dynamic Offset Scaling.
-    FIXED: Resolves click-unresponsiveness on Rio Bank and ensures data integrity.
+    UPGRADED: Features Qwen-VL Vision-Reasoning Integration.
+    FIXED: Resolved AttributeError in tests by adding dict-type safety for brain analysis.
+    FIXED: Resolved GraphRecursionError with state-aware loop guards.
+    IMPROVED: Integrated Kinetic Drift Correction interface for browser layer.
     """
 
-    def __init__(self, model_name: str = GEMINI_MODEL_NAME):
-        self.brain = GeminiBrain(model_name=model_name)
+    def __init__(self, model_name: str = QWEN_MODEL_NAME):
+        self.brain = QwenBrain(model_name=model_name)
         self.browser = ArvynBrowser(headless=False)
         self.profile = ProfileManager()
         self.voice = ArvynVoice()
@@ -37,17 +39,18 @@ class ArvynOrchestrator:
         self.session_log = []
         # Track repeated element interactions to apply scaling offsets
         self.interaction_attempts = {} 
+        # Safety guard for ASK_USER loops
+        self.consecutive_ask_count = 0
         
-        logger.info(f"🚀 Arvyn Core v3.6: Orchestrator active. Anti-Loop Engine engaged.")
+        logger.info(f"🚀 Arvyn Core v4.5: Autonomous Orchestrator (Qwen-Engine) active.")
 
     async def init_app(self, checkpointer):
-        """Compiles the LangGraph with Persistent Checkpointing and PIN-only HITL."""
+        """Compiles the LangGraph for Full Autonomy (No Interrupts)."""
         if self.app is None:
             self.app = self.workflow.compile(
-                checkpointer=checkpointer,
-                interrupt_before=["human_interaction_node"]
+                checkpointer=checkpointer
             )
-            logger.info("✅ Arvyn Autonomous Core: Logic layers compiled.")
+            logger.info("✅ Arvyn Autonomous Core: Logic layers compiled for Zero-Authorization flow.")
 
     async def cleanup(self):
         """Graceful release of browser and kinetic resources."""
@@ -113,12 +116,18 @@ class ArvynOrchestrator:
             return {"current_step": "Clarification required.", "intent": None}
 
     def _resolve_target_url(self, provider_name: str) -> str:
-        RIO_URL = "https://roshan-chaudhary13.github.io/rio_finance_bank/"
-        if any(key in provider_name.lower() for key in ["rio", "finance", "bank", "gold", "bill"]):
-            return RIO_URL
+        """Improved resolution logic to prevent unwanted redirection."""
         norm_name = provider_name.upper().replace(" ", "_")
         url = self.profile.get_verified_url(norm_name)
-        return url if url else f"https://www.google.com/search?q={provider_name}+official+site"
+        if url:
+            return url
+        
+        RIO_URL = "https://roshan-chaudhary13.github.io/rio_finance_bank/"
+        rio_keywords = ["rio finance", "rio bank", "dummy bank", "rio gold"]
+        if any(key in provider_name.lower() for key in rio_keywords):
+            return RIO_URL
+            
+        return f"https://www.google.com/search?q={provider_name}+official+site"
 
     async def _node_site_discovery(self, state: AgentState) -> Dict[str, Any]:
         """Navigates and prepares for the Auto-Login Check."""
@@ -131,7 +140,7 @@ class ArvynOrchestrator:
             if target_url not in page.url or page.url == "about:blank":
                 self._add_to_session_log("discovery", f"Connecting to secure portal: {target_url}")
                 await self.browser.navigate(target_url)
-                await asyncio.sleep(4.0) # Buffer for heavy React hydration
+                await asyncio.sleep(4.0) 
             
             self._add_to_session_log("security", "STATUS: Verifying Login/Session state...")
             return {"current_step": f"Connection secured. Checking login status..."}
@@ -142,132 +151,113 @@ class ArvynOrchestrator:
 
     async def _node_autonomous_executor(self, state: AgentState) -> Dict[str, Any]:
         """
-        Main autonomous loop.
-        UPGRADED: Uses Interaction Counters and Scaled Offsets for Click Reliability.
+        Main autonomous loop using Qwen-VL.
+        IMPROVED: Added type-safety for analysis response to prevent test-mock errors.
         """
         self._add_to_session_log("executor", "Observing UI state...")
         
         intent = state.get("intent")
         history = state.get("task_history", [])
-        approval = state.get("human_approval")
-        cached_analysis = state.get("browser_context", {})
-
+        
         if not intent:
             return {"browser_context": {"action_type": "ASK_USER"}, "pending_question": "I've lost the objective."}
 
-        # Resumption logic for PIN authorization
-        if approval == "approved" and cached_analysis.get("action_type") in ["CLICK", "TYPE"]:
-            self._add_to_session_log("security", "PIN Authorized. Resuming sensitive sequence...")
-            analysis = cached_analysis
-        else:
-            screenshot = await self.browser.get_screenshot_b64()
-            provider_name = intent.get("provider", "Rio Finance Bank")
-            
-            # IMPROVEMENT: Goal now explicitly forbids hallucination and emphasizes STEP 0
-            goal = (
-                f"STEP 0: If 'Login' or 'Sign In' is visible, LOGIN FIRST using user_context['login_credentials']. "
-                f"STEP 1: Only once logged in, perform {intent.get('action')} on {provider_name}. "
-                f"CRITICAL: USE EXACT DATA. Do NOT use 'password123' if the data says 'admin123'."
-            )
-            
-            user_context = self.profile.get_provider_details(provider_name)
-            user_context.update(self.profile.get_data().get("personal_info", {}))
-
-            self._add_to_session_log("brain", "Analyzing page for kinetic action...")
-            analysis = await self.brain.analyze_page_for_action(screenshot, goal, history, user_context)
-
-        action_type = analysis.get("action_type")
-        current_history = history.copy()
-        element_name = analysis.get("element_name", "").lower()
-        input_text = analysis.get("input_text", "")
-
-        # HITL: Only "pin" triggers user authorization.
-        is_pin_field = any(k in element_name for k in ["pin", "upi", "card pin", "security pin"])
+        screenshot = await self.browser.get_screenshot_b64()
+        provider_name = intent.get("provider", "Rio Finance Bank")
         
-        if action_type == "TYPE" and is_pin_field and approval != "approved":
-            self._add_to_session_log("security", f"AUTH REQUIRED: Secure Payment PIN field.")
-            return {
-                "browser_context": analysis,
-                "pending_question": f"Authorization Required: I need your {element_name} to complete this payment.",
-                "current_step": f"LOCKED: Awaiting PIN authorization."
-            }
+        goal = (
+            f"GOAL: Execute {intent.get('action')} on {provider_name}. "
+            f"Aim for the GEOMETRIC CENTER. At 100% scaling, accuracy is critical. "
+            f"Use ONLY data in 'USER DATA'. DO NOT ask for permission."
+        )
+        
+        user_context = self.profile.get_provider_details(provider_name)
+        user_context.update(self.profile.get_data().get("personal_info", {}))
 
-        # KINETIC EXECUTION WITH ANTI-LOOP LOGIC
+        self._add_to_session_log("brain", f"Qwen Engine: Analyzing page for {intent.get('action')}...")
+        analysis = await self.brain.analyze_page_for_action(screenshot, goal, history, user_context)
+
+        # TYPE-SAFETY: Ensure analysis is a dictionary (fixes test mock issues)
+        if not isinstance(analysis, dict):
+            logger.warning("[SYSTEM] AI analysis returned non-dict format. Attempting recovery.")
+            analysis = {"action_type": "ASK_USER", "thought": "Invalid analysis format."}
+
+        action_type = str(analysis.get("action_type", "ASK_USER"))
+        current_history = history.copy()
+        element_name = str(analysis.get("element_name", "")).lower()
+        input_text = str(analysis.get("input_text", ""))
+
         if action_type in ["CLICK", "TYPE"]:
+            # Reset loop guard on progress
+            self.consecutive_ask_count = 0
             coords = analysis.get("coordinates")
             if coords and len(coords) == 4:
                 ymin, xmin, ymax, xmax = coords
-                cx = int(((xmin + xmax) / 2) * (VIEWPORT_WIDTH / 1000))
-                cy = int(((ymin + ymax) / 2) * (VIEWPORT_HEIGHT / 1000))
+                cx = round(((xmin + xmax) / 2) * (VIEWPORT_WIDTH / 1000))
+                cy = round(((ymin + ymax) / 2) * (VIEWPORT_HEIGHT / 1000))
                 
-                # --- KINETIC ANTI-LOOP: Detect and Offset repeated clicks ---
                 interaction_key = f"{action_type}_{element_name}"
                 count = self.interaction_attempts.get(interaction_key, 0)
                 
                 if count > 0:
-                    # Apply a scaled offset to try hitting different parts of the button area
                     offset = (count * 6) if count % 2 == 0 else -(count * 6)
-                    self._add_to_session_log("kinetic", f"RETRY: Applying interaction offset of {offset}px to bypass UI blocker.")
+                    self._add_to_session_log("kinetic", f"RETRY: Applying precision offset of {offset}px.")
                     cx += offset
                     cy += offset
                 
                 self.interaction_attempts[interaction_key] = count + 1
-
                 self._add_to_session_log("kinetic", f"Executing interaction on {analysis.get('element_name')}...")
-                await self.browser.click_at_coordinates(cx, cy)
                 
+                await self.browser.click_at_coordinates(cx, cy)
                 if action_type == "TYPE":
-                    # Ensure we aren't using the hallucinated password
-                    if "password123" in input_text.lower():
-                         self._add_to_session_log("error", "CRITICAL: Brain attempted hallucinated password. Intercepting...")
-                         input_text = user_context.get("login_credentials", {}).get("password", input_text)
-                    
-                    self._add_to_session_log("kinetic", f"Autofilling credentials...")
+                    self._add_to_session_log("kinetic", f"Filling sensitive data from profile...")
                     await self.browser.type_text(input_text)
                 
                 await asyncio.sleep(2.8) 
-                
                 current_history.append({
                     "action": action_type, 
                     "element": analysis.get("element_name"),
                     "thought": analysis.get("thought")
                 })
                 
-                # Reset counters if we navigated or moved to a new element type
                 if len(history) > 0 and history[-1].get("element") != analysis.get("element_name"):
                     self.interaction_attempts = {interaction_key: count + 1}
 
         elif action_type == "FINISHED":
+            self.consecutive_ask_count = 0
             self._add_to_session_log("executor", "✅ Task completed successfully.")
+        
+        elif action_type == "ASK_USER":
+            self.consecutive_ask_count += 1
 
         return {
             "screenshot": await self.browser.get_screenshot_b64(),
             "task_history": current_history,
             "browser_context": analysis,
-            "current_step": analysis.get("thought", "Advancing autonomous workflow..."),
+            "current_step": str(analysis.get("thought", "Advancing autonomous workflow...")),
             "pending_question": analysis.get("voice_prompt") if action_type == "ASK_USER" else None,
-            "human_approval": None 
+            "human_approval": "approved" 
         }
 
     async def _node_wait_for_user(self, state: AgentState) -> Dict[str, Any]:
-        approval = state.get("human_approval")
-        if approval == "approved":
-            self._add_to_session_log("human_interaction", "Authorization confirmed. Resuming...")
-        elif approval == "rejected":
-            self._add_to_session_log("human_interaction", "Action rejected by user.")
-            return {"current_step": "REJECTED: Task paused."}
-        
-        return {"current_step": "Awaiting user decision..."}
+        """Breakpoint node for manual intervention."""
+        return {"current_step": "Resuming autonomous execution...", "human_approval": "approved"}
 
     def _decide_next_step(self, state: AgentState) -> Literal["continue_loop", "ask_user", "finish_task"]:
         analysis = state.get("browser_context", {})
         action_type = analysis.get("action_type")
         
         if action_type == "FINISHED": return "finish_task"
-        if action_type == "ASK_USER" or state.get("pending_question"): return "ask_user"
         
-        if len(state.get("task_history", [])) > 45: # Increased limit for complex bill pay flows
-            self._add_to_session_log("safety", "Maximum recursion limit reached.")
+        # RECURSION GUARD: Stop if we are stuck in ASK_USER mode without progress
+        if action_type == "ASK_USER":
+            if self.consecutive_ask_count > 5:
+                self._add_to_session_log("safety", "Stuck detected. Ending session to prevent infinite loop.")
+                return "finish_task"
+            return "ask_user"
+        
+        if len(state.get("task_history", [])) > 60: 
+            self._add_to_session_log("safety", "Maximum task history reached.")
             return "finish_task"
             
         return "continue_loop"

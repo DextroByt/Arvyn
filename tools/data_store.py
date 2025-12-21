@@ -8,12 +8,10 @@ from config import USER_PROFILE_PATH, logger
 class ProfileManager:
     """
     Advanced Memory & Context Engine for Agent Arvyn.
-    Features: Atomic writes, Task State Persistence, and 
-    Hardened Banking Context for Rio Finance Bank.
+    UPGRADED: Features Multi-Site Context Resolution and Strict Autonomy.
+    FIXED: Removed forced Rio Bank redirection for general site requests.
+    IMPROVED: Atomic storage logic with task-state persistence.
     """
-    
-    # Static Reference for the Primary Automation Target
-    RIO_URL = "https://roshan-chaudhary13.github.io/rio_finance_bank/"
     
     def __init__(self):
         self.path = USER_PROFILE_PATH
@@ -25,25 +23,18 @@ class ProfileManager:
         try:
             os.makedirs(os.path.dirname(self.path), exist_ok=True)
             if not os.path.exists(self.path):
-                # 'task_registry' allows Arvyn to resume tasks after crashes
+                # IMPROVEMENT: Default initial data is now a clean schema.
                 initial_data = {
                     "personal_info": {
                         "full_name": "Arvyn User",
                         "email": "user@example.com",
-                        "phone": "+1234567890"
+                        "phone": "+1234567890",
+                        "upi id": "user@okrio"
                     },
-                    "providers": {
-                        "RIO_FINANCE_BANK": {
-                            "url": self.RIO_URL,
-                            "account_id": "RIO-778899",
-                            "login_method": "Visual-ID",
-                            "notes": "Primary target for Bill Pay and Gold tasks."
-                        }
-                    }, 
+                    "providers": {}, 
                     "verified_sites": {
-                        "RIO_FINANCE_BANK": self.RIO_URL,
-                        "RIO_BANK": self.RIO_URL,
-                        "RIO_FINANCE": self.RIO_URL
+                        "GOOGLE": "https://www.google.com",
+                        "GITHUB": "https://github.com"
                     },
                     "task_registry": {
                         "active_goal": None,
@@ -52,39 +43,33 @@ class ProfileManager:
                     },
                     "settings": {
                         "auto_navigate_verified": True,
-                        "strict_banking_mode": True
+                        "strict_banking_mode": True,
+                        "require_approval_for_payments": False
                     }
                 }
                 self._save_data(initial_data)
-                logger.info(f"📂 Arvyn Vault: Initialized banking memory at {self.path}")
+                logger.info(f"📂 Arvyn Vault: Initialized clean memory at {self.path}")
         except Exception as e:
             logger.error(f"Vault Initialization Error: {e}")
 
     def _bootstrap_banking_context(self):
-        """Guarantees that Rio Finance Bank data is never lost or corrupted."""
+        """
+        Ensures the data structure is consistent without polluting it.
+        FIXED: No longer injects RIO_URL into generic 'BANK' keywords.
+        """
         data = self.get_data()
         modified = False
         
-        # 1. Ensure Verified Sites contain the Rio URL
-        v_sites = data.setdefault("verified_sites", {})
-        if v_sites.get("RIO_FINANCE_BANK") != self.RIO_URL:
-            v_sites["RIO_FINANCE_BANK"] = self.RIO_URL
-            v_sites["RIO_BANK"] = self.RIO_URL
-            modified = True
-            
-        # 2. Ensure Provider Metadata exists
-        providers = data.setdefault("providers", {})
-        if "RIO_FINANCE_BANK" not in providers:
-            providers["RIO_FINANCE_BANK"] = {
-                "url": self.RIO_URL,
-                "account_id": "RIO-778899",
-                "notes": "Forced injection for banking reliability."
-            }
-            modified = True
+        # Ensure top-level structure exists for autonomy
+        keys = ["providers", "verified_sites", "personal_info", "task_registry", "settings"]
+        for k in keys:
+            if k not in data:
+                data[k] = {}
+                modified = True
             
         if modified:
             self._save_data(data)
-            logger.info("✅ Arvyn Memory: Rio Finance Bank context synchronized.")
+            logger.info("✅ Arvyn Memory: Context schema synchronized for autonomous operation.")
 
     def get_data(self) -> Dict[str, Any]:
         """Loads agent knowledge with recursive key-validation."""
@@ -134,39 +119,60 @@ class ProfileManager:
     # --- Provider & Context Logic ---
 
     def get_provider_details(self, provider_name: str) -> Dict[str, Any]:
-        """Advanced lookup with fuzzy alias matching (e.g. 'Rio' matches 'RIO_FINANCE_BANK')."""
+        """
+        Advanced lookup from user_profile.json.
+        IMPROVED: Prioritizes exact matches for security.
+        """
         data = self.get_data()
         providers = data.get("providers", {})
-        query = provider_name.upper()
+        query = provider_name.upper().replace(" ", "_")
         
-        # Direct Match
+        # 1. Direct Match (e.g. RIO_FINANCE_BANK)
         if query in providers: return providers[query]
         
-        # Partial Match (Alias support)
+        # 2. Key-in-Query Match (e.g. "Rio Bank" matches "RIO_FINANCE_BANK")
         for key in providers:
-            if query in key or key in query:
+            if key in query:
+                return providers[key]
+                
+        # 3. Query-in-Key Match
+        for key in providers:
+            if query in key:
                 return providers[key]
                 
         return {}
 
     def get_verified_url(self, entity_name: str) -> Optional[str]:
-        """Checks the verified site registry."""
+        """
+        Checks the verified site registry.
+        FIXED: Ensures Flipkart/Amazon requests pull from profile, not defaults.
+        """
         data = self.get_data()
-        return data.get("verified_sites", {}).get(entity_name.upper())
+        verified = data.get("verified_sites", {})
+        query = entity_name.upper().replace(" ", "_")
+        
+        return verified.get(query)
 
     def update_provider(self, provider_name: str, details: Dict[str, Any]):
         """Updates provider details using a deep merge."""
         data = self.get_data()
-        key = provider_name.upper()
+        key = provider_name.upper().replace(" ", "_")
         if key not in data["providers"]: data["providers"][key] = {}
         data["providers"][key].update(details)
         self._save_data(data)
 
     def get_full_context(self, provider: str) -> Dict[str, Any]:
-        """Packages all relevant data for the Gemini Brain."""
+        """
+        Packages all relevant data for the Gemini Brain.
+        IMPROVED: Explicitly includes security credentials for autonomous login/PIN entry.
+        """
         data = self.get_data()
+        provider_details = self.get_provider_details(provider)
+        
         return {
             "personal_info": data.get("personal_info", {}),
-            "banking_details": self.get_provider_details(provider),
+            "login_credentials": provider_details.get("login_credentials", {}),
+            "security_details": provider_details.get("security_details", {}),
+            "account_metadata": provider_details.get("account_metadata", {}),
             "last_task_state": data.get("task_registry", {})
         }
