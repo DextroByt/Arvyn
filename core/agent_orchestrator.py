@@ -616,6 +616,18 @@ class ArvynOrchestrator:
                         if filled.get('email') or filled.get('password'):
                             self._add_to_session_log('kinetic', 'Autofilled credentials from profile.')
                             success = True
+                            
+                            # v5.1 FIX: Immediately attempt to click Sign In to prevent looping on input fields
+                            await asyncio.sleep(1.0)
+                            login_buttons = ['Sign In', 'Log In', 'Login', 'Submit', 'Continue']
+                            for btn_text in login_buttons:
+                                try:
+                                    if await self.browser.find_and_click_text(btn_text):
+                                        self._add_to_session_log('kinetic', f"Auto-clicked '{btn_text}' after autofill.")
+                                        await asyncio.sleep(3.0) # Wait for navigation
+                                        break
+                                except Exception:
+                                    continue
                         else:
                             success = await self.browser.click_at_coordinates(cx, cy, element_hint=element_name)
                     else:
