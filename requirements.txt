@@ -1,12 +1,26 @@
+# --- CORE AGENT & GRAPH ---
 langgraph
-langchain-google-genai
-google-genai
 pydantic
 python-dotenv
+
+# --- LOCAL AI BRAIN (QWEN2.5-VL 3B) ---
+torch
+torchvision
+# Required for 4-bit quantization and model speedups
+transformers>=4.46.0
+accelerate>=0.26.0
+bitsandbytes>=0.43.0
+qwen-vl-utils
+
+# --- UI & DASHBOARD ---
 PyQt6
+
+# --- BROWSER & KINETICS ---
 playwright
+requests
+pillow
+
+# --- VOICE & INTERACTION ---
 SpeechRecognition
 pyttsx3
 PyAudio
-pillow
-requests
