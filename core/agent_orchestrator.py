@@ -222,6 +222,7 @@ class ArvynOrchestrator:
 
         goal = (
             f"GOAL: Execute {intent.get('action')} on {provider_name}. "
+            f"Target Amount: {intent.get('amount', 'Not Specified')}. "
             f"Identify target 'element_name' (label/text) for Semantic Sync. "
             f"Use ONLY data in 'USER DATA'. DO NOT ask for permission."
         )
