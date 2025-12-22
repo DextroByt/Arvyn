@@ -116,6 +116,7 @@ class AgentWorker(QThread):
         self.loop = None
         self._is_running = True
         self.session_config = {"configurable": {"thread_id": "arvyn_autonomous_v4_qubrid"}, "recursion_limit": 100}
+        self.approval_timeout_task = None
 
     def submit_command(self, user_command: str):
         self.command_queue.put(user_command)
@@ -268,6 +269,13 @@ class AgentWorker(QThread):
             
             # CRITICAL: Ensure the signal is sent to the UI with high priority
             self.approval_signal.emit(True, bool(is_sec))
+
+            # START TIMEOUT if security pause
+            if is_sec:
+                if self.approval_timeout_task:
+                    self.approval_timeout_task.cancel()
+                if self.loop and self.loop.is_running():
+                    self.approval_timeout_task = self.loop.create_task(self._start_approval_timeout())
         else:
             logger.info("🔍 AgentWorker: No human interaction node pending.")
             analysis = values.get("browser_context", {})
@@ -318,6 +326,11 @@ class AgentWorker(QThread):
                 self.speak_signal.emit(output["pending_question"])
 
     def resume_with_approval(self, approved: bool):
+        # Cancel any pending timeout
+        if self.approval_timeout_task:
+            self.approval_timeout_task.cancel()
+            self.approval_timeout_task = None
+            
         if self.loop and self.loop.is_running():
             asyncio.run_coroutine_threadsafe(self._resume_logic(approved), self.loop)
 
@@ -335,3 +348,22 @@ class AgentWorker(QThread):
                 self._sync_orchestrator_logs()
                 self._handle_node_output(node_name, output)
         self._check_for_interaction()
+
+    async def _start_approval_timeout(self):
+        try:
+            logger.info("⏳ Security Pause: Starting 60s timeout for user approval...")
+            await asyncio.sleep(60)
+            logger.warning("⏳ Security Timeout: No response from user. Auto-REJECTING task.")
+            # Auto-reject via the resume logic
+            # We must be careful to call resume_with_approval which is thread-safe wrapper, 
+            # OR call _resume_logic directly since we are already in the loop.
+            # But resume_with_approval handles thread safety if called from elsewhere. 
+            # Since we are IN the loop, we can call _resume_logic directly, BUT resume_with_approval cancels the task...
+            # calling resume_with_approval from inside the task that is running is fine (cancel will just explicitly mark it done)
+            # safer to just call logic directly but we need to update UI.
+            
+            # Using the main thread entry point to ensure signals emit correctly
+            self.resume_with_approval(False)
+            
+        except asyncio.CancelledError:
+            logger.info("⏳ Security Timeout: Cancelled (User responded).")

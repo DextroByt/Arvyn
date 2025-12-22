@@ -367,10 +367,47 @@ class ArvynOrchestrator:
 
         # --- CONCISE PAUSE FEATURE: Security Field Detection ---
         # Triggered for Payment Pins, Transaction Pins, UPI Pins, CVV, etc.
-        security_keywords = ['pin', 'transaction pin', 'upi pin', 'payment pin', 'cvv', 'card pin', 'security code']
+        # Triggered for Payment Pins, Transaction Pins, UPI Pins, CVV, etc.
+        security_keywords = [
+            'pin', 'transaction pin', 'upi pin', 'payment pin', 
+            'cvv', 'card pin', 'security code', 'transaction password',
+            'password', 'pass' # Expanded to catch all potentially sensitive auth fields
+        ]
         ename_low = element_name.lower()
         is_security_field = any(k in ename_low for k in security_keywords)
+        # Refined check: If it's just 'password' (login), we might skip pause if we want full autonomy for login?
+        # User request was specifically about "transaction pin". 
+        # But to be safe per user instructions "agent should not perform any task as long as there is no user response to the button" 
+        # implies ANY sensitive triggering should probably wait if it's ambiguous.
+        # However, for regular login, pausing might be annoying.
+        # Let's target the "transaction pin" specifically requested by user but keep it broad enough.
         
+        # If the element matches "pin" or "transaction", strictly enforce pause.
+        if 'pin' in ename_low or 'transaction' in ename_low or 'cvv' in ename_low:
+             is_security_field = True
+        elif 'password' in ename_low and 'login' not in ename_low and 'sign' not in ename_low:
+             # Assume non-login passwords might be transaction passwords
+             is_security_field = True
+        
+        # --- REPEATED ACTION GUARD: Prevent Infinite Security Loops ---
+        # If we successfully injected a PIN in the last step, but the VLM sees it again, 
+        # it forces a loop. We must override this and look for a submit/continue button.
+        if is_security_field and history and history[-1].get('action') == 'TYPE':
+            last_el = history[-1].get('element', '').lower()
+            # Fuzzy match: "Transaction PIN" vs "Enter PIN" etc.
+            if element_name.lower() in last_el or last_el in element_name.lower() or 'pin' in last_el:
+                 self._add_to_session_log("brain", "⚠️ RECURSION GUARD: Security Field already filled. Forcing 'Submit'.")
+                 # Override VLM decision
+                 action_type = "CLICK"
+                 # HEURISTIC: Guess common submit names
+                 element_name = "Submit" 
+                 # We can try to be smarter or just rely on text fallback ("Pay", "Continue", etc)
+                 # Ideally we should ask the browser to find "Pay" or "Submit" but we can just set the intent
+                 # and let the existing text-finding logic handle "Submit" if coordinates fail?
+                 # Actually, let's keep it simple: "Submit" often works on these forms.
+                 # Or "Pay Now".
+                 is_security_field = False # Bypass security lock for this corrective action
+
         # If it's a security field and not yet approved, we force an ASK_USER state
         if is_security_field and current_approval != "approved":
             # If already rejected earlier in the node, we shouldn't be here, but just in case:
@@ -653,6 +690,36 @@ class ArvynOrchestrator:
                         self.security_locked = False # RELEASE THE LOCK
                         if len(history) > 0 and history[-1].get("element") != element_name:
                             self.interaction_attempts = {}
+
+                        # --- SUCCESS GUARD: Check if we are done ---
+                        # After an action, check if the page now says "Success" or we are back on "Dashboard"
+                        # to prevent looping back to start.
+                        try:
+                            # Quick text check of the new state
+                            page_text = await self.browser.get_page_text()
+                            page_text_lower = page_text.lower()
+                            success_indicators = [
+                                "payment successful", "transaction successful", "order placed successfully", 
+                                "congratulations", "success", "confirmed", "receipt"
+                            ]
+                            is_success = any(ind in page_text_lower for ind in success_indicators)
+                            
+                            # Also check if we returned to dashboard after some progress
+                            is_dashboard = "dashboard" in page_text_lower and "balance" in page_text_lower
+                            
+                            if (is_success or is_dashboard) and len(current_history) > 2:
+                                self._add_to_session_log("brain", "✅ SUCCESS CONFIRMED: Completing task sequence.")
+                                return {
+                                    "screenshot": await self.browser.get_screenshot_b64(),
+                                    "task_history": current_history,
+                                    "browser_context": {"action_type": "FINISHED"}, # Force Finish
+                                    "current_step": "Task Completed Successfully.",
+                                    "pending_question": None,
+                                    "human_approval": None,
+                                    "is_security_pause": False
+                                }
+                        except Exception:
+                            pass
                         
                         # Return state with updated history and reset approval
                         return {

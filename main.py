@@ -230,7 +230,14 @@ class ArvynApp(ArvynOrb):
             self.dashboard.append_log("NOTIFICATION: Semantic Sync requires manual verification.", category="kinetic")
 
     def handle_hitl_approval(self, approved: bool):
-        """Signals the worker to resume or abort based on user input."""
+        """Signals the worker to resume or abort based on user input. If REJECTED, immediately kill app."""
+        if not approved:
+            # Immediate shutdown requested by user
+            logger.warning("🛡️ REJECTION RECEIVED: Initiating immediate dashboard shutdown.")
+            self.dashboard.append_log("USER REJECTED: CLOSING APPLICATION...", category="error")
+            self.kill_agent()
+            return
+
         if self.worker:
             self.worker.resume_with_approval(approved)
 
