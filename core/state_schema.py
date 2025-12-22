@@ -42,6 +42,9 @@ class AgentState(TypedDict):
     # Prevents infinite recursion on complex UI roadblocks
     error_count: int
 
+    # Concise Pause Metadata
+    is_security_pause: Optional[bool]
+
 class IntentOutput(BaseModel):
     """
     Structured reasoning for Arvyn's Intent Parser (v5.0).

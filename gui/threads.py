@@ -80,7 +80,7 @@ class AgentWorker(QThread):
     log_signal = pyqtSignal(str)
     screenshot_signal = pyqtSignal(str)
     status_signal = pyqtSignal(str)
-    approval_signal = pyqtSignal(bool)
+    approval_signal = pyqtSignal(bool, bool) # (show, force_manual)
     speak_signal = pyqtSignal(str)
     auto_mic_signal = pyqtSignal(bool)
     finished_signal = pyqtSignal(dict)
@@ -145,8 +145,7 @@ class AgentWorker(QThread):
 
     def stop_persistent_session(self):
         self._is_running = False
-        if self.orchestrator and self.loop:
-            asyncio.run_coroutine_threadsafe(self.orchestrator.cleanup(), self.loop)
+        # Do not schedule cleanup here; the run() loop will handle it upon exit
         self.command_queue.put(None)
 
     def run(self):
@@ -164,6 +163,11 @@ class AgentWorker(QThread):
         except Exception as e:
             logger.error(f"AgentWorker Main Loop Error: {e}")
         finally:
+            if self.orchestrator and self.loop:
+                try:
+                    self.loop.run_until_complete(self.orchestrator.cleanup())
+                except Exception as e:
+                    logger.error(f"Cleanup during shutdown failed: {e}")
             self._shutdown_loop()
 
     def _shutdown_loop(self):
@@ -187,9 +191,12 @@ class AgentWorker(QThread):
 
             if "human_interaction_node" in next_nodes:
                 self.log_signal.emit(f"RESUMING TASK: {user_command}")
-                await self.orchestrator.app.update_state(
+                # REJECTION CHECK: Map negative user input to rejected status
+                decision = "rejected" if user_command.lower() in ["reject", "no", "stop", "abort", "cancel"] else "approved"
+                
+                self.orchestrator.app.update_state(
                     self.session_config, 
-                    {"messages": [("user", user_command)], "human_approval": "approved"}
+                    {"messages": [("user", user_command)], "human_approval": decision}
                 )
                 
                 async for event in self.orchestrator.app.astream(None, config=self.session_config):
@@ -207,7 +214,14 @@ class AgentWorker(QThread):
                 self.status_signal.emit("ANALYZING")
                 self.log_signal.emit(f"--- QUBRID-QWEN AUTONOMOUS TASK: {user_command.upper()} ---")
                 
-                # Prepend the system prompt to the message stack for the LLM
+                # Reset approval and security flags for the new task
+                self.orchestrator.security_locked = False
+                
+                self.orchestrator.app.update_state(
+                    self.session_config, 
+                    {"human_approval": None, "is_security_pause": False}
+                )
+
                 initial_input = {
                     "messages": [
                         ("system", self.SYSTEM_PROMPT), 
@@ -239,17 +253,30 @@ class AgentWorker(QThread):
         values = state_data.values or {}
         next_nodes = state_data.next or []
 
+        logger.info(f"🔍 AgentWorker: Checking interaction. Next nodes: {next_nodes}")
         if "human_interaction_node" in next_nodes:
+            # HARDENED: Check physical lock from orchestrator OR step status
+            is_sec = self.orchestrator.security_locked or values.get("current_step") == "AWAITING PAYMENT APPROVAL"
+            
             question = values.get("pending_question")
+            logger.info(f"🛡️ AgentWorker: INTERRUPT DETECTED. Security Pause: {is_sec}, Status: {values.get('current_step')}")
+            
             if question:
                 self.status_signal.emit("NEED HELP")
                 self.speak_signal.emit(question)
                 self.auto_mic_signal.emit(True) 
-            self.approval_signal.emit(True)
+            
+            # CRITICAL: Ensure the signal is sent to the UI with high priority
+            self.approval_signal.emit(True, bool(is_sec))
         else:
+            logger.info("🔍 AgentWorker: No human interaction node pending.")
             analysis = values.get("browser_context", {})
             if analysis.get("action_type") == "FINISHED":
-                self.status_signal.emit("COMPLETED")
+                if values.get("human_approval") == "rejected":
+                    self.status_signal.emit("ABORTED")
+                else:
+                    self.status_signal.emit("COMPLETED")
+                
                 voice_prompt = analysis.get("voice_prompt")
                 if voice_prompt:
                     self.speak_signal.emit(voice_prompt)
@@ -276,9 +303,16 @@ class AgentWorker(QThread):
         if not output: return
         if "screenshot" in output and output["screenshot"]:
             self.screenshot_signal.emit(output["screenshot"])
+        
+        # --- CONCISE PAUSE: Immediate UI Sync ---
+        is_sec = output.get("is_security_pause", False) or self.orchestrator.security_locked
+        if is_sec or output.get("current_step") == "AWAITING PAYMENT APPROVAL":
+            self.approval_signal.emit(True, True)
+
         if "current_step" in output:
             step_text = output["current_step"].upper()
             self.status_signal.emit(step_text)
+        
         if "pending_question" in output and output["pending_question"] and node_name == "autonomous_executor":
             if not AUTO_APPROVAL:
                 self.speak_signal.emit(output["pending_question"])
@@ -289,9 +323,12 @@ class AgentWorker(QThread):
 
     async def _resume_logic(self, approved: bool):
         decision = "approved" if approved else "rejected"
-        await self.orchestrator.app.update_state(self.session_config, {"human_approval": decision})
+        # RELEASE THE HARD LOCK
+        self.orchestrator.security_locked = False
+        
+        self.orchestrator.app.update_state(self.session_config, {"human_approval": decision})
         self.log_signal.emit(f"🛡️ USER INTERVENTION: {decision.upper()}")
-        self.approval_signal.emit(False)
+        self.approval_signal.emit(False, False)
         async for event in self.orchestrator.app.astream(None, config=self.session_config):
             if not self._is_running: return
             for node_name, output in event.items():

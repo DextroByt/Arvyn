@@ -210,8 +210,16 @@ class ArvynApp(ArvynOrb):
         self.dashboard.header.setText(f"ARVYN // {display_status}")
         self.status_label.setText(display_status)
 
-    def _toggle_approval_ui(self, show: bool):
+    def _toggle_approval_ui(self, show: bool, force_manual: bool = False):
         """Handles manual approval requests or auto-approval bypass."""
+        logger.info(f"🛡️ UI Approval Toggle: show={show}, force_manual={force_manual}")
+        # CONCISE PAUSE FEATURE: Override auto-approval for security fields
+        if show and force_manual:
+             self.dashboard.append_log("🛡️ SECURITY LOCK: Manual approval required for PIN/Payment.", category="kinetic")
+             self.dashboard.interaction_stack.setCurrentIndex(1)
+             self.activateWindow()
+             return
+
         if AUTO_APPROVAL and show:
             self.handle_hitl_approval(True)
             return

@@ -163,7 +163,15 @@ class ArvynDashboard(QFrame):
         self.visual_monitor.setStyleSheet("color: #555; font-size: 10px; font-weight: bold; letter-spacing: 1px;")
         layout.addWidget(self.visual_monitor)
 
-        # --- 3. Interaction Status ---
+
+        # --- 4. Semantic Log Area (Beneath Monitor) ---
+        self.log_area = QTextEdit()
+        self.log_area.setReadOnly(True)
+        self.log_area.setFixedHeight(140)
+        self.log_area.setPlaceholderText("Streaming precision autonomous logic...")
+        layout.addWidget(self.log_area)
+
+        # --- 3. Interaction Status (Repositioned above Command Bar) ---
         self.interaction_stack = QStackedWidget()
         self.interaction_stack.setFixedHeight(50)
 
@@ -181,7 +189,7 @@ class ArvynDashboard(QFrame):
         appr_lay.setContentsMargins(0, 0, 0, 0)
         appr_lay.setSpacing(12)
         
-        btn_appr = QPushButton("AUTHORIZE")
+        btn_appr = QPushButton("APPROVE") # Updated label
         btn_appr.setObjectName("BtnApprove")
         btn_appr.setFixedHeight(32)
         btn_appr.clicked.connect(lambda: self.approval_given.emit(True))
@@ -197,15 +205,6 @@ class ArvynDashboard(QFrame):
         self.interaction_stack.addWidget(self.status_container)
         self.interaction_stack.addWidget(self.approval_container)
         layout.addWidget(self.interaction_stack)
-
-        # --- 4. Semantic Log Area (Beneath Monitor) ---
-        self.log_area = QTextEdit()
-        self.log_area.setReadOnly(True)
-        self.log_area.setFixedHeight(140)
-        self.log_area.setPlaceholderText("Streaming precision autonomous logic...")
-        layout.addWidget(self.log_area)
-
-        layout.addStretch()
 
         # --- 5. Infused Command Bar ---
         cmd_container = QFrame()
@@ -314,14 +313,15 @@ class ArvynDashboard(QFrame):
             )
             self.visual_monitor.setPixmap(scaled_pixmap)
             
-            # Context-Aware Status Feedback
-            if STRICT_AUTONOMY_MODE:
-                status_txt = "AUTONOMOUS EXECUTION // SYNCED"
-                # Check for stabilization in recent logs
-                if "stabilizing" in self.log_area.toPlainText().lower().split('\n')[-2:]:
-                    status_txt = "STABILIZING UI FOR PRECISION..."
-                self.status_msg.setText(status_txt)
-            else:
-                self.status_msg.setText("LIVE MONITORING // PRECISION FEED")
+            # Context-Aware Status Feedback (Only if buttons aren't showing)
+            if self.interaction_stack.currentIndex() == 0:
+                if STRICT_AUTONOMY_MODE:
+                    status_txt = "AUTONOMOUS EXECUTION // SYNCED"
+                    # Check for stabilization in recent logs
+                    if "stabilizing" in self.log_area.toPlainText().lower().split('\n')[-2:]:
+                        status_txt = "STABILIZING UI FOR PRECISION..."
+                    self.status_msg.setText(status_txt)
+                else:
+                    self.status_msg.setText("LIVE MONITORING // PRECISION FEED")
         except Exception as e:
             self.append_log(f"Feed Synchronization Error: {e}", category="error")

@@ -46,8 +46,8 @@ class ArvynOrchestrator:
         self.session_log = []
         # Track repeated element interactions to apply scaling offsets
         self.interaction_attempts = {}
-        # Safety guard for ASK_USER loops
         self.consecutive_ask_count = 0
+        self.security_locked = False 
         
         logger.info(f"🚀 Arvyn Core v5.1: Autonomous Orchestrator (Hardened Sync) active.")
 
@@ -58,7 +58,8 @@ class ArvynOrchestrator:
                 # Increase recursion limit for complex autonomous graphs
                 self.app = self.workflow.compile(
                     checkpointer=checkpointer,
-                    recursion_limit=200
+                    recursion_limit=200,
+                    interrupt_before=["human_interaction_node"]
                 )
             except TypeError:
                 # Fallback if the compile signature doesn't accept recursion_limit
@@ -224,11 +225,32 @@ class ArvynOrchestrator:
             return {"current_step": "Discovery retry required..."}
 
     async def _node_autonomous_executor(self, state: AgentState) -> Dict[str, Any]:
-        """
-        Main autonomous loop using Qubrid/Qwen-VL.
-        ENHANCED: v5.1 Hardened Interaction utilizes direct DOM injection success signals.
-        FIXED: Coordinates are 'anchored' to elements via Browser-level Semantic Sync.
-        """
+        """Node for Deciding and Executing Actions (Zero-Auth mode optimized)."""
+        current_approval = state.get("human_approval")
+        
+        # --- CONCISE PAUSE: Rejection Guard ---
+        if current_approval == "rejected":
+            self._add_to_session_log("security", "🚫 Task rejection received. Terminating kinetic sequence.")
+            self.security_locked = False
+            return {
+                "current_step": "TASK ABORTED",
+                "browser_context": {"action_type": "FINISHED"},
+                "human_approval": "rejected",
+                "is_security_pause": False
+            }
+
+        # --- CONCISE PAUSE: Top-Level Security Lock Guard ---
+        if self.security_locked and current_approval != "approved":
+            return {
+                "screenshot": await self.browser.get_screenshot_b64() if self.browser.page else None,
+                "task_history": state.get("task_history", []),
+                "browser_context": {"action_type": "ASK_USER", "thought": "Security Lock active. Standing by for user authorization."},
+                "current_step": "AWAITING PAYMENT APPROVAL",
+                "pending_question": state.get("pending_question"),
+                "human_approval": None,
+                "is_security_pause": True 
+            }
+
         self._add_to_session_log("executor", "Observing UI state...")
         
         intent = state.get("intent")
@@ -342,6 +364,28 @@ class ArvynOrchestrator:
         current_history = history.copy()
         element_name = str(analysis.get("element_name", ""))
         input_text = str(analysis.get("input_text", ""))
+
+        # --- CONCISE PAUSE FEATURE: Security Field Detection ---
+        # Triggered for Payment Pins, Transaction Pins, UPI Pins, CVV, etc.
+        security_keywords = ['pin', 'transaction pin', 'upi pin', 'payment pin', 'cvv', 'card pin', 'security code']
+        ename_low = element_name.lower()
+        is_security_field = any(k in ename_low for k in security_keywords)
+        
+        # If it's a security field and not yet approved, we force an ASK_USER state
+        if is_security_field and current_approval != "approved":
+            # If already rejected earlier in the node, we shouldn't be here, but just in case:
+            if current_approval == "rejected":
+                 return {"browser_context": {"action_type": "FINISHED"}, "human_approval": "rejected"}
+            
+            self.security_locked = True
+            self._add_to_session_log("security", f"🛡️ CONCISE PAUSE: '{element_name}' detected. Awaiting User Approval...")
+            return {
+                "browser_context": {"action_type": "ASK_USER", "thought": f"Security-sensitive field detected: {element_name}."},
+                "current_step": "AWAITING PAYMENT APPROVAL",
+                "pending_question": f"Please Approve or Reject the use of your {element_name}.",
+                "human_approval": None,
+                "is_security_pause": True 
+            }
 
 
         if action_type in ["CLICK", "TYPE"]:
@@ -575,10 +619,20 @@ class ArvynOrchestrator:
                                     await self.browser.type_text(input_text)
                         elif any(k in ename for k in ("consumer", "consumer no", "consumer number", "mobile no", "mobile")):
                             # Use automation preference consumer_number when available
-                            if consumer_number:
-                                await self.browser.type_text(str(consumer_number))
+                            val_to_type = str(consumer_number) if consumer_number else str(input_text)
+                            
+                            # ANTI-HALLUCINATION: If the value looks like an address or contains letters where digits are expected
+                            is_address = "," in val_to_type or len(val_to_type.split()) > 3
+                            # Strict numeric check for specific fields
+                            is_not_numeric = any(c.isalpha() for c in val_to_type.replace("+", "").replace("-", "").replace(" ", "").replace(".", "")) 
+                            
+                            if is_address or is_not_numeric:
+                                self._add_to_session_log("brain", f"⚠️ HALLUCINATION GUARD: Value '{val_to_type}' (derived from '{input_text}') is invalid for '{element_name}'. Resetting field focus.")
+                                # Reset attempt count so it doesn't get stuck in ASK_USER loop immediately
+                                self.interaction_attempts[interaction_key] = 0
+                                success = False 
                             else:
-                                await self.browser.type_text(input_text)
+                                await self.browser.type_text(val_to_type)
                         else:
                             await self.browser.type_text(input_text)
 
@@ -591,25 +645,37 @@ class ArvynOrchestrator:
                     except Exception:
                         pass
                     
-                    # POST-ACTION DELAY: Allow DOM to update
-                    await asyncio.sleep(2.5)
-                    current_history.append({
-                        "action": action_type, 
-                        "element": element_name,
-                        "thought": analysis.get("thought")
-                    })
-                    
-                    # Interaction successful; reset attempts for this specific chain
-                    if len(history) > 0 and history[-1].get("element") != element_name:
-                        self.interaction_attempts = {interaction_key: 1}
-                else:
-                    self._add_to_session_log("kinetic", "ERROR: Kinetic registration failed. Recalibrating logic...")
+                    if success:
+                        # POST-ACTION DELAY: Allow DOM to update
+                        await asyncio.sleep(2.5)
+                        self._add_to_session_log("kinetic", f"Action successful: {action_type} on {element_name}")
+                        # Interaction successful; reset lock and attempts
+                        self.security_locked = False # RELEASE THE LOCK
+                        if len(history) > 0 and history[-1].get("element") != element_name:
+                            self.interaction_attempts = {}
+                        
+                        # Return state with updated history and reset approval
+                        return {
+                            "screenshot": await self.browser.get_screenshot_b64(),
+                            "task_history": current_history + [{
+                                "action": action_type, 
+                                "element": element_name, 
+                                "thought": analysis.get("thought")
+                            }],
+                            "browser_context": analysis,
+                            "current_step": f"Executed {action_type} on {element_name}.",
+                            "pending_question": None,
+                            "human_approval": None,
+                            "is_security_pause": False # Reset the flag
+                        }
+                    else:
+                        self._add_to_session_log("kinetic", "ERROR: Kinetic registration failed. Recalibrating logic...")
 
                 # Post-click navigation enforcement: if intent was PAY_BILL but page contains 'gold', recover
                 # Legacy "Gold" detection removed to allow pure VLM autonomy.
                 pass
 
-        elif action_type == "FINISHED":
+        if action_type == "FINISHED":
             self.consecutive_ask_count = 0
             self._add_to_session_log("executor", "✅ Task completed successfully.")
         
@@ -622,14 +688,32 @@ class ArvynOrchestrator:
             "browser_context": analysis,
             "current_step": str(analysis.get("thought", "Advancing autonomous workflow...")),
             "pending_question": analysis.get("voice_prompt") if action_type == "ASK_USER" else None,
-            "human_approval": "approved"
+            "human_approval": state.get("human_approval"), # REMOVED DEFAULT "approved"
+            "is_security_pause": state.get("is_security_pause", False)
         }
 
     async def _node_wait_for_user(self, state: AgentState) -> Dict[str, Any]:
-        """Breakpoint node for manual intervention."""
-        return {"current_step": "Resuming autonomous execution...", "human_approval": "approved"}
+        """Breakpoint node for manual intervention (Concise Pause handling)."""
+        approval = state.get("human_approval")
+        if approval == "rejected":
+            self._add_to_session_log("security", "🚫 Task rejected by user. Terminating current session.")
+            return {
+                "current_step": "TASK ABORTED", 
+                "browser_context": {"action_type": "FINISHED"},
+                "human_approval": "rejected"
+            }
+        
+        return {"current_step": "Authorization received. Resuming...", "human_approval": "approved"}
 
     def _decide_next_step(self, state: AgentState) -> Literal["continue_loop", "ask_user", "finish_task"]:
+        # PRIORITY: Termination on Rejection
+        if state.get("human_approval") == "rejected":
+            return "finish_task"
+
+        # PRIORITY: Concise Pause for Security or Lock
+        if state.get("is_security_pause") or self.security_locked:
+            return "ask_user"
+
         analysis = state.get("browser_context", {})
         action_type = analysis.get("action_type")
         
