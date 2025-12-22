@@ -43,7 +43,7 @@ logger = logging.getLogger("ArvynConfig")
 class Config:
     """
     Central configuration for Agent Arvyn.
-    UPGRADED: v5.0 - Semantic Kinetic Engine (Hidden DOM Sync).
+    UPGRADED: v5.0 - Semantic Kinetic Engine (Hidden Sync).
     FEATURES: Full-Autonomy (Zero-Authorization) and Hyper-Precision Sync.
     IMPROVED: Integration with Qubrid Multimodal Chat endpoint (Qwen3-VL).
     """

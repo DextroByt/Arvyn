@@ -91,7 +91,7 @@ class ArvynApp(ArvynOrb):
         
         self.dashboard.append_log(f"SYSTEM: Environment Verified. Engine: {QUBRID_MODEL_NAME}", category="system")
         self.dashboard.append_log(f"SYSTEM: Semantic Kinetic Engine: v5.0 Focus-Lock Active.", category="system")
-        self.dashboard.append_log(f"KINETIC: Hidden DOM manipulation & Visual Sync ENABLED.", category="kinetic")
+        self.dashboard.append_log(f"KINETIC: Visual Sync ENABLED.", category="kinetic")
 
     def _connect_worker_signals(self):
         """Maps backend worker signals to Dashboard UI updates."""
