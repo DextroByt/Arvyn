@@ -55,11 +55,16 @@ class QwenBrain:
                 try:
                     # Construct multimodal payload compatible with Qwen-VL architecture
                     content = [{"type": "text", "text": prompt}]
+                    
+                    # Validate Image Data
                     if image_data:
-                        content.append({
-                            "type": "image_url",
-                            "image_url": {"url": f"data:image/png;base64,{image_data}"}
-                        })
+                        if len(image_data) > 100: # Simple sanity check for valid base64 length
+                            content.append({
+                                "type": "image_url",
+                                "image_url": {"url": f"data:image/png;base64,{image_data}"}
+                            })
+                        else:
+                            logger.warning("[BRAIN] Screenshot data appears invalid/empty. sending text-only request.")
                     
                     messages = [{"role": "user", "content": content}]
                     payload = {
@@ -79,7 +84,11 @@ class QwenBrain:
                         await asyncio.sleep(wait_time)
                         continue
                         
-                    response.raise_for_status()
+                    if response.is_error:
+                        error_body = response.text
+                        logger.error(f"[API ERROR] Status: {response.status_code}, Body: {error_body}")
+                        response.raise_for_status()
+
                     data = response.json()
                     
                     if 'choices' in data and len(data['choices']) > 0:

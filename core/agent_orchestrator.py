@@ -133,6 +133,13 @@ class ArvynOrchestrator:
                     self._add_to_session_log("intent_parser", "Rule-based override: Forcing action to UPDATE_PROFILE")
                     intent_dict['action'] = 'UPDATE_PROFILE'
 
+            # BUY GOLD OVERRIDE
+            if 'gold' in text_norm and any(k in text_norm for k in ['buy', 'purchase', 'invest']):
+                if intent_dict.get('action') != 'BUY_GOLD':
+                    self._add_to_session_log("intent_parser", "Rule-based override: Forcing action to BUY_GOLD")
+                    intent_dict['action'] = 'BUY_GOLD'
+                    intent_dict['target'] = 'COMMODITY'
+
             if intent_dict.get('action') == 'CLARIFY':
                 self._add_to_session_log("intent_parser", "Input ambiguous or meaningless. Requesting clarification.")
                 return {"current_step": "Clarification required.", "intent": None}
@@ -167,6 +174,56 @@ class ArvynOrchestrator:
 
                 # Sync back to the intent dictionary to ensure consistent tracking
                 intent_dict['fields_to_update'] = fields
+
+            # --- AMOUNT VALIDATION GUARD ---
+            # Strictly enforce non-negative, non-zero amounts for transaction commands.
+            target_amount = intent_dict.get('amount')
+            
+            # If amount is present, validate it
+            if target_amount:
+                try:
+                    # Clean currency symbols if any
+                    clean_amt = str(target_amount).replace(",", "").replace("$", "").replace("₹", "").strip()
+                    val = float(clean_amt)
+                    if val <= 0:
+                        self._add_to_session_log("intent_parser", f"🛑 INVALID AMOUNT: {val}. Terminating.")
+                        return {
+                            "browser_context": {"action_type": "FINISHED"}, 
+                            "current_step": "TASK_ABORTED_INVALID_AMOUNT",
+                            "human_approval": "rejected",
+                            "pending_question": "The amount cannot be negative or zero. Please enter a positive number."
+                        }
+                except ValueError:
+                    pass # If not a number, maybe it's "full bill" etc. let it pass or handle deeper.
+
+            # Heuristic: If command implies spending but no amount is captured
+            cmd_lower = content.lower()
+            if 'buy' in cmd_lower or 'purchase' in cmd_lower:
+                if 'gold' in cmd_lower or 'fund' in cmd_lower:
+                    # If regex finds a negative number in text, reject immediately even if LLM missed it
+                    import re
+                    neg_match = re.search(r'-\d+', content)
+                    if neg_match:
+                         self._add_to_session_log("intent_parser", f"🛑 NEGATIVE VALUE DETECTED: {neg_match.group(0)}. Terminating.")
+                         return {
+                            "browser_context": {"action_type": "FINISHED"}, 
+                            "current_step": "TASK_ABORTED_INVALID_AMOUNT",
+                            "human_approval": "rejected",
+                            "pending_question": "Negative values are not allowed. Please enter a valid positive amount."
+                        }
+                    
+                    # If no amount found at all for gold purchase, reject
+                    if not target_amount:
+                        # Simple integer check in text to see if user provided one
+                        has_num = re.search(r'\d+', content)
+                        if not has_num:
+                            self._add_to_session_log("intent_parser", f"🛑 MISSING AMOUNT. Terminating.")
+                            return {
+                                "browser_context": {"action_type": "FINISHED"}, 
+                                "current_step": "TASK_ABORTED_MISSING_AMOUNT",
+                                "human_approval": "rejected",
+                                "pending_question": "Please specify the amount you wish to purchase."
+                            }
 
             provider = intent_dict.get('provider', 'Rio Finance Bank')
             self._add_to_session_log("intent_parser", f"Target Locked: {provider}")
@@ -389,24 +446,82 @@ class ArvynOrchestrator:
              # Assume non-login passwords might be transaction passwords
              is_security_field = True
         
-        # --- REPEATED ACTION GUARD: Prevent Infinite Security Loops ---
-        # If we successfully injected a PIN in the last step, but the VLM sees it again, 
-        # it forces a loop. We must override this and look for a submit/continue button.
         if is_security_field and history and history[-1].get('action') == 'TYPE':
             last_el = history[-1].get('element', '').lower()
-            # Fuzzy match: "Transaction PIN" vs "Enter PIN" etc.
-            if element_name.lower() in last_el or last_el in element_name.lower() or 'pin' in last_el:
-                 self._add_to_session_log("brain", "⚠️ RECURSION GUARD: Security Field already filled. Forcing 'Submit'.")
-                 # Override VLM decision
-                 action_type = "CLICK"
-                 # HEURISTIC: Guess common submit names
-                 element_name = "Submit" 
-                 # We can try to be smarter or just rely on text fallback ("Pay", "Continue", etc)
-                 # Ideally we should ask the browser to find "Pay" or "Submit" but we can just set the intent
-                 # and let the existing text-finding logic handle "Submit" if coordinates fail?
-                 # Actually, let's keep it simple: "Submit" often works on these forms.
-                 # Or "Pay Now".
-                 is_security_field = False # Bypass security lock for this corrective action
+            last_thought = history[-1].get('thought', '').lower()
+            
+            # AGGRESSIVE GUARD: If we just typed a PIN/Password, we MUST click Submit next.
+            # Even if the VLM thinks we need to type again, we override it.
+            if 'pin' in last_el or 'password' in last_el or 'code' in last_el or 'security' in last_thought:
+                 self._add_to_session_log("brain", "⚠️ RECURSION GUARD: Security Field recently typed. Searching for Submit/Pay button...")
+                 
+                 # Try a list of common payment confirmation buttons
+                 candidates = ["Pay", "Pay Now", "Submit", "Confirm", "Verify", "Proceed", "Continue", "Make Payment"]
+                 clicked_btn = None
+                 for btn_text in candidates:
+                     try:
+                         # Use fuzzy text matching if possible, or exact
+                         if await self.browser.find_and_click_text(btn_text):
+                             clicked_btn = btn_text
+                             break
+                     except Exception:
+                         pass
+                 
+                 if clicked_btn:
+                     self._add_to_session_log("kinetic", f"Recursion Guard: Successfully clicked '{clicked_btn}'.")
+                     # Return success state immediately to break the loop
+                     return {
+                        "screenshot": await self.browser.get_screenshot_b64(),
+                        "task_history": current_history + [{"action": "CLICK", "element": clicked_btn, "thought": "Recursion Guard Force-Click"}],
+                        "browser_context": analysis,
+                        "current_step": f"Submitted transaction via '{clicked_btn}'.",
+                        "pending_question": None,
+                        "human_approval": None,
+                        "is_security_pause": False
+                    }
+                 else:
+                     self._add_to_session_log("kinetic", "Recursion Guard: Could not find strict text match for Pay/Submit. Attempting partials...")
+                     # If exact match failed, try to evaluate JS to find any button with "pay" or "submit" in text
+                     js_code = """
+                     () => {
+                        const buttons = Array.from(document.querySelectorAll('button, a, input[type="submit"], div[role="button"]'));
+                        const candidates = ['pay', 'submit', 'confirm', 'verify', 'proceed'];
+                        for (let btn of buttons) {
+                            if (btn.innerText && candidates.some(c => btn.innerText.toLowerCase().includes(c))) {
+                                btn.click();
+                                return btn.innerText;
+                            }
+                        }
+                        return null;
+                     }
+                     """
+                     try:
+                         res = await self.browser.page.evaluate(js_code)
+                         if res:
+                             self._add_to_session_log("kinetic", f"Recursion Guard: JS Force-Clicked button containing '{res}'.")
+                             return {
+                                "screenshot": await self.browser.get_screenshot_b64(),
+                                "task_history": current_history + [{"action": "CLICK", "element": res, "thought": "Recursion Guard JS-Click"}],
+                                "browser_context": analysis,
+                                "current_step": f"Submitted transaction via '{res}'.",
+                                "pending_question": None,
+                                "human_approval": None,
+                                "is_security_pause": False
+                            }
+                     except Exception:
+                         pass
+
+                 self._add_to_session_log("error", "Recursion Guard: Failed to locate Submit button. Skipping step to force refresh.")
+                 # If we can't click submit, we shouldn't just type again. We return a 'WAIT' state to force a fresh analysis without typing.
+                 return {
+                    "screenshot": await self.browser.get_screenshot_b64(),
+                    "task_history": current_history,
+                    "browser_context": analysis, # keep context
+                    "current_step": "Waiting for screen update...",
+                    "pending_question": None,
+                    "human_approval": None,
+                    "is_security_pause": False
+                 }
 
         # If it's a security field and not yet approved, we force an ASK_USER state
         if is_security_field and current_approval != "approved":
